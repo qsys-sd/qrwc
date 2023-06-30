@@ -2,7 +2,14 @@
   "name": "@qsys/control-connect",
   "version": "0.1.0-alpha",
   "description": "Interface software for qsys controls.",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "engines": {
+    "node": ">14"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,5 +18,9 @@
     "url": "https://bitbucket.qsc.com/scm/sandbox/control-connect.git"
   },
   "author": "Devin Kapla",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "typescript": "^5.1.6"
+  }
 }
