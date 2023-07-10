@@ -1,5 +1,5 @@
 {
-  "name": "@qsys/control-connect",
+  "name": "control-connect",
   "version": "0.1.0-alpha",
   "description": "Interface software for qsys controls.",
   "main": "dist/index.js",
@@ -11,6 +11,8 @@
     "node": ">14"
   },
   "scripts": {
+    "prepare": "npm run build-ts",
+    "build-ts": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
