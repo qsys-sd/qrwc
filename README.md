@@ -27,7 +27,7 @@
 
 ### Tech
 
-* >14 Node
+* 14 Node or higher
 * Typescript
 
 ### Some considerations ###
