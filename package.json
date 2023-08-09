@@ -24,6 +24,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^29.5.3",
+    "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
     "eslint": "^8.46.0",
@@ -31,6 +32,7 @@
     "mock-socket": "^9.2.1"
   },
   "dependencies": {
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "uuid": "^9.0.0"
   }
 }

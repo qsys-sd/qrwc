@@ -1,11 +1,23 @@
 export interface IQrccOptions {
   url: string
   pollInterval?: number
+  controls?: IControl[]
 }
 
-export interface IQrcc {
-  getReadyState(): number | string
-  send(data: object): void
-  connect(): void
-  close(code?: number, reason?: string): void
+export interface IControl {
+  Name: string,
+  Value: string | number | boolean,
+  String?: string,
+  Position?: number 
+}
+
+// export interface Component { // TODO: determine if this is needed
+//   ID: string,
+//   Name: string,
+//   Type: string,
+// }
+
+export interface IChangeGroup {
+  Id: string,
+  Controls: string[]
 }
