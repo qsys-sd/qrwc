@@ -2,40 +2,53 @@ import Qrcc from '.'
 import { Server } from 'mock-socket'
 
 describe('Qrcc', () => {
-  let mockQrcc: Qrcc
-  let mockServer: Server
-
-  beforeEach(() => {
-    const mockIp = 'localhost:8080'
-    mockServer = new Server(`ws://${mockIp}/qrc`)
-
-    // Create the Qrcc instance
-    mockQrcc = new Qrcc({ ip: mockIp})
-  })
-
-  afterEach(() => {
-    // Clean up the server after each test
-    mockServer.close()
-  })
+  const mockUrl = 'ws://localhost:8080/qrc'
 
   test('websocket should not be connected by default', () => {
+    // Create the mock server
+    const mockServer = new Server(mockUrl)
+
+    // Create the Qrcc instance
+    const mockQrcc = new Qrcc({ url: mockUrl})
+
     // Check that the WebSocket is not open
     expect(mockQrcc.getReadyState()).toBe('NOT_INITIALIZED')
+
+    // Stop the mock server
+    mockServer.stop()
   })
 
   test('connect method should establish WebSocket connection', async () => {
+    // Create the mock server
+    const mockServer = new Server(mockUrl)
+
+    // Create the Qrcc instance
+    const mockQrcc = new Qrcc({ url: mockUrl})
+
     // Check that the WebSocket is not open
     expect(mockQrcc.getReadyState()).toBe('NOT_INITIALIZED')
 
     // Connect Qrcc to the mock server
-    await mockQrcc.connect()
+    mockQrcc.connect()
 
     // Wait for the connection to be established
     await new Promise(resolve => {
       mockServer.on('connection', resolve)
     })
 
+    // Check that the WebSocket is open
     expect(mockQrcc.getReadyState()).toBe(WebSocket.OPEN)
+
+    // Close the WebSocket connection
+    mockQrcc.close()
+
+    // Wait for close event to be emitted
+    await new Promise(resolve => {
+      mockServer.on('close', resolve)
+    })
+
+    // Stop the mock server
+    mockServer.stop()
   })
 
   // Other tests to come...

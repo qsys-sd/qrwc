@@ -1,8 +1,9 @@
-export interface WebSocketHandlerOptions {
-  ip: string
+export interface IQrccOptions {
+  url: string
+  pollInterval?: number
 }
 
-export interface IWebSocketHandler {
+export interface IQrcc {
   getReadyState(): number | string
   send(data: object): void
   connect(): void

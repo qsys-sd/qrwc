@@ -1,27 +1,34 @@
-import { WebSocketHandlerOptions, IWebSocketHandler } from './index.interface'
+import { IQrcc, IQrccOptions } from "./index.interface"
 
-export default class Qrcc implements IWebSocketHandler {
-  private ip: string
+export default class Qrcc implements IQrcc {
+  private url: string
   private websocket: WebSocket | null = null
+  private socketPollId: number
+  pollChangeGroup: string
+  pollInterval: number = 35
 
-  constructor(options: WebSocketHandlerOptions) {
-    this.ip = options.ip
+  constructor(options: IQrccOptions) {
+    this.url = options.url
+    this.pollInterval = options.pollInterval
+    this.socketPollId = 1
+    this.pollChangeGroup = 'ChangeGroup.Poll'
   }
 
   // private methods for internal use
 
+  private isOpen = () => this.websocket.readyState === WebSocket.OPEN
+
   private setupWebSocket(): void {
-    if (!this.websocket) {
-      this.websocket = new WebSocket(`ws://${this.ip}/qrc`)
-      this.websocket.onopen = this.onOpen
-      this.websocket.onmessage = this.onMessage
-      this.websocket.onerror = this.onError
-      this.websocket.onclose = this.onClose
-    }
+      this.websocket = new WebSocket(this.url)
+      this.websocket.onopen = this.onOpen.bind(this)
+      this.websocket.onmessage = this.onMessage.bind(this)
+      this.websocket.onerror = this.onError.bind(this)
+      this.websocket.onclose = this.onClose.bind(this)
   }
 
   private onOpen(): void {
     console.log("WebSocket connection established.")
+    setInterval(() => this.poll(), this.pollInterval)
   }
 
   private onMessage(event: MessageEvent): void {
@@ -35,6 +42,18 @@ export default class Qrcc implements IWebSocketHandler {
 
   private onClose(event: CloseEvent): void {
     console.log("WebSocket connection closed:", event.code, event.reason)
+    this.websocket = null
+  }
+
+  private poll(): void {
+    if (this.isOpen) return
+      const message = {
+        jsonRpc: "2.0",
+        socketPollId: this.socketPollId,
+        method: this.pollChangeGroup
+      }
+      this.websocket.send(JSON.stringify(message))
+      this.socketPollId++
   }
 
   // public methods that can call private handlers
@@ -47,16 +66,16 @@ export default class Qrcc implements IWebSocketHandler {
     }
   }
 
-  public async connect(): Promise<void> {
+  public connect(): void {
     if (this.websocket === null) {
-      await this.setupWebSocket()
+      this.setupWebSocket()
     } else {
       console.warn("WebSocket connection is already established.")
     }
   }
 
   public send(data: object): void {
-    if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+    if (this.isOpen()) {
       this.websocket.send(JSON.stringify(data))
     } else {
       console.error("WebSocket is not open or not initialized.")
@@ -64,9 +83,8 @@ export default class Qrcc implements IWebSocketHandler {
   }
 
   public close(code?: number, reason?: string): void {
-    if (this.websocket) {
+    if (this.isOpen) {
       this.websocket.close(code, reason)
-      this.websocket = null
     }
   }
 }
