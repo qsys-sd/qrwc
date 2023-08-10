@@ -12,12 +12,14 @@ export default class Qrcc {
   changeGroups: IChangeGroup[] = []
   componentList: string[] = []
   controls: IControl[] = []
+  autoStart: boolean = false
 
   constructor(options: IQrccOptions) {
     this.url = options.url
     this.pollInterval = options.pollInterval
-    this.websocket = new WebSocket(this.url)
-    this.setupWebSocket()
+    this.autoStart = options.autoStart
+    this.controls = options.controls
+    this.checkAutoStart(options.autoStart)
   }
 
   // private methods for internal use
@@ -27,6 +29,7 @@ export default class Qrcc {
   }
 
   private setupWebSocket(): void {
+    this.websocket = new WebSocket(this.url)
     this.websocket.onopen = this.onOpen.bind(this)
     this.websocket.onmessage = this.onMessage.bind(this)
     this.websocket.onerror = this.onError.bind(this)
@@ -35,22 +38,31 @@ export default class Qrcc {
 
   private onOpen(): void {
     console.log("WebSocket connection established.")
-    this.getComponents()
+    if (this.autoStart) {
+      this.getComponents()
+    } else {
+      console.warn("AutoStart is disabled. You must sumbit your own controls.")
+    }
   }
 
   private onMessage(event: MessageEvent): void {
     const data = JSON.parse(event.data)
     console.log("Received message:", data)
+
     if (data.id === this.componentsGetId) {
-      data.result.forEach((component: any) => {
-        this.componentList = [...this.componentList, component.Name]
-      })
-      this.getControls()
-      this.componentsGetId = ""
+      this.handleComponentGetResponse(data)
     }
     if (this.controlGetIds.includes(data.id)) {
       this.handleControlGetResponse(data)
     }
+  }
+
+  private handleComponentGetResponse(data: any) {
+    data.result.forEach((component: any) => {
+      this.componentList = [...this.componentList, component.Name]
+    })
+    this.getControls()
+    this.componentsGetId = ""
   }
 
   private handleControlGetResponse(data: any) {
@@ -65,6 +77,12 @@ export default class Qrcc {
   private onClose(event: CloseEvent): void {
     console.log("WebSocket connection closed:", event.code, event.reason)
     this.websocket = null
+  }
+
+  private checkAutoStart(autoStart: boolean) {
+    if (autoStart) {
+      this.connect()
+    }
   }
 
   private getComponents(): void {

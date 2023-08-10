@@ -1,7 +1,8 @@
 export interface IQrccOptions {
   url: string
   pollInterval?: number
-  controls?: IControl[]
+  controls?: IControl[] // eventual use case: pass in controls to be polled
+  autoStart?: boolean 
 }
 
 export interface IControl {
