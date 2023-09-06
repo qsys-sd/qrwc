@@ -42,7 +42,23 @@
 * `npm run test`
 
 ### Implementation and use ###
-* WIP
+* `import Qrcc from 'control-connect'`
+* Auto Start functionality for finding 'scriptable controls' from the design
+  * Whencreating the new instance use `const cc = new Qrcc({ url: 'ws://{core-ip}/qrc', autoStart: true })`
+  * Now on your FE project you should be able to access `cc.controls`
+  * This should house all scriptable controls available on your design
+  * Example control object... 
+    ```
+    {
+      Direction: "Read/Write",
+      Name: "momentary.1",
+      Position: 0,
+      String: "false",
+      Type: "Boolean",
+      Value: false
+    }
+    ```
+* Still a WIP
 
 ### Who do I talk to? ###
 * Devin Kapla (Devin.Kapla@qsc.com)
