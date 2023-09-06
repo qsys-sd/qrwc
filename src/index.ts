@@ -68,11 +68,11 @@ export default class Qrcc {
   private handleControlGetResponse(data: any) {
     console.log("handleControlGetResponse", data)
     if (data.result.Controls) {
-      console.log("setting control", data.result.Controls)
       this.controls = [...this.controls, ...data.result.Controls]
     } else if (data.result) {
-      console.log("setting control", data.result)
       this.controls = [...this.controls, data.result]
+    } else {
+      console.error("No controls found in response.")
     }
     
     this.controlGetIds = this.controlGetIds.filter((id: string) => id !== data.id)
