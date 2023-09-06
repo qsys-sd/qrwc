@@ -66,7 +66,6 @@ export default class Qrcc {
   }
 
   private handleControlGetResponse(data: any) {
-    console.log("handleControlGetResponse", data)
     if (data.result.Controls) {
       this.controls = [...this.controls, ...data.result.Controls]
     } else if (data.result) {
