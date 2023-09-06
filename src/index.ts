@@ -11,14 +11,14 @@ export default class Qrcc {
   readonly pollInterval: number = 3000
   changeGroups: IChangeGroup[] = []
   componentList: string[] = []
-  controls: IControl[] = []
+  controls: IControl[]
   autoStart: boolean = false
 
   constructor(options: IQrccOptions) {
     this.url = options.url
     this.pollInterval = options.pollInterval
     this.autoStart = options.autoStart
-    this.controls = options.controls
+    this.controls = options.controls || []
     this.checkAutoStart(options.autoStart)
   }
 
@@ -66,7 +66,15 @@ export default class Qrcc {
   }
 
   private handleControlGetResponse(data: any) {
-    this.controls = [...this.controls, data.result]
+    console.log("handleControlGetResponse", data)
+    if (data.result.Controls) {
+      console.log("setting control", data.result.Controls)
+      this.controls = [...this.controls, ...data.result.Controls]
+    } else if (data.result) {
+      console.log("setting control", data.result)
+      this.controls = [...this.controls, data.result]
+    }
+    
     this.controlGetIds = this.controlGetIds.filter((id: string) => id !== data.id)
   }
 
