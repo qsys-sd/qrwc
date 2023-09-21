@@ -1,24 +1,34 @@
 export interface IQrccOptions {
   url: string
   pollInterval?: number
-  controls?: IControl[] // eventual use case: pass in controls to be polled
-  autoStart?: boolean 
+  autoStart?: boolean
 }
 
 export interface IControl {
-  Name: string,
-  Value: string | number | boolean,
-  String?: string,
-  Position?: number 
+  Name: string
+  Value: string | number | boolean
+  String?: string
+  Position?: number
 }
 
-// export interface Component { // TODO: determine if this is needed
-//   ID: string,
-//   Name: string,
-//   Type: string,
-// }
+export interface IComponent {
+  [key: string]: IControl[]
+}
+
+export interface IResultComponent {
+  Name: string
+  Controls: IControl[]
+}
 
 export interface IChangeGroup {
-  Id: string,
+  Id: string
   Controls: string[]
+}
+
+export interface IComponentChangeGroup {
+  Id: string
+  Component: {
+    Name: string
+    Controls: { Name: string }[]
+  }
 }
