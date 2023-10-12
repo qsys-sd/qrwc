@@ -4,12 +4,12 @@ import { EventManager } from "..";
 
 export default class WebSocketManager {
   private readonly url: string;
-  private readonly pollInterval: number = 500;
+  private pollInterval: number;
   private socket: WebSocket | null = null;
   private socketPollId: number = 1;
   eventManager: EventManager;
 
-  constructor(url: string, pollInterval: number, eventManager: EventManager) {
+  constructor(url: string, pollInterval: number = 500, eventManager: EventManager) {
 
     this.url = url;
     this.pollInterval = pollInterval;
