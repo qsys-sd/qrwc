@@ -2,6 +2,7 @@ export interface IQrccOptions {
   url: string
   pollInterval?: number
   autoStart?: boolean
+  components?: IComponent[]
 }
 
 export interface IControl {
@@ -9,13 +10,10 @@ export interface IControl {
   Value: string | number | boolean
   String?: string
   Position?: number
+  Type?: string
 }
 
 export interface IComponent {
-  [key: string]: IControl[]
-}
-
-export interface IResultComponent {
   Name: string
   Controls: IControl[]
 }
@@ -31,4 +29,11 @@ export interface IComponentChangeGroup {
     Name: string
     Controls: { Name: string }[]
   }
+}
+
+export interface IChangeRequest {
+  id: string
+  component: string
+  control: string
+  controlType: string
 }

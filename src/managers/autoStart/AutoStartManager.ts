@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrccEvents } from "../../constants"
 import { createJSONRPCMessage } from "../../utils"
-import { IResultComponent } from "../../index.interface"
+import { IComponent } from "../../index.interface"
 import { WebSocketManager, ControlManager, EventManager } from ".."
 
 export default class AutoStartManager {
@@ -122,7 +122,7 @@ export default class AutoStartManager {
   }
 
   // a method for handling getControls response
-  private handleControlGetResponse(result: IResultComponent, id: string) {
+  private handleControlGetResponse(result: IComponent, id: string) {
     // check if the results has "Name" and "Controls" populated
     if (result?.Name && result?.Controls) {
       // add component to this.components in ControlManager

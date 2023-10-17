@@ -1,9 +1,10 @@
 import { AutoStartManager, WebSocketManager, ControlManager, EventManager } from "../managers"
-import { IComponent, IQrccOptions } from "../index.interface"
+import { IComponent, IControl, IQrccOptions } from "../index.interface"
+import { qrccEvents } from "../constants"
 
 export default class Qrcc {
   private webSocketManager: WebSocketManager
-  public components: IComponent = {}
+  public components: IComponent[] = []
   autoStartManager: AutoStartManager | null = null
   controlManager: ControlManager
   eventManager: EventManager
@@ -21,6 +22,10 @@ export default class Qrcc {
       : null
 
     // event listeners
+    this.eventManager.on(qrccEvents.componentUpdated, (component: any) => {
+      // update components
+      this.components = this.controlManager.components
+    })
   }
 
   public connect(): void {
@@ -37,5 +42,13 @@ export default class Qrcc {
 
   public close(): void {
     this.webSocketManager.close()
+  }
+
+  public setComponent(componentName: string, controlName: string, controlValues: Omit<IControl, 'Name'>): void {
+    this.controlManager.setComponent(componentName, controlName, controlValues)
+  }
+
+  public on(eventName: string, listener: (...args: any[]) => void): void {
+    this.eventManager.on(eventName, listener)
   }
 }

@@ -21,5 +21,6 @@ export const qrccEvents = {
   controlsRecieved: "controlsReceived",
   componentsRecieved: "componentsReceived",
   componentUpdated: "componentUpdated",
+  changeRequestSuccessful: "changeRequestSuccessful",
   componentChangeGroupCreated: "componentChangeGroupCreated"
 }
