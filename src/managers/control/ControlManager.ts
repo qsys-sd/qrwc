@@ -5,7 +5,7 @@ import { EventManager, WebSocketManager } from ".."
 import { createJSONRPCMessage } from "../../utils"
 
 export default class ControlManager {
-  public components: IComponent[] = []
+  public components: IComponent = {}
   private changeGroups: { [changeGroupId: string]: string[] } = {}
   private requestChangeGroupId: string = ""
   private changeGroupRequests: string[] = []
@@ -22,6 +22,17 @@ export default class ControlManager {
     this.eventManager.on(qrccEvents.message, (message: MessageEvent) => {
       this.parseMessage(message)
     })
+  }
+
+  // a method for attaching the websocket manager
+  public attachWebSocket(websocketManager: WebSocketManager): void {
+    // check if websocketManager is defined
+    if (this.websocketManager) {
+      throw new Error("WebSocketManager is already defined")
+    }
+
+    // attach websocketManager
+    this.websocketManager = websocketManager
   }
 
   // a method for parsing messages
@@ -58,35 +69,20 @@ export default class ControlManager {
   private handleChanges(changes: any): void {
     // if changes is empty, return
     if (changes.length === 0) return
-
     // iterate through changes
     changes.forEach((change: any) => {
       // check if change is a component
       if (change.Component) {
-        // create & format component for JSON RPC message
-        const componentFromChange = {
-          Name: change.Component,
-          Controls: [
-            {
-              Name: change.Name,
-              Value: change.Value,
-              Position: change.Position,
-              String: change.String
-            }
-          ]
+        // create & format updated control
+        const updatedControl = {
+          Name: change.Name,
+          Value: change.Value,
+          Position: change.Position,
+          String: change.String
         }
 
-        // does the component already exist?
-        const existingComponent = this.findComponentByName(componentFromChange.Name)
-
-        // if component already exists, update component
-        if (existingComponent) {
-          // update component
-          this.updatedControls(existingComponent, componentFromChange)
-        } else {
-          // add component
-          this.addComponent(componentFromChange)
-        }
+        // update controls
+        this.updateControls(updatedControl, change.Component, change.Name)
       }
     })
   }
@@ -152,34 +148,6 @@ export default class ControlManager {
     })
   }
 
-  // a method for finding a component by name
-  public findComponentByName(componentName: string): IComponent | undefined {
-    // find component
-    const component = this.components.find(
-      (component: IComponent) => component.Name === componentName
-    )
-
-    // return component
-    return component
-  }
-
-  // a method for getting a control by name
-  public getControlByName(
-    componentName: string,
-    controlName: string
-  ): IControl | undefined {
-    // find component
-    const component = this.findComponentByName(componentName)
-
-    // find control
-    const control = component?.Controls.find(
-      (control: IControl) => control.Name === controlName
-    )
-
-    // return control
-    return control
-  }
-
   // a method for adding components to change groups
   private addComponentToChangeGroup(
     componentName: string,
@@ -190,15 +158,19 @@ export default class ControlManager {
     // add request id to changeGroupRequests
     this.changeGroupRequests = [...this.changeGroupRequests, requestId]
 
-    //find component
-    const component = this.findComponentByName(componentName)
+    // create control names array of objects
+    const controlNames = Object.keys(this.components[componentName]).map(
+      (controlName: string) => {
+        return { Name: controlName }
+      }
+    )
 
     // create & format component for message
     const newComponent = {
       Id: changeGroupId,
       Component: {
         Name: componentName,
-        Controls: component?.Controls
+        Controls: controlNames
       }
     }
 
@@ -213,82 +185,85 @@ export default class ControlManager {
   }
 
   // a method that returns updated controls
-  private updatedControls(
-    existingComponent: IComponent,
-    componentToUpdate: IComponent
+  private updateControls(
+    controlToUpdate: IControl,
+    componentName: string,
+    controlName: string
   ): void {
-    const controlsToUpdate = componentToUpdate.Controls
-
-    // get existing controls for component
-    const existingControls = existingComponent?.Controls
-
-    // iterate through controls to update
-    controlsToUpdate.forEach((controlToUpdate: IControl) => {
-      // find control to update
-      const existingControl = existingControls?.find(
-        (control: IControl) => control.Name === controlToUpdate.Name
-      )
-
-      // check if control exists
-      if (existingControl) {
-        // update control
-        existingControl.Value = controlToUpdate.Value
-        existingControl.Position = controlToUpdate.Position
-        existingControl.String = controlToUpdate.String
-      } else {
-        // add control
-        existingControls?.push(controlToUpdate)
+    // update component
+    this.components = {
+      ...this.components,
+      [componentName]: {
+        ...this.components[componentName],
+        [controlName]: {
+          ...this.components[componentName][controlName],
+          ...controlToUpdate
+        }
       }
-    })
+    }
+
+    // create object for event
+    const updatedComponent = {
+      [componentName]: controlToUpdate
+    }
 
     // emit component updated event
-    this.eventManager.handleEvent(
-      qrccEvents.componentUpdated,
-      existingComponent
-    )
+    this.eventManager.handleEvent(qrccEvents.controlsUpdated, updatedComponent)
   }
 
-  public addComponent(component: IComponent): void {
-    this.components = [...this.components, component]
+  // a method for adding a new component to components
+  public addComponent(component: IComponent, componentName: string): void {
+    // check if component exists
+    if (this.components[componentName]) {
+      // if component exists, emit error
+      this.eventManager.handleEvent(
+        qrccEvents.error,
+        "Component already exists"
+      )
+      return
+    }
+
+    // add component to components
+    this.components = {
+      ...this.components,
+      ...component
+    }
   }
 
   // a method for setting a control values for a components
-  public setComponent(componentName: string, controlName: string, controlValues: Omit<IControl, 'Name'>): void {
+  public setComponent(
+    componentName: string,
+    controlsToUpdate: IControl[],
+  ): void {
     // create change request id
     const requestId = uuidv4()
 
-    // find component
-    const component = this.findComponentByName(componentName)
-
-    // find control
-    const control = this.getControlByName(componentName, controlName)
+    const componentChange = {
+      Name: componentName,
+      Controls: controlsToUpdate
+    }
 
     // create change request
-    this.createChangeGroupRequest(componentName, controlName, control.Type, requestId)
-
-    // update control values
-    control.Value = controlValues.Value
-    control.Position = controlValues.Position
+    this.createChangeGroupRequest(
+      componentName,
+      requestId
+    )
 
     // send setControlValue request
     this.websocketManager.send(
-      createJSONRPCMessage(qrcMethods.components.set, component, requestId)
+      createJSONRPCMessage(qrcMethods.components.set, componentChange, requestId)
     )
   }
 
   // a method for creating a change request
   public createChangeGroupRequest(
     componentName: string,
-    controlName: string,
-    controlType: string,
     requestId: string
   ): void {
     // create change request
     const changeRequest = {
       id: requestId,
       component: componentName,
-      control: controlName,
-      controlType: controlType
     }
 
     // add change request to changeRequestIds
@@ -318,7 +293,7 @@ export default class ControlManager {
       // emit error
       this.eventManager.handleEvent(
         qrccEvents.error,
-        `Change request for ${changeRequest.component} - ${changeRequest.control} failed`
+        `Change request for ${changeRequest.component} failed`
       )
     }
   }

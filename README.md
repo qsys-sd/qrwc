@@ -5,7 +5,7 @@
 * To test and showcase how Controls can be manipulated via a Fronted application using a NPM package
 * QDS Version 9.7.0 or higher
 
-### How do I get set up? ###
+### How do I get set up as a tester? ###
 * Clone repo
 * Open terimnal inside repo
 * run the following commands
@@ -36,28 +36,56 @@
 * A story is in the backlog to write more tests once more of requirements for functionality take place
 * Currently the test suite hangs because of an unresolved promise. This is documented in a future testing ticket
 
-### How do I get set up tests? ###
+### How do I get set up tests? BROKEN! ### 
 * `npm install`
 * `npm run build`
 * `npm run test`
 
 ### Implementation and use ###
-* `import Qrcc from 'control-connect'`
-* Auto Start functionality for finding 'scriptable controls' from the design
-  * Whencreating the new instance use `const cc = new Qrcc({ url: 'ws://{core-ip}/qrc', autoStart: true })`
-  * Now on your FE project you should be able to access `cc.controls`
-  * This should house all scriptable controls available on your design
-  * Example control object... 
+#### Getting started with auto start ####
+```
+import Qrcc from "control-connect"
+
+const cc = new Qrcc()
+
+const socket = new WebSocket("ws://{IP}/qrc")
+
+socket.onopen = () => {
+  cc.attachWebSocket(socket)
+}
+
+cc.on("webSocketAttached", () => {
+  cc.autoStart()
+})
+
+cc.on("autoStartComplete", () => {
+  console.log("autoStartComplete", cc.components)
+})
+
+cc.on("controlsUpdated", (updatedComponent: any) => {
+  console.log("controlsUpdated", updatedComponent)
+  // console.log("controlsUpdated", cc.components) // another option
+})
+```
+#### Setting components/controls ####
+* Use `cc.setComponent(componentName, updatedControls)` to set/update controls, it takes in...
+  * the name (string) of the respective component for the given control
+  * an array of controls containing the requested changes
     ```
-    {
-      Direction: "Read/Write",
-      Name: "momentary.1",
-      Position: 0,
-      String: "false",
-      Type: "Boolean",
-      Value: false
-    }
+      [
+        {
+          Name: string
+          Value?: string | number | boolean
+          String?: string
+          Position?: number
+        },
+        ...
+      ]
     ```
+* Once the component change request has been sent, the Qrcc library will listen for a resoponse and update onve the core has changed. Qrcc does NOT update its own state before recieving a positive result from the core.
+
+#### Getting started with submitting your own controls (No autostart) ####
+* Not available yet
 * Still a WIP
 
 ### Who do I talk to? ###

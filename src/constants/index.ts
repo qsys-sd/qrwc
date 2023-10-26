@@ -16,11 +16,11 @@ export const qrccEvents = {
   error: "error",
   disconnected: "disconnected",
   connected: "connected",
-  controlUpdated: "controlUpdated",
-  constrolAdded: "controlAdded",
-  controlsRecieved: "controlsReceived",
+  webSocketAttached: "webSocketAttached",
+  autoStartComplete: "autoStartComplete",
+  controlsUpdated: "controlsUpdated",
+  controlsReceived: "controlsReceived",
   componentsRecieved: "componentsReceived",
-  componentUpdated: "componentUpdated",
   changeRequestSuccessful: "changeRequestSuccessful",
   componentChangeGroupCreated: "componentChangeGroupCreated"
 }

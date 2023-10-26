@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrccEvents } from "../../constants"
 import { createJSONRPCMessage } from "../../utils"
-import { IComponent } from "../../index.interface"
+import { IControl, IQRCControls } from "../../index.interface"
 import { WebSocketManager, ControlManager, EventManager } from ".."
 
 export default class AutoStartManager {
@@ -23,24 +23,16 @@ export default class AutoStartManager {
     this.controlManager = controlManager
     this.eventManager = eventManager
 
-    // auto start
-    this.webSocketManager.connect()
-
     //event listener for handling websocket messages
     this.eventManager.on(qrccEvents.message, (message: MessageEvent) => {
       this.parseMessage(message)
-    })
-
-    // event listeners auto start flow
-    this.eventManager.on(qrccEvents.connected, () => {
-      this.getComponents()
     })
 
     this.eventManager.on(qrccEvents.componentsRecieved, () => {
       this.getControls()
     })
 
-    this.eventManager.on(qrccEvents.controlsRecieved, () => {
+    this.eventManager.on(qrccEvents.controlsReceived, () => {
       this.createChangeGroup()
     })
 
@@ -52,6 +44,9 @@ export default class AutoStartManager {
         if (changeGroupId === this.autoStartChangeGroupId) {
           // if change group id matches autoStartChangeGroupId, start polling
           this.webSocketManager.startPolling(this.autoStartChangeGroupId)
+        
+          // emit event for auto start complete
+          this.eventManager.handleEvent(qrccEvents.autoStartComplete)
         }
       }
     )
@@ -68,6 +63,11 @@ export default class AutoStartManager {
     if (this.getControlIds.includes(message?.id)) {
       this.handleControlGetResponse(message.result, message.id)
     }
+  }
+
+  // a method for starting auto start process
+  public start(): void {
+    this.getComponents()
   }
 
   // a method for getting components
@@ -122,11 +122,27 @@ export default class AutoStartManager {
   }
 
   // a method for handling getControls response
-  private handleControlGetResponse(result: IComponent, id: string) {
+  private handleControlGetResponse(result: IQRCControls, id: string) {
     // check if the results has "Name" and "Controls" populated
     if (result?.Name && result?.Controls) {
-      // add component to this.components in ControlManager
-      this.controlManager.addComponent(result)
+      // reformat controls into object
+      const controlObject = result.Controls.reduce((acc: any, control: IControl) => {
+        return {
+          ...acc,
+          [control.Name]: control
+        }
+      }
+      , {})
+
+      // create component object
+      const componentToAdd = {
+        [result.Name]: {
+          ...controlObject
+        }
+      }
+      
+      // add component to control manager
+      this.controlManager.addComponent(componentToAdd, result.Name)
     }
 
     // remove id from getControlIds
@@ -137,7 +153,7 @@ export default class AutoStartManager {
     // check if getControlIds is empty
     if (this.getControlIds.length === 0) {
       // emit event
-      this.eventManager.handleEvent(qrccEvents.controlsRecieved)
+      this.eventManager.handleEvent(qrccEvents.controlsReceived)
     }
   }
 
