@@ -1,35 +1,79 @@
-import { AutoStartManager, WebSocketManager, ControlManager, EventManager } from "../managers"
-import { IComponent, IControl, IQrccOptions } from "../index.interface"
+import {
+  AutoStartManager,
+  WebSocketManager,
+  ControlManager,
+  EventManager
+} from "../managers"
+import { IComponent, IControl } from "../index.interface"
 import { qrccEvents } from "../constants"
 
 export default class Qrcc {
-  private webSocketManager: WebSocketManager
-  public components: IComponent[] = []
+  webSocketManager: WebSocketManager | null = null
   autoStartManager: AutoStartManager | null = null
   controlManager: ControlManager
   eventManager: EventManager
+  public components: IComponent = {}
 
-  constructor({ url, pollInterval, autoStart }: IQrccOptions) {
-
+  constructor() {
     // main dependencies
     this.eventManager = new EventManager()
-    this.webSocketManager = new WebSocketManager(url, pollInterval, this.eventManager)
-    this.controlManager = new ControlManager(this.eventManager, this.webSocketManager)
-
-    // optional dependencies
-    this.autoStartManager = autoStart
-      ? new AutoStartManager(this.webSocketManager, this.controlManager, this.eventManager)
-      : null
+    this.controlManager = new ControlManager(
+      this.eventManager,
+      this.webSocketManager
+    )
 
     // event listeners
-    this.eventManager.on(qrccEvents.componentUpdated, (component: any) => {
+    this.eventManager.on(qrccEvents.controlsReceived, () => {
+      // update components
+      this.components = this.controlManager.components
+    })
+
+    this.eventManager.on(qrccEvents.controlsUpdated, () => {
       // update components
       this.components = this.controlManager.components
     })
   }
 
-  public connect(): void {
-    this.webSocketManager.connect()
+  // a method to create the websocket manager
+  public attachWebSocket(socket: WebSocket): void {
+    // check if webSocketManager is defined
+    if (this.webSocketManager) {
+      throw new Error("WebSocketManager is already defined")
+    }
+
+    // create webSocketManager
+    this.webSocketManager = new WebSocketManager(socket, this.eventManager)
+
+    // attach web socket to control manager
+    this.controlManager.attachWebSocket(this.webSocketManager)
+
+    // emit event for websocket attached
+    this.eventManager.handleEvent(qrccEvents.webSocketAttached)
+  }
+
+  // a method to initate the auto start process
+  public autoStart(): void {
+    // check if webSocketManager is defined
+    if (!this.webSocketManager) {
+      throw new Error("WebSocketManager is not defined")
+    }
+
+    // check if autoStartManager is defined
+    if (this.autoStartManager) {
+      // emit event for auto start already started
+      this.eventManager.handleEvent(
+        qrccEvents.error,
+        "auto start already initialized"
+      )
+    } else {
+      // create auto start manager
+      this.autoStartManager = new AutoStartManager(
+        this.webSocketManager,
+        this.controlManager,
+        this.eventManager
+      )
+      this.autoStartManager.start()
+    }
   }
 
   public startPolling(changeGroupId: string): void {
@@ -44,11 +88,15 @@ export default class Qrcc {
     this.webSocketManager.close()
   }
 
-  public setComponent(componentName: string, controlName: string, controlValues: Omit<IControl, 'Name'>): void {
-    this.controlManager.setComponent(componentName, controlName, controlValues)
+  public setComponent(
+    componentName: string,
+    controlsToUpdate: IControl[]
+  ): void {
+    this.controlManager.setComponent(componentName, controlsToUpdate)
   }
 
-  public on(eventName: string, listener: (...args: any[]) => void): void {
-    this.eventManager.on(eventName, listener)
+  // a method that decorates the .on method of the eventManager
+  public on(event: string, listener: (...args: any[]) => void): void {
+    this.eventManager.on(event, listener)
   }
 }

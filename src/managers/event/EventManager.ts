@@ -6,8 +6,6 @@ export default class EventManager extends EventEmitter {
     super()
   }
 
-  
-
   public handleEvent(event: string, ...args: any[]): void {
     this.emit(event, ...args)
   }

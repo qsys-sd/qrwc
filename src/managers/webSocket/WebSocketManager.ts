@@ -3,31 +3,21 @@ import { createJSONRPCMessage } from "../../utils";
 import { EventManager } from "..";
 
 export default class WebSocketManager {
-  private readonly url: string;
   private pollInterval: number;
   private socket: WebSocket | null = null;
   private socketPollId: number = 1;
   eventManager: EventManager;
 
-  constructor(url: string, pollInterval: number = 500, eventManager: EventManager) {
-
-    this.url = url;
-    this.pollInterval = pollInterval;
+  constructor(socket: WebSocket, eventManager: EventManager) {
+    this.socket = socket;
 
     // main dependencies
     this.eventManager = eventManager
-  }
 
-  private setupWebSocket(): void {
-    this.socket = new WebSocket(this.url)
-    this.socket.onopen = this.onOpen.bind(this)
+    // binding websocket methods
     this.socket.onmessage = this.onMessage.bind(this)
     this.socket.onerror = this.onError.bind(this)
     this.socket.onclose = this.onClose.bind(this)
-  }
-
-  private onOpen(): void {
-    this.eventManager.handleEvent(qrccEvents.connected)
   }
   
   public async onMessage(event: MessageEvent): Promise<void> {
@@ -71,16 +61,6 @@ export default class WebSocketManager {
     }
   }
 
-  // public methods
-
-  public connect(): void {
-    if (!this.socket) {
-      this.setupWebSocket()
-    } else {
-      this.eventManager.handleEvent(qrccEvents.error, "WebSocket is already initialized.")
-    }
-  }
-
   public send(data: object): void {
     if (this.isOpen()) {
       this.socket.send(JSON.stringify(data))
@@ -89,8 +69,8 @@ export default class WebSocketManager {
     }
   }
 
-  public startPolling(changeGroupId: string): void {
-    setInterval(() => this.poll(changeGroupId), this.pollInterval)
+  public startPolling(changeGroupId: string, pollInterval: number = 300): void {
+    setInterval(() => this.poll(changeGroupId), pollInterval)
   }
 
   public getReadyState(): number {
