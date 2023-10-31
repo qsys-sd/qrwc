@@ -1,2 +1,2 @@
-import Qrcc from "./qrcc";
-export default Qrcc;
+import { Qrcc } from "./qrcc";
+export { Qrcc };

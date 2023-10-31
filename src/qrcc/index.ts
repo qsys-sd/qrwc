@@ -7,7 +7,7 @@ import {
 import { IComponent, IControl } from "../index.interface"
 import { qrccEvents } from "../constants"
 
-export default class Qrcc {
+export class Qrcc {
   webSocketManager: WebSocketManager | null = null
   autoStartManager: AutoStartManager | null = null
   controlManager: ControlManager
@@ -38,14 +38,19 @@ export default class Qrcc {
   public attachWebSocket(socket: WebSocket): void {
     // check if webSocketManager is defined
     if (this.webSocketManager) {
-      throw new Error("WebSocketManager is already defined")
+      // emit event for websocket already attached
+      this.eventManager.handleEvent(
+        qrccEvents.error,
+        "web socket already attached"
+      )
+      return
     }
-
+    
     // create webSocketManager
     this.webSocketManager = new WebSocketManager(socket, this.eventManager)
 
     // attach web socket to control manager
-    this.controlManager.attachWebSocket(this.webSocketManager)
+    this.controlManager.attachWebSocketManager(this.webSocketManager)
 
     // emit event for websocket attached
     this.eventManager.handleEvent(qrccEvents.webSocketAttached)
