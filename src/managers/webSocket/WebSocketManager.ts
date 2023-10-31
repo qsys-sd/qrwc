@@ -1,10 +1,11 @@
 import { qrcMethods, qrccEvents } from "../../constants"
+import { WebSocket as WsWebsocket } from 'ws';
 import { createJSONRPCMessage } from "../../utils";
 import { EventManager } from "..";
 
 export default class WebSocketManager {
   private pollInterval: number;
-  private socket: WebSocket | null = null;
+  private socket: WebSocket | WsWebsocket | null = null;
   private socketPollId: number = 1;
   eventManager: EventManager;
 
@@ -35,7 +36,7 @@ export default class WebSocketManager {
   }
 
   private isOpen() {
-    return this.socket.readyState === WebSocket.OPEN
+    return this.getReadyState() === this.socket.OPEN
   }
 
   private poll(changeGroupId: string): void {

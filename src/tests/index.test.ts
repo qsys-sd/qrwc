@@ -1,4 +1,4 @@
-import Qrcc from '..'
+import { Qrcc } from '..'
 import { Server } from 'mock-socket'
 
 describe('Qrcc', () => {

@@ -25,10 +25,14 @@ export default class ControlManager {
   }
 
   // a method for attaching the websocket manager
-  public attachWebSocket(websocketManager: WebSocketManager): void {
+  public attachWebSocketManager(websocketManager: WebSocketManager): void {
     // check if websocketManager is defined
     if (this.websocketManager) {
-      throw new Error("WebSocketManager is already defined")
+      // emit event for websocket already attached
+      this.eventManager.handleEvent(
+        qrccEvents.error,
+        "web socket already attached"
+      )
     }
 
     // attach websocketManager
