@@ -5,6 +5,7 @@ import { EventManager } from "..";
 
 export default class WebSocketManager {
   private pollInterval: number;
+  private intervalIds: NodeJS.Timer[] = [];
   private socket: WebSocket | WsWebsocket | null = null;
   private socketPollId: number = 1;
   eventManager: EventManager;
@@ -71,7 +72,8 @@ export default class WebSocketManager {
   }
 
   public startPolling(changeGroupId: string, pollInterval: number = 300): void {
-    setInterval(() => this.poll(changeGroupId), pollInterval)
+    const intervalId = setInterval(() => this.poll(changeGroupId), pollInterval)
+    this.intervalIds = [...this.intervalIds, intervalId]
   }
 
   public getReadyState(): number {
@@ -84,6 +86,9 @@ export default class WebSocketManager {
 
   public close(code?: number, reason?: string): void {
     if (this.isOpen()) {
+      // clear all intervals/polling
+      this.intervalIds.forEach(id => clearInterval(id))
+
       this.socket.close(code, reason)
     } else {
       this.eventManager.handleEvent(qrccEvents.error, "WebSocket is not open or not initialized.")
