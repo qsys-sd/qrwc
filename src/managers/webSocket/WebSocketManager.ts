@@ -88,6 +88,7 @@ export default class WebSocketManager {
     if (this.isOpen()) {
       // clear all intervals/polling
       this.intervalIds.forEach(id => clearInterval(id))
+      this.intervalIds = []
 
       this.socket.close(code, reason)
     } else {
