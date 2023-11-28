@@ -168,4 +168,22 @@ export default class AutoStartManager {
     // create change group from component controls
     this.controlManager.createChangeGroup(this.componentList, changeGroupId)
   }
+
+  // a method for cleaning up the auto start manager
+  public async cleanUp(): Promise<void> {
+    // clear componentList
+    this.componentList = []
+
+    // clear getControlIds
+    this.getControlIds = []
+
+    // clear autoStartChangeGroupId
+    this.autoStartChangeGroupId = ""
+
+    // clear getComponentsId
+    this.getComponentsId = ""
+
+    // return promise
+    return Promise.resolve()
+  }
 }

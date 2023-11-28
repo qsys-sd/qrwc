@@ -33,7 +33,6 @@ export default class WebSocketManager {
 
   private onClose(event: CloseEvent): void {
     this.eventManager.handleEvent(qrccEvents.disconnected, event)
-    this.socket = null
   }
 
   private isOpen() {
@@ -86,13 +85,36 @@ export default class WebSocketManager {
 
   public close(code?: number, reason?: string): void {
     if (this.isOpen()) {
-      // clear all intervals/polling
-      this.intervalIds.forEach(id => clearInterval(id))
-      this.intervalIds = []
+      this.clearIntervals()
 
       this.socket.close(code, reason)
     } else {
       this.eventManager.handleEvent(qrccEvents.error, "WebSocket is not open or not initialized.")
     }
+  }
+
+  // a method to clear intervals
+  private clearIntervals(): void {
+    if (!this.intervalIds.length) return
+    this.intervalIds.forEach(id => clearInterval(id))
+    this.intervalIds = []
+  }
+
+  // a method to remove socket if it exists
+  public removeSocket(): void {
+    if (this?.socket) {
+      this.socket.onmessage = null
+      this.socket.onerror = null
+      this.socket.onclose = null
+      this.socket = null
+    }
+  }
+
+  // an async method to clean up the websocket
+  public async cleanUp(): Promise<void> {
+    this.clearIntervals()
+    this.removeSocket()
+
+    return Promise.resolve()
   }
 }
