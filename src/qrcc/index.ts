@@ -33,7 +33,7 @@ export class Qrcc {
     })
 
     this.eventManager.on(qrccEvents.disconnected, () => {
-      // update components
+      // initate clean up
       this.qrccCleanUp()
     })
   }
@@ -109,42 +109,39 @@ export class Qrcc {
     this.eventManager.on(event, listener)
   }
 
-  // an async method for initating clean up for QRCC
-  public async qrccCleanUp(): Promise<void> {
+  // a method for initating clean up for QRCC
+  public qrccCleanUp(): void {
     // remove all listeners from eventManager
-    await this.eventManager.removeAllEventListeners()
-
+    this.eventManager.removeAllEventListeners();
+  
     // set eventManager to null
-    this.eventManager = null
-
+    this.eventManager = null;
+  
     // check if webSocketManager is defined
     if (this.webSocketManager) {
       // initiate cleanup for webSocketManager
-      await this.webSocketManager.cleanUp()
-
+      this.webSocketManager.cleanUp();
+  
       // set webSocketManager to null
-      this.webSocketManager = null
+      this.webSocketManager = null;
     }
-
+  
     // check if autoStartManager is defined
     if (this.autoStartManager) {
       // initiate cleanUp for autoStartManager
-      await this.autoStartManager.cleanUp()
-
+      this.autoStartManager.cleanUp();
+  
       // set autoStartManager to null
-      this.autoStartManager = null
+      this.autoStartManager = null;
     }
-
+  
     // initiate cleanUp for controlManager
-    await this.controlManager.cleanUp()
-
+    this.controlManager.cleanUp();
+  
     // set controlManager to null
-    this.controlManager = null
-
+    this.controlManager = null;
+  
     // set components to empty object
-    this.components = {}
-
-    // return
-    return
+    this.components = {};
   }
 }

@@ -14,12 +14,9 @@ export default class EventManager extends EventEmitter {
     this.removeListener(event, listener);
   }
 
-  // an async method for removing all listeners using super(EventEmitter) and returning a promise when complete
-  public async removeAllEventListeners(): Promise<void> {
+  // a method for removing all listeners using super(EventEmitter) and returning a promise when complete
+  public removeAllEventListeners() {
     // remove all listeners using super
     super.removeAllListeners()
-
-    // return promise
-    return Promise.resolve()
   }
 }

@@ -302,7 +302,7 @@ export default class ControlManager {
   }
 
   // a method for clean up 
-  public async cleanUp(): Promise<void> {
+  public cleanUp() {
     // reset components
     this.components = {}
 
@@ -317,8 +317,5 @@ export default class ControlManager {
 
     // reset changeRequestIds
     this.changeRequestIds = []
-
-    // return promise
-    return Promise.resolve()
   }
 }

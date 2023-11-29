@@ -170,7 +170,7 @@ export default class AutoStartManager {
   }
 
   // a method for cleaning up the auto start manager
-  public async cleanUp(): Promise<void> {
+  public cleanUp() {
     // clear componentList
     this.componentList = []
 
@@ -182,8 +182,5 @@ export default class AutoStartManager {
 
     // clear getComponentsId
     this.getComponentsId = ""
-
-    // return promise
-    return Promise.resolve()
   }
 }
