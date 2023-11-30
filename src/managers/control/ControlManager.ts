@@ -13,10 +13,9 @@ export default class ControlManager {
   eventManager: EventManager
   websocketManager: WebSocketManager
 
-  constructor(eventManager: EventManager, websocketManager: WebSocketManager) {
+  constructor(eventManager: EventManager) {
     // main dependencies
     this.eventManager = eventManager
-    this.websocketManager = websocketManager
 
     // event listener for handling websocket messages
     this.eventManager.on(qrccEvents.message, (message: MessageEvent) => {
@@ -300,5 +299,23 @@ export default class ControlManager {
         `Change request for ${changeRequest.component} failed`
       )
     }
+  }
+
+  // a method for clean up 
+  public cleanUp() {
+    // reset components
+    this.components = {}
+
+    // reset change groups
+    this.changeGroups = {}
+
+    // reset requestChangeGroupId
+    this.requestChangeGroupId = ""
+
+    // reset changeGroupRequests
+    this.changeGroupRequests = []
+
+    // reset changeRequestIds
+    this.changeRequestIds = []
   }
 }

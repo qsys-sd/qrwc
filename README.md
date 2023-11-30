@@ -32,6 +32,21 @@ cc.on("controlsUpdated", (updatedComponent: any) => {
   // console.log("controlsUpdated", cc.components) // another option
 })
 ```
+
+#### Attempting reconnects ####
+* Qrcc has an automated clean up that is triggered by the "disconnected" event.'
+  * This cleans up all listeners attached to the instance / intervals / classes
+* This also means that you should be creating a new WebSocket & instance of Qrcc to attempt a reconnect, along with the listeners
+
+```
+// continued from above example
+cc.on("disconnected", (event) => {
+  // console.log("disconnected", event)
+
+  // attempt reconnect strategy
+})
+```
+
 #### Setting components/controls ####
 * Use `cc.setComponent(componentName, updatedControls)` to set/update controls, it takes in...
   * the name (string) of the respective component for the given control

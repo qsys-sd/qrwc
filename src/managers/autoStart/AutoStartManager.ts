@@ -168,4 +168,19 @@ export default class AutoStartManager {
     // create change group from component controls
     this.controlManager.createChangeGroup(this.componentList, changeGroupId)
   }
+
+  // a method for cleaning up the auto start manager
+  public cleanUp() {
+    // clear componentList
+    this.componentList = []
+
+    // clear getControlIds
+    this.getControlIds = []
+
+    // clear autoStartChangeGroupId
+    this.autoStartChangeGroupId = ""
+
+    // clear getComponentsId
+    this.getComponentsId = ""
+  }
 }

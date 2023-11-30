@@ -4,7 +4,7 @@ import { createJSONRPCMessage } from "../../utils";
 import { EventManager } from "..";
 
 export default class WebSocketManager {
-  private pollInterval: number;
+  private pollInterval: number = 300;
   private intervalIds: NodeJS.Timer[] = [];
   private socket: WebSocket | WsWebsocket | null = null;
   private socketPollId: number = 1;
@@ -22,8 +22,8 @@ export default class WebSocketManager {
     this.socket.onclose = this.onClose.bind(this)
   }
   
-  public async onMessage(event: MessageEvent): Promise<void> {
-    const message = await JSON.parse(event.data)
+  public onMessage(event: MessageEvent) {
+    const message = JSON.parse(event.data)
     this.eventManager.handleEvent(qrccEvents.message, message)
   }
 
@@ -33,7 +33,6 @@ export default class WebSocketManager {
 
   private onClose(event: CloseEvent): void {
     this.eventManager.handleEvent(qrccEvents.disconnected, event)
-    this.socket = null
   }
 
   private isOpen() {
@@ -64,15 +63,15 @@ export default class WebSocketManager {
   }
 
   public send(data: object): void {
-    if (this.isOpen()) {
+    if (this.socket !== null && this.isOpen()) {
       this.socket.send(JSON.stringify(data))
     } else {
       this.eventManager.handleEvent(qrccEvents.error, "WebSocket is not open or not initialized.")
     }
   }
 
-  public startPolling(changeGroupId: string, pollInterval: number = 300): void {
-    const intervalId = setInterval(() => this.poll(changeGroupId), pollInterval)
+  public startPolling(changeGroupId: string): void {
+    const intervalId = setInterval(() => this.poll(changeGroupId), this.pollInterval)
     this.intervalIds = [...this.intervalIds, intervalId]
   }
 
@@ -85,14 +84,36 @@ export default class WebSocketManager {
   }
 
   public close(code?: number, reason?: string): void {
-    if (this.isOpen()) {
-      // clear all intervals/polling
-      this.intervalIds.forEach(id => clearInterval(id))
-      this.intervalIds = []
+    if (this.socket !== null && this.isOpen()) {
+      this.clearIntervals()
 
       this.socket.close(code, reason)
     } else {
       this.eventManager.handleEvent(qrccEvents.error, "WebSocket is not open or not initialized.")
     }
+  }
+
+  // a method to clear intervals
+  private clearIntervals(): void {
+    if (!this.intervalIds.length) return
+    this.intervalIds.forEach(id => clearInterval(id))
+    this.intervalIds = []
+  }
+
+  // a method to remove socket if it exists
+  public removeSocket(): void {
+    if (this?.socket) {
+      this.socket.onmessage = null
+      this.socket.onerror = null
+      this.socket.onclose = null
+      this.socket.close()
+      this.socket = null
+    }
+  }
+
+  // a method to clean up the websocket
+  public cleanUp(): void {
+    this.clearIntervals();
+    this.removeSocket();
   }
 }
