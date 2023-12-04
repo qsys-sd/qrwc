@@ -282,6 +282,19 @@ export default class ControlManager {
 
     // check if change request is successful
     if (message.result) {
+      // check if result is an array
+      if (Array.isArray(message.result)) { // TODO: Remove once QRC is updated
+        // get result
+        const result = message.result[0]
+
+        // update controls
+        this.updateControls(
+          result,
+          result.Component,
+          result.Name
+        )
+      }
+
       // remove change request from changeRequestIds
       this.changeRequestIds = this.changeRequestIds.filter(
         (changeRequest: IChangeRequest) => changeRequest.id !== message.id
