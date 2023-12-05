@@ -3,6 +3,7 @@ import { qrcMethods, qrccEvents } from "../../constants"
 import { IChangeRequest, IComponent, IControl } from "../../index.interface"
 import { EventManager, WebSocketManager } from ".."
 import { createJSONRPCMessage } from "../../utils"
+import { isValidControl } from "../../utils"
 
 export default class ControlManager {
   public components: IComponent = {}
@@ -284,15 +285,28 @@ export default class ControlManager {
     if (message.result) {
       // check if result is an array
       if (Array.isArray(message.result)) { // TODO: Remove once QRC is updated
-        // get result
-        const result = message.result[0]
+        // check if array is empty & throw error
+        if (message.result.length === 0) {
+          this.eventManager.handleEvent(
+            qrccEvents.error,
+           `Change request for ${changeRequest.component} failed`
+          )
+          return
+        }
 
-        // update controls
-        this.updateControls(
-          result,
-          result.Component,
-          result.Name
-        )
+        // iterate through array, validate controls, and update controls & throw error if invalid
+        message.result.forEach((control: any) => {
+          if (!isValidControl(control)) {
+            this.eventManager.handleEvent(
+              qrccEvents.error,
+              `Invalid control for ${changeRequest.component}`
+            )
+            return
+          }
+
+          // update controls
+          this.updateControls(control, control.Component, control.Name)
+        })
       }
 
       // remove change request from changeRequestIds
