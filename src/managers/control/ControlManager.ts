@@ -236,20 +236,19 @@ export default class ControlManager {
 
   // a method for setting a control values for a components
   public setComponent(
-    componentName: string,
-    controlsToUpdate: IControl[],
+    controlToUpdate: IControl,
   ): void {
     // create change request id
     const requestId = uuidv4()
 
     const componentChange = {
-      Name: componentName,
-      Controls: controlsToUpdate
+      Name: controlToUpdate.Component,
+      Controls: [controlToUpdate]
     }
 
     // create change request
     this.createChangeGroupRequest(
-      componentName,
+      controlToUpdate.Component,
       requestId
     )
 
