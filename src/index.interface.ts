@@ -1,5 +1,6 @@
 export interface IControl {
   Name: string
+  Component?: string
   Value?: string | number | boolean
   String?: string
   Position?: number
