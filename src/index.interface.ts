@@ -1,3 +1,5 @@
+import { ControlDecorator } from "./managers/control/ControlDecorator"
+
 export interface IControl {
   Name: string
   Component?: string
@@ -14,7 +16,7 @@ export interface IQRCControls {
 
 export interface IComponent {
   [componentName: string]: {
-    [controlName: string]: IControl
+    [controlName: string]: ControlDecorator
   }
 }
 

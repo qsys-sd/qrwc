@@ -9,7 +9,7 @@ import { qrccEvents } from "../../constants"
  * The decorator pattern allows us to add new behavior or responsibilities to objects without modifying their code.
  * This class also provides a method to update the control using a provided function and a method to handle events.
  * 
- * The updateControl method is used to update a property on the control and triggers an update request of the parent component.
+ * The updateQsysDesign method is used to update a property on the control and triggers an update request of the parent component.
  * The getMetaProperty method returns the value of a requested property, or undefined if the property does not exist.
  * If the property does not exist, an error event is also emitted.
  */
@@ -21,7 +21,7 @@ export class ControlDecorator {
   private setComponent: (controlToUpdate: IControl) => void
 
   // Private property to hold the function to handle events
-  private handleEvent: (event: string, data?: any) => void
+  private handleEvent: (event: string, message?: string) => void
 
   /**
    * ControlDecorator constructor
@@ -29,7 +29,7 @@ export class ControlDecorator {
    * @param setComponent - The function to use to update the control
    * @param handleEvent - The function to handle events
    */
-  constructor(control: IControl, setComponent: (controlToUpdate: IControl) => void, handleEvent: (event: string, data?: any) => void) {
+  constructor(control: IControl, setComponent: (controlToUpdate: IControl) => void, handleEvent: (event: string, message?: string) => void) {
     this.control = control
     this.setComponent = setComponent
     this.handleEvent = handleEvent
@@ -51,7 +51,7 @@ export class ControlDecorator {
   }
 
   set Value(value: string | number | boolean | undefined) {
-    this.updateControl('Value', value);
+    this.updateQsysDesign('Value', value);
   }
 
   // Getter and setter for the String property of the control
@@ -60,7 +60,7 @@ export class ControlDecorator {
   }
 
   set String(string: string | undefined) {
-    this.updateControl('String', string);
+    this.updateQsysDesign('String', string); // TODO: Set only uses Value & Position may change
   }
 
   // Getter and setter for the Position property of the control
@@ -69,7 +69,7 @@ export class ControlDecorator {
   }
 
   set Position(position: number | undefined) {
-    this.updateControl('Position', position);
+    this.updateQsysDesign('Position', position);
   }
 
   // Getter for the Type property of the control
@@ -83,12 +83,12 @@ export class ControlDecorator {
    * @param property - The name of the property to update.
    * @param value - The new value for the property.
    */
-  private updateControl(property: keyof IControl, value: any): void {
+  private updateQsysDesign(property: keyof IControl, value: string | number | boolean): void {
     if (!(property in this.control)) {
       this.handleEvent(qrccEvents.error, `Property ${property} does not exist on the control: ${this.control.Name}`);
       return;
     }
-  
+    
     const expectedType = typeof this.control[property];
     const valueType = typeof value;
   
@@ -96,9 +96,31 @@ export class ControlDecorator {
       this.handleEvent(qrccEvents.error, `Type mismatch for property ${property}. Expected ${expectedType}, got ${valueType}`);
       return;
     }
+
+    if (property === 'String') { // TODO: Set only uses Value & Position this may change
+      const updatedControl = { ...this.control, Value: value };
+      this.setComponent(updatedControl);
+      return;
+    }
   
     const updatedControl = { ...this.control, [property]: value };
     this.setComponent(updatedControl);
+  }
+
+  /**
+   * Returns a deep copy of all the properties of the control.
+   * 
+   * This method uses JSON.parse and JSON.stringify to create a deep copy of the control object.
+   * This ensures that modifications to the returned object do not affect the original control.
+   * 
+   * @returns A deep copy of the control's properties.
+   * @example
+   * const properties = controlDecorator.getProperties();
+   * console.log(properties);
+   * // { Name: 'Control Name', Component: 'Component Name', Value: 'Control Value', String: 'Control String', Position: 1, Type: 'Control Type' }
+   */
+  public getProperties(): IControl {
+    return JSON.parse(JSON.stringify(this.control));
   }
 
   /**
@@ -108,12 +130,16 @@ export class ControlDecorator {
    * 
    * @param propertyName - The name of the property to get.
    * @returns The value of the property, or undefined if the property does not exist.
+   * @example
+   * const valueMin = controlDecorator.getMetaProperty('ValueMin');
+   * console.log(valueMin);
+   * // Output: The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
    */
   public getMetaProperty(propertyName: string): any | undefined {
     if (!this.control.hasOwnProperty(propertyName)) {
       this.handleEvent(qrccEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`);
       return;
     }
-    return this.control[propertyName];
+    return this.control[propertyName as keyof IControl];
   }
 }

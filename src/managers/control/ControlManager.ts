@@ -4,6 +4,7 @@ import { IChangeRequest, IComponent, IControl } from "../../index.interface"
 import { EventManager, WebSocketManager } from ".."
 import { createJSONRPCMessage } from "../../utils"
 import { isValidControl } from "../../utils"
+import { ControlDecorator } from "./ControlDecorator"
 
 export default class ControlManager {
   public components: IComponent = {}
@@ -75,18 +76,35 @@ export default class ControlManager {
     if (changes.length === 0) return
     // iterate through changes
     changes.forEach((change: any) => {
-      // check if change is a component
-      if (change.Component) {
-        // create & format updated control
-        const updatedControl = {
-          Name: change.Name,
-          Value: change.Value,
-          Position: change.Position,
-          String: change.String
-        }
+      // check if change is valid
+      if (!isValidControl(change)) {
+        // if change is invalid, emit error
+        this.eventManager.handleEvent(qrccEvents.error, "Invalid change")
+        return
+      }
+
+      // find existing control
+      const existingControl = this.getControl(
+        change.Component,
+        change.Name
+      )
+
+      // check if existing control exists
+      if (existingControl) {
+        // if existing control exists, update existing control
+        const newControl = this.createUpdatedControl(
+          existingControl.getProperties(),
+          change
+        )
 
         // update controls
-        this.updateControls(updatedControl, change.Component, change.Name)
+          this.updateControls(newControl)
+      } else {
+        // emit error
+        this.eventManager.handleEvent(
+          qrccEvents.error,
+          "Connot update Control, existing Control not found"
+        )
       }
     })
   }
@@ -189,26 +207,19 @@ export default class ControlManager {
   }
 
   // a method that returns updated controls
-  private updateControls(
-    controlToUpdate: IControl,
-    componentName: string,
-    controlName: string
-  ): void {
+  private updateControls(newControl: ControlDecorator): void {
     // update component
     this.components = {
       ...this.components,
-      [componentName]: {
-        ...this.components[componentName],
-        [controlName]: {
-          ...this.components[componentName][controlName],
-          ...controlToUpdate
-        }
+      [newControl.Component]: {
+        ...this.components[newControl.Component],
+        [newControl.Name]: newControl
       }
     }
 
     // create object for event
     const updatedComponent = {
-      [componentName]: controlToUpdate
+      [newControl.Component]: newControl
     }
 
     // emit component updated event
@@ -242,6 +253,7 @@ export default class ControlManager {
     const requestId = uuidv4()
 
     const componentChange = {
+      ResponseValues: true,
       Name: controlToUpdate.Component,
       Controls: [controlToUpdate]
     }
@@ -303,8 +315,29 @@ export default class ControlManager {
             return
           }
 
-          // update controls
-          this.updateControls(control, control.Component, control.Name)
+          // find existing control
+          const existingControl = this.getControl(
+            control.Component,
+            control.Name
+          )
+
+          // check if existing control exists
+          if (existingControl) {
+            // if existing control exists, update existing control
+            const newControl = this.createUpdatedControl(
+              existingControl.getProperties(),
+              control
+            )
+
+            // update controls
+            this.updateControls(newControl)
+          } else {
+            // emit error
+            this.eventManager.handleEvent(
+              qrccEvents.error,
+              "Connot update Control, existing Control not found"
+            )
+          }
         })
       }
 
@@ -325,6 +358,48 @@ export default class ControlManager {
         `Change request for ${changeRequest.component} failed`
       )
     }
+  }
+
+  // a method for retuning a existing control otherwise undefined
+  public getControl(componentName: string, controlName: string): ControlDecorator | undefined {
+    // check if component exists
+    if (!this.components[componentName]) {
+      // if component does not exist, emit error
+      this.eventManager.handleEvent(
+        qrccEvents.error,
+        "Component does not exist"
+      )
+      return
+    }
+
+    // check if control exists
+    if (!this.components[componentName][controlName]) {
+      // if control does not exist, emit error
+      this.eventManager.handleEvent(
+        qrccEvents.error,
+        "Control does not exist"
+      )
+      return
+    }
+
+    // return control
+    return this.components[componentName][controlName]
+  }
+
+  // a method for creating a new decorated control based on both old and updated properties
+  public createUpdatedControl(
+    oldControl: IControl,
+    updatedControl: IControl
+  ): ControlDecorator {
+    // create new control
+    const newControl = { ...oldControl, ...updatedControl }
+
+    // return decorated control
+    return new ControlDecorator(
+      newControl,
+      this.setComponent.bind(this),
+      this.eventManager.handleEvent.bind(this.eventManager)
+    )
   }
 
   // a method for clean up 
