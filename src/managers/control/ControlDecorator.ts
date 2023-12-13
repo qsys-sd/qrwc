@@ -72,6 +72,38 @@ export class ControlDecorator {
     this.updateQsysDesign('Position', position);
   }
 
+  /**
+   * Getter for Bool.
+   * This getter converts the Value property to a boolean.
+   * @returns {boolean} The Value property as a boolean.
+   */
+  get Bool(): boolean {
+    return Boolean(this.control.Value);
+  }
+
+  /**
+   * Setter for Bool.
+   * This setter checks if the value is a boolean and if the Type is 'Boolean' before updating the Value.
+   * If the value is not a boolean or the Type is not 'Boolean', it emits an error event.
+   * It also converts true to 1 and false to 0, for compatibility with Q-SYS.
+   * @param {boolean | undefined} value - The new value for the Bool property.
+   */
+  set Bool(value: boolean | undefined) {
+    if (typeof value !== 'boolean') {
+      this.handleEvent(qrccEvents.error, `Type mismatch for property Bool. Expected boolean, got ${typeof value}`);
+      return;
+    }
+
+    if (this.Type !== 'Boolean') {
+      this.handleEvent(qrccEvents.error, `Type mismatch for property Bool. Expected Boolean, got ${this.Type}`);
+      return;
+    }
+
+    // Convert true to 1 and false to 0
+    const numericValue = +value;
+    this.updateQsysDesign('Value', numericValue);
+  }
+
   // Getter for the Type property of the control
   get Type(): string | undefined {
     return this.control.Type
