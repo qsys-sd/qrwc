@@ -74,19 +74,27 @@ export class ControlDecorator {
 
   /**
    * Getter for Bool.
-   * This getter converts the Value property to a boolean.
-   * @returns {boolean} The Value property as a boolean.
+   * This getter first checks if the Type property is 'Boolean'.
+   * If the Type is not 'Boolean', it emits an error event and returns.
+   * If the Type is 'Boolean', it checks if the Position property is 0.5 or greater.
+   * @returns {boolean} True if Position is 0.5 or greater, false otherwise.
+   * If the Type is not 'Boolean', it returns undefined.
    */
-  get Bool(): boolean {
-    return Boolean(this.control.Value);
+  get Bool(): boolean | undefined {
+    if (this.Type !== 'Boolean') {
+      this.handleEvent(qrccEvents.error, `Type mismatch for property Bool. This control is Type ${this.Type}`);
+      return undefined;
+    }
+
+    return this.control.Position >= 0.5;
   }
 
   /**
    * Setter for Bool.
-   * This setter checks if the value is a boolean and if the Type is 'Boolean' before updating the Value.
+   * This setter checks if the value is a boolean and if the Type is 'Boolean' before updating the Position.
    * If the value is not a boolean or the Type is not 'Boolean', it emits an error event.
    * It also converts true to 1 and false to 0, for compatibility with Q-SYS.
-   * @param {boolean | undefined} value - The new value for the Bool property.
+   * @param {boolean | undefined} value - The new value for the Position property.
    */
   set Bool(value: boolean | undefined) {
     if (typeof value !== 'boolean') {
@@ -101,7 +109,7 @@ export class ControlDecorator {
 
     // Convert true to 1 and false to 0
     const numericValue = +value;
-    this.updateQsysDesign('Value', numericValue);
+    this.updateQsysDesign('Position', numericValue);
   }
 
   // Getter for the Type property of the control
@@ -134,9 +142,10 @@ export class ControlDecorator {
       this.setComponent(updatedControl);
       return;
     }
-  
-    const updatedControl = { ...this.control, [property]: value };
-    this.setComponent(updatedControl);
+
+    const { Value, ...controlWithoutValue } = this.control;
+
+    this.setComponent({ ...controlWithoutValue, [property]: value });
   }
 
   /**

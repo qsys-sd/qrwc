@@ -7,7 +7,7 @@
 
 ### Implementation and use ###
 #### Getting started with auto start ####
-```
+```typescript
 import { Qrcc } from "control-connect" 
 // const { Qrcc } = require('control-connect'); // for BE/node environments
 
@@ -25,11 +25,15 @@ cc.on("webSocketAttached", () => {
 
 cc.on("autoStartComplete", () => {
   console.log("autoStartComplete", cc.components)
+
+  // This is when all controls should be available for use by your application
 })
 
 cc.on("controlsUpdated", (updatedComponent: any) => {
   console.log("controlsUpdated", updatedComponent)
   // console.log("controlsUpdated", cc.components) // another option
+
+  // This is when you application should update
 })
 ```
 
@@ -38,7 +42,7 @@ cc.on("controlsUpdated", (updatedComponent: any) => {
   * This cleans up all listeners attached to the instance / intervals / classes
 * This also means that you should be creating a new WebSocket & instance of Qrcc to attempt a reconnect, along with the listeners
 
-```
+```typescript
 // continued from above example
 cc.on("disconnected", (event) => {
   // console.log("disconnected", event)
@@ -47,22 +51,99 @@ cc.on("disconnected", (event) => {
 })
 ```
 
-#### Setting components/controls ####
-* Use `cc.setComponent(componentName, updatedControls)` to set/update controls, it takes in...
-  * the name (string) of the respective component for the given control
-  * an array of controls containing the requested changes
-    ```
-      [
-        {
-          Name: string
-          Value?: string | number | boolean
-          String?: string
-          Position?: number
-        },
-        ...
-      ]
-    ```
-* Once the component change request has been sent, the Qrcc library will listen for a resoponse and update onve the core has changed. Qrcc does NOT update its own state before recieving a positive result from the core.
+#### Getting to controls ####
+* After the event listener for "autoStartComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrcc.components`
+* `Qrcc.components` is formatted as dictionary using component and control names as the field key name. 
+```typescript
+{
+   "Gain": { // Component name
+      "bypass": { // Control name
+         // ... Control object
+      },
+      "gain": { // Control name
+         // ... Control object
+      },
+      "invert": { // Control name
+         // ... Control object
+      },
+      "mute": { // Control name
+         // ... Control object
+      }
+   },
+   "LED": { // Component name
+      "led.1": { // Control name
+         // ... Control object
+      }
+   }
+}
+```
+* See below for control object API
+
+
+#### Interacting with the control object ####
+* Accessing a control object
+```typescript
+const { mute } = Qrcc.components.Gain
+
+console.log("Mute: ", mute.Value)
+// logs: Mute: true
+```
+* Accessing a control object with a complex name
+```typescript
+const control = Qrcc.components.Text_Box['text.1']
+
+console.log("Text: ", control.String)
+// logs: Text: Some string
+```
+### Control object API ###
+The `ControlObject` is used to decorate a control, providing getters and setters for its properties. The decorator pattern allows us to add new behavior or responsibilities to objects without modifying their code.
+
+## Properties
+
+- `Name`: The name of the control.
+- `Component`: The name of the component.
+- `Value`: The value of the control. Can be a string, number, boolean, or undefined.
+- `String`: The string of the control. Can be a string or undefined. 
+- `Position`: The position of the control. Can be a number or undefined.
+- `Bool`: A boolean representation of the control's position. Returns `true` if the position is 0.5 or greater, `false` otherwise. If the control's type is not 'Boolean', it emits an error event and returns undefined.
+- `Type`: The type of the control. Can be a string or undefined.
+
+## Methods
+
+- `getProperties()`: Returns a deep copy of all the properties of the control.
+- `getMetaProperty(propertyName: string)`: Gets a property from the control that is not available via default getters. If the property does not exist, an error event is emitted and the function execution ends.
+
+## Events
+
+- `qrccEvents.error`: Emitted when there is a type mismatch for a property or when a property does not exist on the control.
+
+## Example
+
+```typescript
+const controlObject = Qrcc.components.Text_Box['text.1']
+
+console.log(controlObject.Name); // 'text.1'
+console.log(controlObject.Component); // 'Text_Box'
+console.log(controlObject.Value); // 0
+console.log(controlObject.String); // '' 
+console.log(controlObject.Position); // 0
+console.log(controlObject.Bool); // undefined - emits error because not a boolean type control
+console.log(controlObject.Type); // 'Text'
+
+// Use ... no default string
+console.log(controlObject.String); // '' 
+
+controlObject.String = 'New Control String'; // update string
+// Use of newly updated string
+console.log(controlObject.String); // 'New Control String'
+
+// Examples of other methods
+const properties = controlObject.getProperties();
+console.log(properties); // { Name: 'text.1', Component: 'Text_Box', Value: 0, String: 'New Control String', Position: 0, Type: 'Text', ...} plus all other properties not exposed via getters
+
+const valueMin = controlObject.getMetaProperty('ValueMin');
+console.log(valueMin); // The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
+```
 
 #### Getting started with submitting your own controls (No autostart) ####
 * Not available yet
@@ -113,7 +194,7 @@ cc.on("disconnected", (event) => {
 * Tests are currently broken due to a major refactor
 * This being a POC, this won't be how the install and final project will look
 * Turning off your http server on the core...
-```
+```typescript
 const agent = new https.Agent({
     rejectUnauthorized: false
   })
