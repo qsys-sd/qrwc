@@ -3,6 +3,7 @@ import { qrcMethods, qrccEvents } from "../../constants"
 import { createJSONRPCMessage } from "../../utils"
 import { IControl, IQRCControls } from "../../index.interface"
 import { WebSocketManager, ControlManager, EventManager } from ".."
+import { ControlDecorator } from "../control/ControlDecorator"
 
 export default class AutoStartManager {
   private webSocketManager: WebSocketManager
@@ -127,9 +128,16 @@ export default class AutoStartManager {
     if (result?.Name && result?.Controls) {
       // reformat controls into object
       const controlObject = result.Controls.reduce((acc: any, control: IControl) => {
+        // decorate control
+        const decoratedControl = new ControlDecorator(
+          control, 
+          this.controlManager.setComponent.bind(this.controlManager), 
+          this.eventManager.handleEvent.bind(this.eventManager)
+        )
+
         return {
           ...acc,
-          [control.Name]: control
+          [control.Name]: decoratedControl
         }
       }
       , {})

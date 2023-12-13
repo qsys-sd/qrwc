@@ -4,7 +4,7 @@ import {
   ControlManager,
   EventManager
 } from "../managers"
-import { IComponent, IControl } from "../index.interface"
+import { IComponent } from "../index.interface"
 import { qrccEvents } from "../constants"
 
 export class Qrcc {
@@ -95,13 +95,6 @@ export class Qrcc {
 
   public close(): void {
     this.webSocketManager.close()
-  }
-
-  public setComponent(
-    componentName: string,
-    controlsToUpdate: IControl[]
-  ): void {
-    this.controlManager.setComponent(componentName, controlsToUpdate)
   }
 
   // a method that decorates the .on method of the eventManager
