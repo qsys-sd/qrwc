@@ -130,7 +130,7 @@ export default class AutoStartManager {
       const controlObject = result.Controls.reduce((acc: any, control: IControl) => {
         // decorate control
         const decoratedControl = new ControlDecorator(
-          control, 
+          { ...control, Component: result.Name },
           this.controlManager.setComponent.bind(this.controlManager), 
           this.eventManager.handleEvent.bind(this.eventManager)
         )
