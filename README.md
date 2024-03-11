@@ -1,4 +1,4 @@
-# QSYS Qsys Remote WebSocket Control
+# Q-SYS Remote WebSocket Control
 ## QRWC is a NPM library for controlling 3rd party software while interacting with Qsys design controls
 
 ### What is this repository for? ###
