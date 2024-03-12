@@ -1,17 +1,16 @@
-# QSYS Control Connect
-## Proof of concept for controlling 3rd party UCIs via an NPM package
+# Q-SYS Remote WebSocket Control
+## QRWC is a NPM library for controlling 3rd party software while interacting with Qsys design controls
 
 ### What is this repository for? ###
-* To test and showcase how Controls can be manipulated via a Fronted application using a NPM package
 * QDS Version 9.7.0 or higher
 
 ### Implementation and use ###
 #### Getting started with auto start ####
 ```typescript
-import { Qrcc } from "control-connect" 
-// const { Qrcc } = require('control-connect'); // for BE/node environments
+import { Qrwc } from "control-connect" 
+// const { Qrwc } = require('control-connect'); // for BE/node environments
 
-const cc = new Qrcc()
+const cc = new Qrwc()
 
 const socket = new WebSocket("ws://{IP}/qrc")
 
@@ -38,9 +37,9 @@ cc.on("controlsUpdated", (updatedComponent: any) => {
 ```
 
 #### Attempting reconnects ####
-* Qrcc has an automated clean up that is triggered by the "disconnected" event.'
+* Qrwc has an automated clean up that is triggered by the "disconnected" event.'
   * This cleans up all listeners attached to the instance / intervals / classes
-* This also means that you should be creating a new WebSocket & instance of Qrcc to attempt a reconnect, along with the listeners
+* This also means that you should be creating a new WebSocket & instance of Qrwc to attempt a reconnect, along with the listeners
 
 ```typescript
 // continued from above example
@@ -52,8 +51,8 @@ cc.on("disconnected", (event) => {
 ```
 
 #### Getting to controls ####
-* After the event listener for "autoStartComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrcc.components`
-* `Qrcc.components` is formatted as dictionary using component and control names as the field key name. 
+* After the event listener for "autoStartComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrwc.components`
+* `Qrwc.components` is formatted as dictionary using component and control names as the field key name. 
 ```typescript
 {
    "Gain": { // Component name
@@ -83,14 +82,14 @@ cc.on("disconnected", (event) => {
 #### Interacting with the control object ####
 * Accessing a control object
 ```typescript
-const { mute } = Qrcc.components.Gain
+const { mute } = Qrwc.components.Gain
 
 console.log("Mute: ", mute.Value)
 // logs: Mute: true
 ```
 * Accessing a control object with a complex name
 ```typescript
-const control = Qrcc.components.Text_Box['text.1']
+const control = Qrwc.components.Text_Box['text.1']
 
 console.log("Text: ", control.String)
 // logs: Text: Some string
@@ -115,12 +114,12 @@ The `ControlObject` is used to decorate a control, providing getters and setters
 
 ## Events
 
-- `qrccEvents.error`: Emitted when there is a type mismatch for a property or when a property does not exist on the control.
+- `qrwcEvents.error`: Emitted when there is a type mismatch for a property or when a property does not exist on the control.
 
 ## Example
 
 ```typescript
-const controlObject = Qrcc.components.Text_Box['text.1']
+const controlObject = Qrwc.components.Text_Box['text.1']
 
 console.log(controlObject.Name); // 'text.1'
 console.log(controlObject.Component); // 'Text_Box'
@@ -145,10 +144,6 @@ const valueMin = controlObject.getMetaProperty('ValueMin');
 console.log(valueMin); // The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
 ```
 
-#### Getting started with submitting your own controls (No autostart) ####
-* Not available yet
-* Still a WIP
-
 ### Developing ###
 * The npm library is based off the `/dist` dir but development happens in src 
 * Eslint will tartget `/src` dir
@@ -157,7 +152,7 @@ console.log(valueMin); // The minimum value of the control, or undefined if the 
   * Please test before commiting changes
   * `npm run build`
   * `npm run test`
-* The Qrcc class has private & public methods and variables
+* The Qrwc class has private & public methods and variables
   * Private: Obfuscating the websocket to prevent direct interaction & IP
   * Public: Serves as an interface to private values or a variable that shouldn't be secret
 * If changes are saved in `/src` 
@@ -192,7 +187,7 @@ console.log(valueMin); // The minimum value of the control, or undefined if the 
 
 ### Some considerations ###
 * Tests are currently broken due to a major refactor
-* This being a POC, this won't be how the install and final project will look
+* This being the main repo, a user will install this differently.
 * Turning off your http server on the core...
 ```typescript
 const agent = new https.Agent({

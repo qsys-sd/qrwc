@@ -1,7 +1,7 @@
 {
   "name": "control-connect",
   "version": "0.1.0-alpha",
-  "description": "Interface software for qsys controls.",
+  "description": "Interface software for Q-SYS controls.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
