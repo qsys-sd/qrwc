@@ -1,4 +1,4 @@
-import { qrcMethods, qrccEvents } from "../../constants"
+import { qrcMethods, qrwcEvents } from "../../constants"
 import { WebSocket as WsWebsocket } from 'ws';
 import { createJSONRPCMessage } from "../../utils";
 import { EventManager } from "..";
@@ -24,15 +24,15 @@ export default class WebSocketManager {
   
   public onMessage(event: MessageEvent) {
     const message = JSON.parse(event.data)
-    this.eventManager.handleEvent(qrccEvents.message, message)
+    this.eventManager.handleEvent(qrwcEvents.message, message)
   }
 
   private onError(error: Event): void {
-    this.eventManager.handleEvent(qrccEvents.error, error)
+    this.eventManager.handleEvent(qrwcEvents.error, error)
   }
 
   private onClose(event: CloseEvent): void {
-    this.eventManager.handleEvent(qrccEvents.disconnected, event)
+    this.eventManager.handleEvent(qrwcEvents.disconnected, event)
   }
 
   private isOpen() {
@@ -66,7 +66,7 @@ export default class WebSocketManager {
     if (this.socket !== null && this.isOpen()) {
       this.socket.send(JSON.stringify(data))
     } else {
-      this.eventManager.handleEvent(qrccEvents.error, "WebSocket is not open or not initialized.")
+      this.eventManager.handleEvent(qrwcEvents.error, "WebSocket is not open or not initialized.")
     }
   }
 
@@ -79,7 +79,7 @@ export default class WebSocketManager {
     if (this.socket) {
       return this.socket.readyState
     } else {
-      this.eventManager.handleEvent(qrccEvents.error, "WebSocket is not initialized.")
+      this.eventManager.handleEvent(qrwcEvents.error, "WebSocket is not initialized.")
     }
   }
 
@@ -89,7 +89,7 @@ export default class WebSocketManager {
 
       this.socket.close(code, reason)
     } else {
-      this.eventManager.handleEvent(qrccEvents.error, "WebSocket is not open or not initialized.")
+      this.eventManager.handleEvent(qrwcEvents.error, "WebSocket is not open or not initialized.")
     }
   }
 

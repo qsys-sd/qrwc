@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
-import { qrcMethods, qrccEvents } from "../../constants"
+import { qrcMethods, qrwcEvents } from "../../constants"
 import { IChangeRequest, IComponent, IControl } from "../../index.interface"
 import { EventManager, WebSocketManager } from ".."
 import { createJSONRPCMessage } from "../../utils"
@@ -20,7 +20,7 @@ export default class ControlManager {
     this.eventManager = eventManager
 
     // event listener for handling websocket messages
-    this.eventManager.on(qrccEvents.message, (message: MessageEvent) => {
+    this.eventManager.on(qrwcEvents.message, (message: MessageEvent) => {
       this.parseMessage(message)
     })
   }
@@ -31,7 +31,7 @@ export default class ControlManager {
     if (this.websocketManager) {
       // emit event for websocket already attached
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "web socket already attached"
       )
     }
@@ -79,7 +79,7 @@ export default class ControlManager {
       // check if change is valid
       if (!isValidControl(change)) {
         // if change is invalid, emit error
-        this.eventManager.handleEvent(qrccEvents.error, "Invalid change")
+        this.eventManager.handleEvent(qrwcEvents.error, "Invalid change")
         return
       }
 
@@ -102,7 +102,7 @@ export default class ControlManager {
       } else {
         // emit error
         this.eventManager.handleEvent(
-          qrccEvents.error,
+          qrwcEvents.error,
           "Connot update Control, existing Control not found"
         )
       }
@@ -121,7 +121,7 @@ export default class ControlManager {
       // if change group requests is empty, emit change group created event
       if (this.changeGroupRequests.length === 0) {
         this.eventManager.handleEvent(
-          qrccEvents.componentChangeGroupCreated,
+          qrwcEvents.componentChangeGroupCreated,
           this.requestChangeGroupId
         )
 
@@ -131,7 +131,7 @@ export default class ControlManager {
     } else {
       // emit error
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "Change group request failed"
       )
     }
@@ -148,7 +148,7 @@ export default class ControlManager {
     if (existingChangeGroupIds.includes(changeGroupId)) {
       // if change group id exists, emit error
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "Change group id already exists"
       )
       return
@@ -223,7 +223,7 @@ export default class ControlManager {
     }
 
     // emit component updated event
-    this.eventManager.handleEvent(qrccEvents.controlsUpdated, updatedComponent)
+    this.eventManager.handleEvent(qrwcEvents.controlsUpdated, updatedComponent)
   }
 
   // a method for adding a new component to components
@@ -232,7 +232,7 @@ export default class ControlManager {
     if (this.components[componentName]) {
       // if component exists, emit error
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "Component already exists"
       )
       return
@@ -299,7 +299,7 @@ export default class ControlManager {
         // check if array is empty & throw error
         if (message.result.length === 0) {
           this.eventManager.handleEvent(
-            qrccEvents.error,
+            qrwcEvents.error,
            `Change request for ${changeRequest.component} failed`
           )
           return
@@ -309,7 +309,7 @@ export default class ControlManager {
         message.result.forEach((control: any) => {
           if (!isValidControl(control)) {
             this.eventManager.handleEvent(
-              qrccEvents.error,
+              qrwcEvents.error,
               `Invalid control for ${changeRequest.component}`
             )
             return
@@ -334,7 +334,7 @@ export default class ControlManager {
           } else {
             // emit error
             this.eventManager.handleEvent(
-              qrccEvents.error,
+              qrwcEvents.error,
               "Connot update Control, existing Control not found"
             )
           }
@@ -348,13 +348,13 @@ export default class ControlManager {
 
       // emit change request successful event
       this.eventManager.handleEvent(
-        qrccEvents.changeRequestSuccessful,
+        qrwcEvents.changeRequestSuccessful,
         changeRequest
       )
     } else {
       // emit error
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         `Change request for ${changeRequest.component} failed`
       )
     }
@@ -366,7 +366,7 @@ export default class ControlManager {
     if (!this.components[componentName]) {
       // if component does not exist, emit error
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "Component does not exist"
       )
       return
@@ -376,7 +376,7 @@ export default class ControlManager {
     if (!this.components[componentName][controlName]) {
       // if control does not exist, emit error
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "Control does not exist"
       )
       return

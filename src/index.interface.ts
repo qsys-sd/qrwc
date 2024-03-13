@@ -9,7 +9,7 @@ export interface IControl {
   Type?: string
 }
 
-export interface IQRCControls {
+export interface IQSYSControls {
   Name: string
   Controls: IControl[]
 }
