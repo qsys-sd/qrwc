@@ -11,7 +11,7 @@ export const qrcMethods = {
   }
 }
 
-export const qrccEvents = {
+export const qrwcEvents = {
   message: "message",
   error: "error",
   disconnected: "disconnected",

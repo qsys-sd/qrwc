@@ -1,7 +1,7 @@
-import { Qrcc } from '..'
+import { Qrwc } from '..'
 import { Server } from 'mock-socket'
 
-describe('Qrcc', () => {
+describe('Qrwc', () => {
   const mockUrl = 'ws://localhost:8080/qrc'
 
   // test('websocket should not be connected by default', () => {
@@ -11,11 +11,11 @@ describe('Qrcc', () => {
   //   // Create mock socket
   //   const mockSocket = new WebSocket(mockUrl)
 
-  //   // Create the Qrcc instance
-  //   const mockQrcc = new Qrcc({ socket: mockSocket })
+  //   // Create the Qrwc instance
+  //   const mockQrwc = new Qrwc({ socket: mockSocket })
 
   //   // Check that the WebSocket is not open
-  //   expect(mockQrcc.getReadyState()).toBe('NOT_INITIALIZED')
+  //   expect(mockQrwc.getReadyState()).toBe('NOT_INITIALIZED')
 
   //   // Stop the mock server
   //   mockServer.stop()
@@ -28,14 +28,14 @@ describe('Qrcc', () => {
   //   // Create mock socket
   //   const mockSocket = new WebSocket(mockUrl)
 
-  //   // Create the Qrcc instance
-  //   const mockQrcc = new Qrcc({ socket: mockSocket })
+  //   // Create the Qrwc instance
+  //   const mockQrwc = new Qrwc({ socket: mockSocket })
 
   //   // Check that the WebSocket is not open
-  //   expect(mockQrcc.getReadyState()).toBe('NOT_INITIALIZED')
+  //   expect(mockQrwc.getReadyState()).toBe('NOT_INITIALIZED')
 
-  //   // Connect Qrcc to the mock server
-  //   mockQrcc.connect()
+  //   // Connect Qrwc to the mock server
+  //   mockQrwc.connect()
 
   //   // Wait for the connection to be established
   //   await new Promise(resolve => {
@@ -43,10 +43,10 @@ describe('Qrcc', () => {
   //   })
 
   //   // Check that the WebSocket is open
-  //   expect(mockQrcc.getReadyState()).toBe(WebSocket.OPEN)
+  //   expect(mockQrwc.getReadyState()).toBe(WebSocket.OPEN)
 
   //   // Close the WebSocket connection
-  //   mockQrcc.close()
+  //   mockQrwc.close()
 
   //   // Wait for close event to be emitted
   //   await new Promise(resolve => {
@@ -64,8 +64,8 @@ describe('Qrcc', () => {
   //   // Create mock socket
   //   const mockSocket = new WebSocket(mockUrl)
 
-  //   // Create the Qrcc instance
-  //   const mockQrcc = new Qrcc({ socket: mockSocket, autoStart: true})
+  //   // Create the Qrwc instance
+  //   const mockQrwc = new Qrwc({ socket: mockSocket, autoStart: true})
 
   //   // Wait for the connection to be established
   //   await new Promise(resolve => {
@@ -73,10 +73,10 @@ describe('Qrcc', () => {
   //   })
 
   //   // Check that the WebSocket is open
-  //   expect(mockQrcc.getReadyState()).toBe(WebSocket.OPEN)
+  //   expect(mockQrwc.getReadyState()).toBe(WebSocket.OPEN)
 
   //   // Close the WebSocket connection
-  //   mockQrcc.close()
+  //   mockQrwc.close()
 
   //   // Wait for close event to be emitted
   //   await new Promise(resolve => {

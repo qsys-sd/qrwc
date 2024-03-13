@@ -1,6 +1,6 @@
 // Imports
 import { IControl } from '../../index.interface'
-import { qrccEvents } from "../../constants"
+import { qrwcEvents } from "../../constants"
 
 /**
  * ControlDecorator class
@@ -82,7 +82,7 @@ export class ControlDecorator {
    */
   get Bool(): boolean | undefined {
     if (this.Type !== 'Boolean') {
-      this.handleEvent(qrccEvents.error, `Type mismatch for property Bool. This control is Type ${this.Type}`);
+      this.handleEvent(qrwcEvents.error, `Type mismatch for property Bool. This control is Type ${this.Type}`);
       return undefined;
     }
 
@@ -98,12 +98,12 @@ export class ControlDecorator {
    */
   set Bool(value: boolean | undefined) {
     if (typeof value !== 'boolean') {
-      this.handleEvent(qrccEvents.error, `Type mismatch for property Bool. Expected boolean, got ${typeof value}`);
+      this.handleEvent(qrwcEvents.error, `Type mismatch for property Bool. Expected boolean, got ${typeof value}`);
       return;
     }
 
     if (this.Type !== 'Boolean') {
-      this.handleEvent(qrccEvents.error, `Type mismatch for property Bool. Expected Boolean, got ${this.Type}`);
+      this.handleEvent(qrwcEvents.error, `Type mismatch for property Bool. Expected Boolean, got ${this.Type}`);
       return;
     }
 
@@ -125,7 +125,7 @@ export class ControlDecorator {
    */
   private updateQsysDesign(property: keyof IControl, value: string | number | boolean): void {
     if (!(property in this.control)) {
-      this.handleEvent(qrccEvents.error, `Property ${property} does not exist on the control: ${this.control.Name}`);
+      this.handleEvent(qrwcEvents.error, `Property ${property} does not exist on the control: ${this.control.Name}`);
       return;
     }
     
@@ -133,7 +133,7 @@ export class ControlDecorator {
     const valueType = typeof value;
   
     if (expectedType !== valueType) {
-      this.handleEvent(qrccEvents.error, `Type mismatch for property ${property}. Expected ${expectedType}, got ${valueType}`);
+      this.handleEvent(qrwcEvents.error, `Type mismatch for property ${property}. Expected ${expectedType}, got ${valueType}`);
       return;
     }
 
@@ -178,7 +178,7 @@ export class ControlDecorator {
    */
   public getMetaProperty(propertyName: string): any | undefined {
     if (!this.control.hasOwnProperty(propertyName)) {
-      this.handleEvent(qrccEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`);
+      this.handleEvent(qrwcEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`);
       return;
     }
     return this.control[propertyName as keyof IControl];

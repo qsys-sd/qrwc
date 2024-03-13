@@ -5,9 +5,9 @@ import {
   EventManager
 } from "../managers"
 import { IComponent } from "../index.interface"
-import { qrccEvents } from "../constants"
+import { qrwcEvents } from "../constants"
 
-export class Qrcc {
+export class Qrwc {
   webSocketManager: WebSocketManager | null = null
   autoStartManager: AutoStartManager | null = null
   controlManager: ControlManager
@@ -22,19 +22,19 @@ export class Qrcc {
     )
 
     // event listeners
-    this.eventManager.on(qrccEvents.controlsReceived, () => {
+    this.eventManager.on(qrwcEvents.controlsReceived, () => {
       // update components
       this.components = this.controlManager.components
     })
 
-    this.eventManager.on(qrccEvents.controlsUpdated, () => {
+    this.eventManager.on(qrwcEvents.controlsUpdated, () => {
       // update components
       this.components = this.controlManager.components
     })
 
-    this.eventManager.on(qrccEvents.disconnected, () => {
+    this.eventManager.on(qrwcEvents.disconnected, () => {
       // initate clean up
-      this.qrccCleanUp()
+      this.qrwcCleanUp()
     })
   }
 
@@ -44,7 +44,7 @@ export class Qrcc {
     if (this.webSocketManager) {
       // emit event for websocket already attached
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "web socket already attached"
       )
       return
@@ -57,7 +57,7 @@ export class Qrcc {
     this.controlManager.attachWebSocketManager(this.webSocketManager)
 
     // emit event for websocket attached
-    this.eventManager.handleEvent(qrccEvents.webSocketAttached)
+    this.eventManager.handleEvent(qrwcEvents.webSocketAttached)
   }
 
   // a method to initate the auto start process
@@ -71,7 +71,7 @@ export class Qrcc {
     if (this.autoStartManager) {
       // emit event for auto start already started
       this.eventManager.handleEvent(
-        qrccEvents.error,
+        qrwcEvents.error,
         "auto start already initialized"
       )
     } else {
@@ -102,8 +102,8 @@ export class Qrcc {
     this.eventManager.on(event, listener)
   }
 
-  // a method for initating clean up for QRCC
-  public qrccCleanUp(): void {
+  // a method for initating clean up for QRWC
+  public qrwcCleanUp(): void {
     // remove all listeners from eventManager
     this.eventManager.removeAllEventListeners();
   
