@@ -7,30 +7,30 @@
 ### Implementation and use ###
 #### Getting started with auto start ####
 ```typescript
-import { Qrwc } from "control-connect" 
-// const { Qrwc } = require('control-connect'); // for BE/node environments
+import { Qrwc } from "qrwc" 
+// const { Qrwc } = require('qrwc'); // for BE/node environments
 
-const cc = new Qrwc()
+const qrwc = new Qrwc()
 
-const socket = new WebSocket("ws://{IP}/qrc")
+const socket = new WebSocket("ws://{IP}/qrc-public-api/v0")
 
 socket.onopen = () => {
-  cc.attachWebSocket(socket)
+  qrwc.attachWebSocket(socket)
 }
 
-cc.on("webSocketAttached", () => {
-  cc.autoStart()
+qrwc.on("webSocketAttached", () => {
+  qrwc.autoStart()
 })
 
-cc.on("autoStartComplete", () => {
-  console.log("autoStartComplete", cc.components)
+qrwc.on("autoStartComplete", () => {
+  console.log("autoStartComplete", qrwc.components)
 
   // This is when all controls should be available for use by your application
 })
 
-cc.on("controlsUpdated", (updatedComponent: any) => {
+qrwc.on("controlsUpdated", (updatedComponent: any) => {
   console.log("controlsUpdated", updatedComponent)
-  // console.log("controlsUpdated", cc.components) // another option
+  // console.log("controlsUpdated", qrwc.components) // another option
 
   // This is when you application should update
 })
@@ -43,7 +43,7 @@ cc.on("controlsUpdated", (updatedComponent: any) => {
 
 ```typescript
 // continued from above example
-cc.on("disconnected", (event) => {
+qrwc.on("disconnected", (event) => {
   // console.log("disconnected", event)
 
   // attempt reconnect strategy

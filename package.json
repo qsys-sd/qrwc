@@ -1,5 +1,5 @@
 {
-  "name": "control-connect",
+  "name": "qrwc",
   "version": "0.1.0-alpha",
   "description": "Interface software for Q-SYS controls.",
   "main": "dist/index.js",
@@ -17,8 +17,7 @@
     "fix": "eslint --fix 'src/**/*.ts'"
   },
   "repository": {
-    "type": "git",
-    "url": "https://bitbucket.qsc.com/scm/sandbox/control-connect.git"
+    "type": "git"
   },
   "author": "Devin Kapla",
   "license": "ISC",
