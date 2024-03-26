@@ -25,21 +25,6 @@ export default class ControlManager {
     })
   }
 
-  // a method for attaching the websocket manager
-  public attachWebSocketManager(websocketManager: WebSocketManager): void {
-    // check if websocketManager is defined
-    if (this.websocketManager) {
-      // emit event for websocket already attached
-      this.eventManager.handleEvent(
-        qrwcEvents.error,
-        "web socket already attached"
-      )
-    }
-
-    // attach websocketManager
-    this.websocketManager = websocketManager
-  }
-
   // a method for parsing messages
   private parseMessage(message: any): void {
     // check if id exists & includes change group request

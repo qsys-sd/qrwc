@@ -53,9 +53,6 @@ export class Qrwc {
     // create webSocketManager
     this.webSocketManager = new WebSocketManager(socket, this.eventManager)
 
-    // attach web socket to control manager
-    this.controlManager.attachWebSocketManager(this.webSocketManager)
-
     // emit event for websocket attached
     this.eventManager.handleEvent(qrwcEvents.webSocketAttached)
   }
