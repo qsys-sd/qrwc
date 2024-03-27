@@ -6,18 +6,16 @@ import { WebSocketManager, ControlManager, EventManager } from ".."
 import { ControlDecorator } from "../control/ControlDecorator"
 
 export default class AutoStartManager {
-  private webSocketManager: WebSocketManager
   private getComponentsId: string = ""
   private componentList: string[] = []
   private getControlIds: string[] = []
   private autoStartChangeGroupId: string = ""
-  controlManager: ControlManager
-  eventManager: EventManager
 
   constructor(
-    webSocketManager: WebSocketManager,
-    controlManager: ControlManager,
-    eventManager: EventManager
+    private webSocketManager: WebSocketManager,
+    private controlManager: ControlManager,
+    private eventManager: EventManager,
+    private createChangeGroup: (componentNames: string[], changeGroupId: string) => void
   ) {
     // main dependencies
     this.webSocketManager = webSocketManager
@@ -34,7 +32,7 @@ export default class AutoStartManager {
     })
 
     this.eventManager.on(qrwcEvents.controlsReceived, () => {
-      this.createChangeGroup()
+      this.createAutoStartChangeGroup()
     })
 
     // listen for change group created event
@@ -166,7 +164,7 @@ export default class AutoStartManager {
   }
 
   // a method for creating change groups
-  private createChangeGroup(): void {
+  private createAutoStartChangeGroup(): void {
     // create change group id
     const changeGroupId = uuidv4()
 
@@ -174,7 +172,7 @@ export default class AutoStartManager {
     this.autoStartChangeGroupId = changeGroupId
 
     // create change group from component controls
-    this.controlManager.createChangeGroup(this.componentList, changeGroupId)
+    this.createChangeGroup(this.componentList, changeGroupId)
   }
 
   // a method for cleaning up the auto start manager
@@ -190,5 +188,17 @@ export default class AutoStartManager {
 
     // clear getComponentsId
     this.getComponentsId = ""
+
+    // set webSocketManager to null
+    this.webSocketManager = null
+
+    // set controlManager to null
+    this.controlManager = null
+
+    // set eventManager to null
+    this.eventManager = null
+
+    // set createChangeGroup to null
+    this.createChangeGroup = null
   }
 }
