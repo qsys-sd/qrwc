@@ -125,10 +125,7 @@ export default class ControlManager {
     this.requestManager.createChangeRequest(
       controlToUpdate.Component,
       requestId,
-      (message: any) => {
-        // handle change request
-        this.handleControlChanges(message)
-      }
+      this.controlChangeCallback
     )
 
     // check if webSocketManager is defined
@@ -145,6 +142,12 @@ export default class ControlManager {
     this.webSocketManager.send(
       createJSONRPCMessage(qrcMethods.components.set, componentChange, requestId)
     )
+  }
+
+  // callBack for requestManager
+  private controlChangeCallback = (message: any) => {
+    // handle control changes
+    this.handleControlChanges(message)
   }
 
   // a method for retuning a existing control otherwise undefined
