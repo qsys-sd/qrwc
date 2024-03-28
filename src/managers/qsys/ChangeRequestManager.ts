@@ -1,15 +1,15 @@
 import { qrwcEvents } from "../../constants"
 import { IChangeRequest } from "../../index.interface"
-import { ControlManager, EventManager } from ".."
+import { EventManager, ControlChangeRequestCoordinator } from ".."
 
 export default class ChangeRequestManager {
   private changeRequestIds: IChangeRequest[] = [];
+  private controlChangeRequestCoordinator: ControlChangeRequestCoordinator
 
   constructor(
-    private eventManager: EventManager,
-    private controlManager: ControlManager
+    private eventManager: EventManager
   ) {
-    this.eventManager.on(qrwcEvents.message, (message: MessageEvent) => {
+    this.eventManager.on(qrwcEvents.message, (message: any) => {
       this.parseMessage(message)
     })
   }
@@ -26,6 +26,11 @@ export default class ChangeRequestManager {
     }
   }
 
+  // a method to set the ControlChangeRequestCoordinator
+  public setControlChangeRequestCoordinator(controlChangeRequestCoordinator: ControlChangeRequestCoordinator): void {
+    this.controlChangeRequestCoordinator = controlChangeRequestCoordinator
+  }
+
   public createChangeRequest(componentName: string, requestId: string): void {
     const changeRequest = {
       id: requestId,
@@ -37,45 +42,62 @@ export default class ChangeRequestManager {
   // a method for handling change requests
   public handleChangeRequest(message: any): void {
     // get change request
-    const changeRequest = this.changeRequestIds.find(
-      (changeRequest: IChangeRequest) => changeRequest.id === message.id
-    )
+    const changeRequest = this.findChangeRequestById(message.id)
 
     // check if change request is successful
     if (message.result) {
       // check if result is an array
-      // move logic into separate method to be removed later
-      if (Array.isArray(message.result)) { // TODO: Remove once QRC is updated
-        // check if array is empty & throw error
-        if (message.result.length === 0) {
-          this.eventManager.handleEvent(
-            qrwcEvents.error,
-            `Change request for ${changeRequest.component} failed`
-          )
-          return
-        }
+      const areChangesArray = this.isArrayNotEmpty(message.result)
 
-        // changes exist, send to ControlManager for processing
-        this.controlManager.handleControlChanges(message.result)
-      }
+      // if changes array is empty, return
+      if (!areChangesArray) return
+
+      // changes exist, send to ControlManager for processing
+      this.controlChangeRequestCoordinator.handleControlChanges(message.result)
 
       // remove change request from changeRequestIds
-      this.changeRequestIds = this.changeRequestIds.filter(
-        (changeRequest: IChangeRequest) => changeRequest.id !== message.id
-      )
+      this.removeChangeRequest(changeRequest.id)
 
       // emit change request successful event
-      this.eventManager.handleEvent(
-        qrwcEvents.changeRequestSuccessful,
-        changeRequest
-      )
+      this.emitSuccessfulChangeRequest(changeRequest)
+
     } else {
-      // emit error
-      this.eventManager.handleEvent(
-        qrwcEvents.error,
-        `Change request for ${changeRequest.component} failed`
-      )
+      // if change request is not successful, emit failed change request
+      this.emitFailedChangeRequest(changeRequest)
+
+      // remove change request from changeRequestIds
+      this.removeChangeRequest(changeRequest.id)
     }
+  }
+
+  // a method for removing change request
+  private removeChangeRequest(requestId: string): void {
+    this.changeRequestIds = this.changeRequestIds.filter(
+      (changeRequest: IChangeRequest) => changeRequest.id !== requestId
+    )
+  }
+
+  // a method for finding change request by id
+  private findChangeRequestById(requestId: string): IChangeRequest {
+    return this.changeRequestIds.find(
+      (changeRequest: IChangeRequest) => changeRequest.id === requestId
+    )
+  }
+
+  // a method for emitting a successful change request
+  private emitSuccessfulChangeRequest(changeRequest: IChangeRequest): void {
+    this.eventManager.handleEvent(qrwcEvents.changeRequestSuccessful, changeRequest)
+  }
+
+  // a method for emitting a failed change request
+  private emitFailedChangeRequest(changeRequest: IChangeRequest): void {
+    const errorMessage = `Change request for ${changeRequest.component} failed`
+    this.eventManager.handleEvent(qrwcEvents.error, errorMessage)
+  }
+
+  // a temp method to check if is array and not emtpy
+  private isArrayNotEmpty(array: any[]): boolean {
+    return Array.isArray(array) && array.length > 0
   }
 
   // a method for initiating clean up for ChangeRequestManager
@@ -83,8 +105,8 @@ export default class ChangeRequestManager {
     // set eventManager to null
     this.eventManager = null
 
-    // set controlManager to null
-    this.controlManager = null
+    // set controlChangeRequestCoordinator to null
+    this.controlChangeRequestCoordinator = null
 
     // set changeRequestIds to empty array
     this.changeRequestIds = []

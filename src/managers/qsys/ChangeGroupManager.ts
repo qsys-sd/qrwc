@@ -1,18 +1,18 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrwcEvents } from "../../constants"
-import { WsDependencySetter, WebSocketManager, EventManager, ControlManager } from ".."
+import { WebSocketManager, EventManager, ControlManager } from ".."
 import { createJSONRPCMessage } from "../../utils"
 
-export default class ChangeGroupManager extends WsDependencySetter {
+export default class ChangeGroupManager {
     private changeGroupRequests: string[] = []
     private requestChangeGroupId: string = ""
     private changeGroups: { [changeGroupId: string]: string[] } = {}
+    private webSocketManager: WebSocketManager
 
     constructor(
         private eventManager: EventManager,
         private controlManager: ControlManager
-        ){
-        super()
+    ) {
         this.eventManager.on(qrwcEvents.message, (message: MessageEvent) => {
             this.parseMessage(message)
         })
@@ -39,9 +39,9 @@ export default class ChangeGroupManager extends WsDependencySetter {
     }
 
     // a setter for websocketManager
-    public setWebSocketManager(websocketManager: WebSocketManager): void {
+    public setWebSocketManager(webSocketManager: WebSocketManager): void {
         // check if websocketManager is defined
-        if (this.websocketManager) {
+        if (this.webSocketManager) {
             // emit error
             this.eventManager.handleEvent(
                 qrwcEvents.error,
@@ -50,7 +50,7 @@ export default class ChangeGroupManager extends WsDependencySetter {
             return
         }
 
-        this.websocketManager = websocketManager
+        this.webSocketManager = webSocketManager
     }
 
     // a method for creating change groups
@@ -99,17 +99,34 @@ export default class ChangeGroupManager extends WsDependencySetter {
         // get control names by component
         const controlNames = this.controlManager.getControlNamesByComponent(componentName)
 
+        // give controlNames a "Name" key
+        const namesOfControls = controlNames.map((control: string) => ({ Name: control }))
+
         // create & format component for message
         const newComponent = {
             Id: changeGroupId,
             Component: {
                 Name: componentName,
-                Controls: controlNames
+                Controls: namesOfControls
             }
         }
 
+        //check if webSocketManager is defined
+        if (!this.webSocketManager) {
+            // if webSocketManager is not defined, emit error
+            this.eventManager.handleEvent(
+                qrwcEvents.error,
+                "WebSocketManager is not defined"
+            )
+            return
+        }
+
+        console.log("addComponentControl", newComponent)
+        console.log("addComponentControl", requestId)
+        console.log("addComponentControl", qrcMethods.changeGroup.addComponentControl)
+
         // send addComponentControl request
-        this.websocketManager.send(
+        this.webSocketManager.send(
             createJSONRPCMessage(
                 qrcMethods.changeGroup.addComponentControl,
                 newComponent,

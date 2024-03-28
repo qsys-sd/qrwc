@@ -4,7 +4,8 @@ import ControlManager from "./control/ControlManager";
 import EventManager from "./event/EventManager";
 import ChangeGroupManager from "./qsys/ChangeGroupManager";
 import ChangeRequestManager from "./qsys/ChangeRequestManager";
-import WsDependencySetter from "./helpers/WsDependencySetter";
+import ControlChangeRequestCoordinator from "./mediators/ControlChangeRequestCoordinator";
+import ControlChangeGroupCoordinator from "./mediators/ControlChangeRequestCoordinator";
 
 export {
     AutoStartManager,
@@ -13,5 +14,6 @@ export {
     EventManager,
     ChangeGroupManager,
     ChangeRequestManager,
-    WsDependencySetter
+    ControlChangeRequestCoordinator,
+    ControlChangeGroupCoordinator
 };

@@ -1,19 +1,19 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrwcEvents } from "../../constants"
 import { IComponent, IControl } from "../../index.interface"
-import { WsDependencySetter, EventManager } from ".."
+import { EventManager, ControlChangeRequestCoordinator, WebSocketManager } from ".."
 import { createJSONRPCMessage } from "../../utils"
 import { isValidControl } from "../../utils"
 import { ControlDecorator } from "./ControlDecorator"
 
-export default class ControlManager extends WsDependencySetter{
+export default class ControlManager {
   public components: IComponent = {}
+  private webSocketManager: WebSocketManager
+  private controlChangeRequestCoordinator: ControlChangeRequestCoordinator
 
   constructor(
     private eventManager: EventManager
-  ) {
-    super()
-  }
+  ) { }
 
   // a method for handling changes
   public handleControlChanges(changes: any): void {
@@ -52,6 +52,26 @@ export default class ControlManager extends WsDependencySetter{
         )
       }
     })
+  }
+
+  // a method to set the ControlChangeRequestCoordinator
+  public setControlChangeRequestCoordinator(controlChangeRequestCoordinator: ControlChangeRequestCoordinator): void {
+    this.controlChangeRequestCoordinator = controlChangeRequestCoordinator
+  }
+
+  // a setter for websocketManager
+  public setWebSocketManager(webSocketManager: WebSocketManager): void {
+    // check if websocketManager is defined
+    if (this.webSocketManager) {
+      // emit error
+      this.eventManager.handleEvent(
+        qrwcEvents.error,
+        "Websocket manager already attached"
+      )
+      return
+    }
+
+    this.webSocketManager = webSocketManager
   }
 
   // a method for adding a new control to components
@@ -107,13 +127,23 @@ export default class ControlManager extends WsDependencySetter{
     }
 
     // create change request
-    this.changeRequestManager.createChangeRequest(
+    this.controlChangeRequestCoordinator.createChangeRequest(
       controlToUpdate.Component,
       requestId
     )
 
+    // check if webSocketManager is defined
+    if (!this.webSocketManager) {
+      // if webSocketManager is not defined, emit error
+      this.eventManager.handleEvent(
+        qrwcEvents.error,
+        "WebSocketManager is not defined"
+      )
+      return
+    }
+
     // send setControlValue request
-    this.websocketManager.send(
+    this.webSocketManager.send(
       createJSONRPCMessage(qrcMethods.components.set, componentChange, requestId)
     )
   }

@@ -5,6 +5,7 @@ import {
   EventManager,
   ChangeGroupManager,
   ChangeRequestManager,
+  ControlChangeRequestCoordinator
 } from "../managers"
 import { IComponent } from "../index.interface"
 import { qrwcEvents } from "../constants"
@@ -16,25 +17,41 @@ export class Qrwc {
   eventManager: EventManager
   changeGroupManager: ChangeGroupManager
   changeRequestManager: ChangeRequestManager
+  controlChangeRequestCoordinator: ControlChangeRequestCoordinator
   public components: IComponent = {}
 
   constructor() {
     // main dependencies
+    // create EventManager instance
     this.eventManager = new EventManager()
+    // create ControlManager instance
     this.controlManager = new ControlManager(
       this.eventManager
     )
+
+    // create ChangeRequestManager instance
+    this.changeRequestManager = new ChangeRequestManager(
+      this.eventManager
+    )
+
     // create ChangeGroupManager instance
     this.changeGroupManager = new ChangeGroupManager(
       this.eventManager,
       this.controlManager
     )
 
-    // create ChangeRequestManager instance
-    this.changeRequestManager = new ChangeRequestManager(
-      this.eventManager,
-      this.controlManager
+    // create mediators
+    // create ControlChangeRequestCoordinator instance
+    this.controlChangeRequestCoordinator = new ControlChangeRequestCoordinator(
+      this.controlManager,
+      this.changeRequestManager
     )
+
+    // set mediators
+    // set ControlChangeRequestCoordinator for ControlManager
+    this.controlManager.setControlChangeRequestCoordinator(this.controlChangeRequestCoordinator)
+    // set ControlChangeRequestCoordinator for ChangeRequestManager
+    this.changeRequestManager.setControlChangeRequestCoordinator(this.controlChangeRequestCoordinator)
 
     // event listeners
     this.eventManager.on(qrwcEvents.controlsReceived, () => {
@@ -68,8 +85,19 @@ export class Qrwc {
     // create webSocketManager
     this.webSocketManager = new WebSocketManager(socket, this.eventManager)
 
+    // set webSocketManager dependencies
+    this.setWsDependencies()
+
     // emit event for websocket attached
     this.eventManager.handleEvent(qrwcEvents.webSocketAttached)
+  }
+
+  private setWsDependencies(): void {
+    // set webSocketManager for controlManager
+    this.controlManager.setWebSocketManager(this.webSocketManager)
+
+    // set webSocketManager for changeGroupManager
+    this.changeGroupManager.setWebSocketManager(this.webSocketManager)
   }
 
   // a method to initate the auto start process
@@ -150,8 +178,14 @@ export class Qrwc {
     // clean up changeGroupManager
     this.changeGroupManager.cleanUp()
 
+    // set changeGroupManager to null
+    this.changeGroupManager = null
+
     // clean up changeRequestManager
     this.changeRequestManager.cleanUp()
+
+    // set changeRequestManager to null
+    this.changeRequestManager = null
 
     // set components to empty object
     this.components = {};
