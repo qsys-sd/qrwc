@@ -121,10 +121,6 @@ export default class ChangeGroupManager {
             return
         }
 
-        console.log("addComponentControl", newComponent)
-        console.log("addComponentControl", requestId)
-        console.log("addComponentControl", qrcMethods.changeGroup.addComponentControl)
-
         // send addComponentControl request
         this.webSocketManager.send(
             createJSONRPCMessage(

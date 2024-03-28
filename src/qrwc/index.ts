@@ -16,7 +16,6 @@ export class Qrwc {
   eventManager: EventManager
   changeGroupManager: ChangeGroupManager
   requestManager: RequestManager
-  public components: IComponent = {}
 
   constructor() {
     // main dependencies
@@ -37,21 +36,15 @@ export class Qrwc {
       this.controlManager
     )
 
-    // event listeners
-    this.eventManager.on(qrwcEvents.controlsReceived, () => {
-      // update components
-      this.components = this.controlManager.components
-    })
-
-    this.eventManager.on(qrwcEvents.controlsUpdated, () => {
-      // update components
-      this.components = this.controlManager.components
-    })
-
     this.eventManager.on(qrwcEvents.disconnected, () => {
       // initate clean up
       this.qrwcCleanUp()
     })
+  }
+
+  // a getter method for components
+  get components(): IComponent {
+    return this.controlManager.components
   }
 
   // a method to create the websocket manager
@@ -165,7 +158,5 @@ export class Qrwc {
     // set changeGroupManager to null
     this.changeGroupManager = null
 
-    // set components to empty object
-    this.components = {};
   }
 }
