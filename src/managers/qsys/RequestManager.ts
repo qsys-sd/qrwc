@@ -1,10 +1,9 @@
 import { qrwcEvents } from "../../constants"
 import { IChangeRequest } from "../../index.interface"
-import { EventManager, ControlChangeRequestCoordinator } from ".."
+import { EventManager } from ".."
 
-export default class ChangeRequestManager {
+export default class RequestManager {
   private changeRequestIds: IChangeRequest[] = [];
-  private controlChangeRequestCoordinator: ControlChangeRequestCoordinator
 
   constructor(
     private eventManager: EventManager
@@ -26,15 +25,12 @@ export default class ChangeRequestManager {
     }
   }
 
-  // a method to set the ControlChangeRequestCoordinator
-  public setControlChangeRequestCoordinator(controlChangeRequestCoordinator: ControlChangeRequestCoordinator): void {
-    this.controlChangeRequestCoordinator = controlChangeRequestCoordinator
-  }
-
-  public createChangeRequest(componentName: string, requestId: string): void {
+  // a method to create a request it takes in a component name and request id and a callback function
+  public createChangeRequest(componentName: string, requestId: string, callback: any): void {
     const changeRequest = {
       id: requestId,
       component: componentName,
+      callback
     }
     this.changeRequestIds = [...this.changeRequestIds, changeRequest]
   }
@@ -52,8 +48,8 @@ export default class ChangeRequestManager {
       // if changes array is empty, return
       if (!areChangesArray) return
 
-      // changes exist, send to ControlManager for processing
-      this.controlChangeRequestCoordinator.handleControlChanges(message.result)
+      //call the callback function with the changes
+      changeRequest.callback(message.result)
 
       // remove change request from changeRequestIds
       this.removeChangeRequest(changeRequest.id)
@@ -104,9 +100,6 @@ export default class ChangeRequestManager {
   public cleanUp(): void {
     // set eventManager to null
     this.eventManager = null
-
-    // set controlChangeRequestCoordinator to null
-    this.controlChangeRequestCoordinator = null
 
     // set changeRequestIds to empty array
     this.changeRequestIds = []

@@ -3,9 +3,7 @@ import WebSocketManager from "./webSocket/WebSocketManager";
 import ControlManager from "./control/ControlManager";
 import EventManager from "./event/EventManager";
 import ChangeGroupManager from "./qsys/ChangeGroupManager";
-import ChangeRequestManager from "./qsys/ChangeRequestManager";
-import ControlChangeRequestCoordinator from "./mediators/ControlChangeRequestCoordinator";
-import ControlChangeGroupCoordinator from "./mediators/ControlChangeRequestCoordinator";
+import RequestManager from "./qsys/RequestManager";
 
 export {
     AutoStartManager,
@@ -13,7 +11,5 @@ export {
     ControlManager,
     EventManager,
     ChangeGroupManager,
-    ChangeRequestManager,
-    ControlChangeRequestCoordinator,
-    ControlChangeGroupCoordinator
+    RequestManager
 };

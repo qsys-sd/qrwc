@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrwcEvents } from "../../constants"
 import { IComponent, IControl } from "../../index.interface"
-import { EventManager, ControlChangeRequestCoordinator, WebSocketManager } from ".."
+import { EventManager, RequestManager, WebSocketManager } from ".."
 import { createJSONRPCMessage } from "../../utils"
 import { isValidControl } from "../../utils"
 import { ControlDecorator } from "./ControlDecorator"
@@ -9,10 +9,10 @@ import { ControlDecorator } from "./ControlDecorator"
 export default class ControlManager {
   public components: IComponent = {}
   private webSocketManager: WebSocketManager
-  private controlChangeRequestCoordinator: ControlChangeRequestCoordinator
 
   constructor(
-    private eventManager: EventManager
+    private eventManager: EventManager,
+    private requestManager: RequestManager
   ) { }
 
   // a method for handling changes
@@ -52,11 +52,6 @@ export default class ControlManager {
         )
       }
     })
-  }
-
-  // a method to set the ControlChangeRequestCoordinator
-  public setControlChangeRequestCoordinator(controlChangeRequestCoordinator: ControlChangeRequestCoordinator): void {
-    this.controlChangeRequestCoordinator = controlChangeRequestCoordinator
   }
 
   // a setter for websocketManager
@@ -127,9 +122,13 @@ export default class ControlManager {
     }
 
     // create change request
-    this.controlChangeRequestCoordinator.createChangeRequest(
+    this.requestManager.createChangeRequest(
       controlToUpdate.Component,
-      requestId
+      requestId,
+      (message: any) => {
+        // handle change request
+        this.handleControlChanges(message)
+      }
     )
 
     // check if webSocketManager is defined

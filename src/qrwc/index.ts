@@ -4,8 +4,7 @@ import {
   ControlManager,
   EventManager,
   ChangeGroupManager,
-  ChangeRequestManager,
-  ControlChangeRequestCoordinator
+  RequestManager,
 } from "../managers"
 import { IComponent } from "../index.interface"
 import { qrwcEvents } from "../constants"
@@ -16,42 +15,27 @@ export class Qrwc {
   controlManager: ControlManager
   eventManager: EventManager
   changeGroupManager: ChangeGroupManager
-  changeRequestManager: ChangeRequestManager
-  controlChangeRequestCoordinator: ControlChangeRequestCoordinator
+  requestManager: RequestManager
   public components: IComponent = {}
 
   constructor() {
     // main dependencies
     // create EventManager instance
     this.eventManager = new EventManager()
+    // create RequestManager instance
+    this.requestManager = new RequestManager(
+      this.eventManager
+    )
     // create ControlManager instance
     this.controlManager = new ControlManager(
-      this.eventManager
+      this.eventManager,
+      this.requestManager
     )
-
-    // create ChangeRequestManager instance
-    this.changeRequestManager = new ChangeRequestManager(
-      this.eventManager
-    )
-
     // create ChangeGroupManager instance
     this.changeGroupManager = new ChangeGroupManager(
       this.eventManager,
       this.controlManager
     )
-
-    // create mediators
-    // create ControlChangeRequestCoordinator instance
-    this.controlChangeRequestCoordinator = new ControlChangeRequestCoordinator(
-      this.controlManager,
-      this.changeRequestManager
-    )
-
-    // set mediators
-    // set ControlChangeRequestCoordinator for ControlManager
-    this.controlManager.setControlChangeRequestCoordinator(this.controlChangeRequestCoordinator)
-    // set ControlChangeRequestCoordinator for ChangeRequestManager
-    this.changeRequestManager.setControlChangeRequestCoordinator(this.controlChangeRequestCoordinator)
 
     // event listeners
     this.eventManager.on(qrwcEvents.controlsReceived, () => {
@@ -180,12 +164,6 @@ export class Qrwc {
 
     // set changeGroupManager to null
     this.changeGroupManager = null
-
-    // clean up changeRequestManager
-    this.changeRequestManager.cleanUp()
-
-    // set changeRequestManager to null
-    this.changeRequestManager = null
 
     // set components to empty object
     this.components = {};
