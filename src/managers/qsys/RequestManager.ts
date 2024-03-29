@@ -15,11 +15,16 @@ export default class RequestManager {
 
   // a method for parsing messages
   private parseMessage(message: any): void {
+    // if no meesage id return
+    if (!message?.id) return
+
+    // get existing ChangeRequest ids
     const existingChangeRequestIds = this.changeRequestIds.map(
       (changeRequest: IChangeRequest) => changeRequest.id
     )
+    
     // check message id for ChangeRequest id
-    if (message?.id && existingChangeRequestIds.includes(message?.id)) {
+    if (existingChangeRequestIds.includes(message?.id)) {
       // if message id includes ChangeRequest id, handle ChangeRequest
       this.handleChangeRequest(message)
     }
