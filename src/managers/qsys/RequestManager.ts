@@ -18,15 +18,13 @@ export default class RequestManager {
     // if no meesage id return
     if (!message?.id) return
 
-    // get existing ChangeRequest ids
-    const existingChangeRequestIds = this.changeRequestIds.map(
-      (changeRequest: IChangeRequest) => changeRequest.id
-    )
-    
+    // get ChangeRequest by id
+    const changeRequest = this.findChangeRequestById(message.id)
+
     // check message id for ChangeRequest id
-    if (existingChangeRequestIds.includes(message?.id)) {
+    if (changeRequest) {
       // if message id includes ChangeRequest id, handle ChangeRequest
-      this.handleChangeRequest(message)
+      this.handleChangeRequest(message, changeRequest)
     }
   }
 
@@ -41,10 +39,7 @@ export default class RequestManager {
   }
 
   // a method for handling change requests
-  public handleChangeRequest(message: any): void {
-    // get change request
-    const changeRequest = this.findChangeRequestById(message.id)
-
+  private handleChangeRequest(message: any, changeRequest: IChangeRequest): void {
     // check if change request is successful
     if (message.result) {
       // check if result is an array
