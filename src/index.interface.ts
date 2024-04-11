@@ -36,5 +36,9 @@ export interface IComponentChangeGroup {
 export interface IChangeRequest {
   id: string
   component: string
-  callback: (message: any) => void
+  onChangeRequest: IOnChangeRequest
+}
+
+export interface IOnChangeRequest {
+  (message: any): void
 }

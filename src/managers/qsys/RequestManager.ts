@@ -1,5 +1,5 @@
 import { qrwcEvents } from "../../constants"
-import { IChangeRequest } from "../../index.interface"
+import { IChangeRequest, IOnChangeRequest } from "../../index.interface"
 import { EventManager } from ".."
 
 export default class RequestManager {
@@ -21,20 +21,28 @@ export default class RequestManager {
     // get ChangeRequest by id
     const changeRequest = this.findChangeRequestById(message.id)
 
-    // check message id for ChangeRequest id
+    // check if changeRequest exists
     if (changeRequest) {
-      // if message id includes ChangeRequest id, handle ChangeRequest
+      // handle ChangeRequest
       this.handleChangeRequest(message, changeRequest)
     }
   }
 
   // a method to create a request it takes in a component name and request id and a callback function
-  public createChangeRequest(componentName: string, requestId: string, callback: any): void {
+  public createChangeRequest(componentName: string, requestId: string, onChangeRequest: IOnChangeRequest): void {
+    // construct change request object
     const changeRequest = {
       id: requestId,
       component: componentName,
-      callback
+      onChangeRequest
     }
+
+    // add change request to changeRequestIds
+    this.addChangeRequest(changeRequest)
+  }
+
+  // a method for adding a change request
+  private addChangeRequest(changeRequest: IChangeRequest): void {
     this.changeRequestIds = [...this.changeRequestIds, changeRequest]
   }
 
@@ -49,7 +57,7 @@ export default class RequestManager {
       if (!areChangesArray) return
 
       //call the callback function with the changes
-      changeRequest.callback(message.result)
+      changeRequest.onChangeRequest(message.result)
 
       // remove change request from changeRequestIds
       this.removeChangeRequest(changeRequest.id)
