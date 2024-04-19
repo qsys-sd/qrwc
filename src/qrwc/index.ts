@@ -3,9 +3,9 @@ import {
   WebSocketManager,
   ControlManager,
   EventManager,
-  ChangeGroupManager,
-  RequestManager,
+  RequestManager
 } from "../managers"
+import { ChangeGroupService, PollingService } from "../services"
 import { IComponent } from "../index.interface"
 import { qrwcEvents } from "../constants"
 
@@ -14,7 +14,9 @@ export class Qrwc {
   autoStartManager: AutoStartManager | null = null
   controlManager: ControlManager
   eventManager: EventManager
-  changeGroupManager: ChangeGroupManager
+  changeGroupServices: {
+    [key: string]: ChangeGroupService
+  } = {}
   requestManager: RequestManager
 
   constructor() {
@@ -29,11 +31,6 @@ export class Qrwc {
     this.controlManager = new ControlManager(
       this.eventManager,
       this.requestManager
-    )
-    // create ChangeGroupManager instance
-    this.changeGroupManager = new ChangeGroupManager(
-      this.eventManager,
-      this.controlManager
     )
 
     this.eventManager.on(qrwcEvents.disconnected, () => {
@@ -72,9 +69,6 @@ export class Qrwc {
   private setWsDependencies(): void {
     // set webSocketManager for controlManager
     this.controlManager.setWebSocketManager(this.webSocketManager)
-
-    // set webSocketManager for changeGroupManager
-    this.changeGroupManager.setWebSocketManager(this.webSocketManager)
   }
 
   // a method to initate the auto start process
@@ -96,15 +90,82 @@ export class Qrwc {
       this.autoStartManager = new AutoStartManager(
         this.webSocketManager,
         this.controlManager,
-        this.eventManager,
-        this.changeGroupManager.createChangeGroup.bind(this.changeGroupManager)
+        this.eventManager
       )
       this.autoStartManager.start()
     }
   }
 
-  public startPolling(changeGroupId: string): void {
-    this.webSocketManager.startPolling(changeGroupId)
+  // a method to create a change group
+  public createChangeGroup(
+    changeGroupName: string,
+    componentNames: string[]
+  ): void {
+    // check if changeGroupManager is defined
+    if (this.changeGroupServices[changeGroupName]) {
+      // emit error
+      this.eventManager.handleEvent(
+        qrwcEvents.error,
+        `ChangeGroup - ${changeGroupName} - already exists`
+      )
+      return
+    }
+
+    // create change group service
+    this.changeGroupServices[changeGroupName] = new ChangeGroupService(
+      changeGroupName,
+      this.webSocketManager.send.bind(this.webSocketManager),
+      this.controlManager.handleControlChanges.bind(this.controlManager),
+      this.eventManager.handleEvent.bind(this.eventManager)
+    )
+
+    // get a component object from control manager
+    const components = this.controlManager.components
+
+    // omit components that are not in componentNames
+    const filteredComponents = Object.keys(components).reduce(
+      (acc, key) => {
+        if (componentNames.includes(key)) {
+          acc[key] = components[key]
+        }
+        return acc
+      },
+      {} as IComponent
+    )
+
+    // groom components for change group
+    const groomedComponents = this.changeGroupServices[
+      changeGroupName
+    ].groomComponents(filteredComponents)
+
+    // create change group
+    this.changeGroupServices[changeGroupName].createChangeGroup(
+      groomedComponents,
+    )
+  }
+
+  // a method to return the polling service for a change group
+  public getPollingService(changeGroupName: string): PollingService {
+    // check if changeGroupManager is defined
+    if (!this.changeGroupServices[changeGroupName]) {
+      // emit error
+      this.eventManager.handleEvent(
+        qrwcEvents.error,
+        `ChangeGroup - ${changeGroupName} - is not defined`
+      )
+    }
+
+    // check if polling service is already initialized
+    if (this.changeGroupServices[changeGroupName].polling) {
+      // return polling service
+      return this.changeGroupServices[changeGroupName].polling
+    }
+
+    // initiate polling service
+    this.changeGroupServices[changeGroupName].initPollingService()
+
+    // return polling service
+    return this.changeGroupServices[changeGroupName].polling
   }
 
   public getReadyState(): number {
@@ -152,11 +213,24 @@ export class Qrwc {
     // set controlManager to null
     this.controlManager = null;
 
-    // clean up changeGroupManager
-    this.changeGroupManager.cleanUp()
+    // check if requestManager is defined
+    if (this.requestManager) {
+      // initiate cleanUp for requestManager
+      this.requestManager.cleanUp();
 
-    // set changeGroupManager to null
-    this.changeGroupManager = null
+      // set requestManager to null
+      this.requestManager = null;
+    }
 
+    // check if changeGroupServices is defined
+    if (this.changeGroupServices) {
+      // initiate cleanUp for each ChangeGroupService
+      for (let key in this.changeGroupServices) {
+        this.changeGroupServices[key].cleanUp();
+      }
+
+      // set changeGroupServices to null
+      this.changeGroupServices = null;
+    }
   }
 }

@@ -1,0 +1,191 @@
+import { v4 as uuidv4 } from "uuid"
+import { qrcMethods, qrwcEvents } from "../constants"
+import { EventManager } from "../managers"
+import { createJSONRPCMessage } from "../utils"
+import { IComponent, IComponentChangeGroup, IControl } from "../index.interface"
+import { PollingService } from "../services"
+
+export default class ChangeGroup {
+  private changeGroupUpdateRequests: string[] = []
+  private changeGroupId: string = uuidv4()
+  private pollingService: PollingService | null = null
+  private changeGroupComponents: IComponentChangeGroup[] = []
+  changeGroupName: string = ""
+
+  constructor(
+    changeGroupName: string,
+    private send: (data: object) => void,
+    private handleControlChanges: (changes: any) => void,
+    private eventManager: EventManager,
+  ) {
+    // listen for messages
+    this.eventManager.on(qrwcEvents.message, (message: any) => {
+      this.parseMessage(message)
+    })
+    // assign change group name
+    this.changeGroupName = changeGroupName
+  }
+
+  // getter for change group id
+  get id(): string {
+    return this.changeGroupId
+  }
+
+  // getter for change group name
+  get name(): string {
+    return this.changeGroupName
+  }
+
+  // setter for change group name
+  set name(name: string) {
+    this.changeGroupName = name
+  }
+
+  // getter for components
+  get components(): IComponentChangeGroup[] {
+    return this.changeGroupComponents
+  }
+
+  // getter for polling service
+  get polling(): PollingService | null {
+    return this.pollingService
+  }
+
+  // initialize the polling service
+  public initPollingService(): void {
+    // check if polling service is already initialized
+    if (this.pollingService) {
+      // emit error
+      this.eventManager.handleEvent(
+        qrwcEvents.error,
+        "Polling service already initialized"
+      )
+      return
+    }
+
+    // create polling service
+    this.pollingService = new PollingService(this.changeGroupId, this.send)
+  }
+
+  // a method for parsing messages
+  private parseMessage(message: any): void {
+    if (message?.id && this.changeGroupUpdateRequests.includes(message?.id)) {
+      // if id exists & includes change group request, handle change group response
+      this.handleChangeGroupResponse(message)
+    }
+
+    // check message for Changes & if message id is included in componentChangeGroupIds
+    if (
+      message?.result?.Changes &&
+      this.changeGroupId === message?.result?.Id
+    ) {
+      // if message has Changes, handle Changes
+      /// use handleChangeGroupUpdate method
+      this.handleControlChanges(message?.result?.Changes)
+
+    }
+  }
+
+  // a method recieves components from control manager and grooms them into IComponentChangeGroup
+  public groomComponents(components: IComponent): IComponentChangeGroup[] {
+    // create empty array to hold groomed components
+    let groomedComponents: IComponentChangeGroup[] = []
+    // iterate through components
+    Object.keys(components).forEach((componentName: string) => {
+      // create component object
+      const component: IComponentChangeGroup = {
+        Id: this.changeGroupId,
+        Component: {
+          Name: componentName,
+          Controls: Object.keys(components[componentName]).map(
+            (controlName: string) => ({
+              Name: controlName
+            })
+          )
+        }
+      }
+      // add component to groomedComponents
+      groomedComponents = [...groomedComponents, component]
+    })
+    // return groomed components
+    return groomedComponents
+  }
+
+  // a method for creating change groups
+  public createChangeGroup(
+    components: IComponentChangeGroup[]
+  ): void {
+    // add components to change group
+    this.changeGroupComponents = components
+
+    // iterate through components & add components to change group
+    this.changeGroupComponents.forEach((component: IComponentChangeGroup) => {
+      // add component to change group
+      this.addComponentToChangeGroup(component)
+    })
+  }
+
+  // a method for adding components to change groups
+  public addComponentToChangeGroup(
+    component: IComponentChangeGroup
+  ): void {
+    // create request id
+    const requestId = uuidv4()
+    // add request id to changeGroupUpdateRequests
+    this.changeGroupUpdateRequests = [...this.changeGroupUpdateRequests, requestId]
+
+    // send addComponentControl request
+    this.send(
+      createJSONRPCMessage(
+        qrcMethods.changeGroup.addComponentControl,
+        component,
+        requestId
+      )
+    )
+  }
+
+  // a method for handling change group responses
+  private handleChangeGroupResponse(message: any): void {
+    // check if change group response is successful
+    if (message.result) {
+      // remove request id from changeGroupUpdateRequests
+      this.changeGroupUpdateRequests = this.changeGroupUpdateRequests.filter(
+        (requestId: string) => requestId !== message.id
+      )
+
+      // if change group requests is empty, emit change group created event
+      if (this.changeGroupUpdateRequests.length === 0) {
+        this.eventManager.handleEvent(
+          qrwcEvents.componentChangeGroupCreated,
+          this.changeGroupName
+        )
+      }
+    } else {
+      // emit error
+      this.eventManager.handleEvent(
+        qrwcEvents.error,
+        `Change group - ${this.changeGroupName} - request failed`
+      )
+    }
+  }
+
+  public cleanUp(): void {
+    // set changeGroupUpdateRequests to empty array
+    this.changeGroupUpdateRequests = []
+
+    // set changeGroupComponents to empty array
+    this.changeGroupComponents = []
+
+    // nullify the pollingService
+    if (this.pollingService) {
+      this.pollingService.cleanUp()
+      this.pollingService = null
+    }
+
+    // remove event manager
+    this.eventManager = null
+
+    // reset changeGroupName
+    this.changeGroupName = ""
+  }
+}

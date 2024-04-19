@@ -3,19 +3,20 @@ import { qrcMethods, qrwcEvents } from "../../constants"
 import { createJSONRPCMessage } from "../../utils"
 import { IControl, IQSYSControls } from "../../index.interface"
 import { WebSocketManager, ControlManager, EventManager } from ".."
+import { ChangeGroupService } from "../../services"
 import { ControlDecorator } from "../control/ControlDecorator"
 
 export default class AutoStartManager {
   private getComponentsId: string = ""
   private componentList: string[] = []
   private getControlIds: string[] = []
-  private autoStartChangeGroupId: string = ""
+  private autoStartChangeGroupId: string = "AutoStartChangeGroup"
+  private changeGroupService: ChangeGroupService | null = null
 
   constructor(
     private webSocketManager: WebSocketManager,
     private controlManager: ControlManager,
-    private eventManager: EventManager,
-    private createChangeGroup: (componentNames: string[], changeGroupId: string) => void
+    private eventManager: EventManager
   ) {
     // main dependencies
     this.webSocketManager = webSocketManager
@@ -40,12 +41,9 @@ export default class AutoStartManager {
       qrwcEvents.componentChangeGroupCreated,
       (changeGroupId: string) => {
         // check if change group id matches autoStartChangeGroupId
-        if (changeGroupId === this.autoStartChangeGroupId) {
-          // if change group id matches autoStartChangeGroupId, start polling
-          this.webSocketManager.startPolling(this.autoStartChangeGroupId)
-        
-          // emit event for auto start complete
-          this.eventManager.handleEvent(qrwcEvents.autoStartComplete)
+        if (changeGroupId === this.autoStartChangeGroupId && this.changeGroupService) {
+          // create auto start change group polling service
+          this.createAutoStartChangePollingService()
         }
       }
     )
@@ -165,40 +163,66 @@ export default class AutoStartManager {
 
   // a method for creating change groups
   private createAutoStartChangeGroup(): void {
-    // create change group id
-    const changeGroupId = uuidv4()
+    // create change group service
+    this.changeGroupService = new ChangeGroupService(
+      this.autoStartChangeGroupId,
+      this.webSocketManager.send.bind(this.webSocketManager),
+      this.controlManager.handleControlChanges.bind(this.controlManager),
+      this.eventManager
+    )
 
-    // set autoStartChangeGroupId
-    this.autoStartChangeGroupId = changeGroupId
+    // groom components for change group
+    const groomedComponents = this.changeGroupService.groomComponents(this.controlManager.components)
 
-    // create change group from component controls
-    this.createChangeGroup(this.componentList, changeGroupId)
+    // create change group
+    this.changeGroupService.createChangeGroup(groomedComponents)
   }
 
-  // a method for cleaning up the auto start manager
-  public cleanUp() {
-    // clear componentList
-    this.componentList = []
+  // a method for creating auto start change group polling service
+  private createAutoStartChangePollingService(): void {
+    // init polling service
+    this.changeGroupService.initPollingService()
 
-    // clear getControlIds
-    this.getControlIds = []
+    const { polling } = this.changeGroupService
 
-    // clear autoStartChangeGroupId
-    this.autoStartChangeGroupId = ""
+    // check if polling service is initialized
+    if (polling) {
+      // start polling service
+      this.changeGroupService.polling.start()
+    }
 
-    // clear getComponentsId
-    this.getComponentsId = ""
-
-    // set webSocketManager to null
-    this.webSocketManager = null
-
-    // set controlManager to null
-    this.controlManager = null
-
-    // set eventManager to null
-    this.eventManager = null
-
-    // set createChangeGroup to null
-    this.createChangeGroup = null
+    // emit event for auto start complete
+    this.eventManager.handleEvent(qrwcEvents.autoStartComplete)
   }
+
+// a method for cleaning up the auto start manager
+public cleanUp() {
+  // clear componentList
+  this.componentList = []
+
+  // clear getControlIds
+  this.getControlIds = []
+
+  // clear autoStartChangeGroupId
+  this.autoStartChangeGroupId = ""
+
+  // clear getComponentsId
+  this.getComponentsId = ""
+
+  // stop any ongoing polling and cleanup changeGroupService
+  if (this.changeGroupService) {
+    this.changeGroupService.cleanUp()
+
+    this.changeGroupService = null
+  }
+
+  // set webSocketManager to null
+  this.webSocketManager = null
+
+  // set controlManager to null
+  this.controlManager = null
+
+  // set eventManager to null
+  this.eventManager = null
+}
 }
