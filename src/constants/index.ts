@@ -24,3 +24,5 @@ export const qrwcEvents = {
   changeRequestSuccessful: "changeRequestSuccessful",
   componentChangeGroupCreated: "componentChangeGroupCreated"
 }
+
+export const qrwcPollReset: number = 30000
