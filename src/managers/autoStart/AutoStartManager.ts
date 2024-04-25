@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrwcEvents } from "../../constants"
 import { createJSONRPCMessage } from "../../utils"
-import { IControl, IQSYSControls } from "../../index.interface"
+import { IComponentsGetResult, IControlGet, IControlGetResult, IServerMessage } from "../../index.interface"
 import { WebSocketManager, ControlManager, EventManager } from ".."
 import { ChangeGroupService } from "../../services"
 import { ControlDecorator } from "../control/ControlDecorator"
@@ -24,7 +24,7 @@ export default class AutoStartManager {
     this.eventManager = eventManager
 
     //event listener for handling websocket messages
-    this.eventManager.on(qrwcEvents.message, (message: MessageEvent) => {
+    this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {
       this.parseMessage(message)
     })
 
@@ -50,15 +50,15 @@ export default class AutoStartManager {
   }
 
   // a method for parsing messages
-  private parseMessage(message: any): void {
+  private parseMessage(message: IServerMessage): void {
     // check for getComponents response
     if (message?.id === this.getComponentsId) {
-      this.handleComponentGetResponse(message.result)
+      this.handleComponentGetResponse(message.result as IComponentsGetResult[])
     }
 
     // check for getControls response
     if (this.getControlIds.includes(message?.id)) {
-      this.handleControlGetResponse(message.result, message.id)
+      this.handleControlGetResponse(message.result as IControlGetResult, message.id)
     }
   }
 
@@ -83,9 +83,9 @@ export default class AutoStartManager {
   }
 
   // a method for handling getComponents response
-  private handleComponentGetResponse(result: any) {
+  private handleComponentGetResponse(result: IComponentsGetResult[]) {
     // iterate through components in response
-    result.forEach((component: any) => {
+    result.forEach((component: IComponentsGetResult) => {
       // check if component is not already in componentList
       if (!this.componentList.includes(component.Name)) {
         // add component to componentList
@@ -119,11 +119,11 @@ export default class AutoStartManager {
   }
 
   // a method for handling getControls response
-  private handleControlGetResponse(result: IQSYSControls, id: string) {
+  private handleControlGetResponse(result: IControlGetResult, id: string) {
     // check if the results has "Name" and "Controls" populated
     if (result?.Name && result?.Controls) {
       // reformat controls into object
-      const controlObject = result.Controls.reduce((acc: any, control: IControl) => {
+      const controlObject = result.Controls.reduce((acc: { [key: string]: ControlDecorator }, control: IControlGet) => {
         // decorate control
         const decoratedControl = new ControlDecorator(
           { ...control, Component: result.Name },
@@ -209,7 +209,7 @@ public cleanUp() {
   // clear getComponentsId
   this.getComponentsId = ""
 
-  // stop any ongoing polling and cleanup changeGroupService
+  // stop ongoing polling and cleanup changeGroupService
   if (this.changeGroupService) {
     this.changeGroupService.cleanUp()
 

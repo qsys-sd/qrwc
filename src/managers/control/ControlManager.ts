@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrwcEvents } from "../../constants"
-import { IComponent, IControl } from "../../index.interface"
+import { IChange, IComponent, IControl } from "../../index.interface"
 import { EventManager, RequestManager, WebSocketManager } from ".."
-import { createJSONRPCMessage } from "../../utils"
-import { isValidControl } from "../../utils"
+import { createJSONRPCMessage, isValidControlChange} from "../../utils"
 import { ControlDecorator } from "./ControlDecorator"
 
 export default class ControlManager {
@@ -16,13 +15,13 @@ export default class ControlManager {
   ) { }
 
   // a method for handling changes
-  public handleControlChanges(changes: any): void {
+  public handleControlChanges(changes: IChange[]): void {
     // if changes is empty, return
     if (changes.length === 0) return
     // iterate through changes
-    changes.forEach((change: any) => {
+    changes.forEach((change: IChange) => {
       // check if change is valid
-      if (!isValidControl(change)) {
+      if (!isValidControlChange(change)) {
         // if change is invalid, emit error
         this.eventManager.handleEvent(qrwcEvents.error, "Invalid change")
         return
@@ -145,9 +144,9 @@ export default class ControlManager {
   }
 
   // callBack for requestManager
-  private controlChangeCallback = (message: any) => {
+  private controlChangeCallback = (changes: IChange[]) => {
     // handle control changes
-    this.handleControlChanges(message)
+    this.handleControlChanges(changes)
   }
 
   // a method for retuning a existing control otherwise undefined

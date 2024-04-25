@@ -1,5 +1,5 @@
 import { qrwcEvents } from "../../constants"
-import { IChangeRequest, IOnChangeRequest } from "../../index.interface"
+import { IChange, IChangeRequest, IServerMessage, IMessageChangeResult, IOnChangeRequest } from "../../index.interface"
 import { EventManager } from ".."
 
 export default class RequestManager {
@@ -8,13 +8,13 @@ export default class RequestManager {
   constructor(
     private eventManager: EventManager
   ) {
-    this.eventManager.on(qrwcEvents.message, (message: any) => {
+    this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {
       this.parseMessage(message)
     })
   }
 
   // a method for parsing messages
-  private parseMessage(message: any): void {
+  private parseMessage(message: IServerMessage): void {
     // if no meesage id return
     if (!message?.id) return
 
@@ -24,7 +24,7 @@ export default class RequestManager {
     // check if changeRequest exists
     if (changeRequest) {
       // handle ChangeRequest
-      this.handleChangeRequest(message, changeRequest)
+      this.handleChangeRequest(message as IMessageChangeResult, changeRequest)
     }
   }
 
@@ -47,11 +47,11 @@ export default class RequestManager {
   }
 
   // a method for handling change requests
-  private handleChangeRequest(message: any, changeRequest: IChangeRequest): void {
+  private handleChangeRequest(message: IMessageChangeResult, changeRequest: IChangeRequest): void {
     // check if change request is successful
     if (message.result) {
       // check if result is an array
-      const areChangesArray = this.isArrayNotEmpty(message.result)
+      const areChangesArray = this.isArrayNotEmpty(message.result as IChange[])
 
       // if changes array is empty, return
       if (!areChangesArray) return
@@ -100,7 +100,7 @@ export default class RequestManager {
   }
 
   // a temp method to check if is array and not emtpy
-  private isArrayNotEmpty(array: any[]): boolean {
+  private isArrayNotEmpty(array: IChange[]): boolean {
     return Array.isArray(array) && array.length > 0
   }
 

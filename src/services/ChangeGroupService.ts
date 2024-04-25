@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrwcEvents } from "../constants"
 import { EventManager } from "../managers"
 import { createJSONRPCMessage } from "../utils"
-import { IComponent, IComponentChangeGroup, IControl } from "../index.interface"
+import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent } from "../index.interface"
 import { PollingService } from "../services"
 
 export default class ChangeGroup {
@@ -15,11 +15,11 @@ export default class ChangeGroup {
   constructor(
     changeGroupName: string,
     private send: (data: object) => void,
-    private handleControlChanges: (changes: any) => void,
+    private handleControlChanges: (changes: IChange[]) => void,
     private eventManager: EventManager,
   ) {
     // listen for messages
-    this.eventManager.on(qrwcEvents.message, (message: any) => {
+    this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {
       this.parseMessage(message)
     })
     // assign change group name
@@ -68,15 +68,16 @@ export default class ChangeGroup {
   }
 
   // a method for parsing messages
-  private parseMessage(message: any): void {
+  private parseMessage(message: IServerMessage): void {
     if (message?.id && this.changeGroupUpdateRequests.includes(message?.id)) {
       // if id exists & includes change group request, handle change group response
-      this.handleChangeGroupResponse(message)
+      this.handleChangeGroupResponse(message as IMessageAddComponent)
     }
 
     // check message for Changes & if message id is included in componentChangeGroupIds
     if (
-      message?.result?.Changes &&
+      typeof message.result === 'object' && // Add type guard
+      'Changes' in message.result && // Add type guard to ensure 'Changes' exists
       this.changeGroupId === message?.result?.Id
     ) {
       // if message has Changes, handle Changes
@@ -145,7 +146,7 @@ export default class ChangeGroup {
   }
 
   // a method for handling change group responses
-  private handleChangeGroupResponse(message: any): void {
+  private handleChangeGroupResponse(message: IMessageAddComponent): void {
     // check if change group response is successful
     if (message.result) {
       // remove request id from changeGroupUpdateRequests

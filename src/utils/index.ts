@@ -1,6 +1,6 @@
-import { IControl } from '../index.interface';
+import { IChange, IComponentChangeGroup, IRequestChanges, IRequestControls, IRequestPoll } from '../index.interface';
 
-export const createJSONRPCMessage = (method: string, params: any, id: string | number) => (
+export const createJSONRPCMessage = (method: string, params: "test" | IRequestChanges | IRequestControls | IComponentChangeGroup | IRequestPoll, id: string | number) => (
   {
     jsonrpc: "2.0",
     method,
@@ -9,12 +9,11 @@ export const createJSONRPCMessage = (method: string, params: any, id: string | n
   }
 )
 
-export function isValidControl(control: any): control is IControl {
+export function isValidControlChange(control: IChange): control is IChange {
   return control &&
     typeof control.Name === 'string' &&
     typeof control.Component === 'string' &&
-    ['string', 'number', 'boolean'].includes(typeof control.Value) &&
+    typeof control.Value === 'number' &&
     typeof control.String === 'string' &&
-    typeof control.Position === 'number' &&
-    (control.Type === undefined || typeof control.Type === 'string');
+    typeof control.Position === 'number';
 }

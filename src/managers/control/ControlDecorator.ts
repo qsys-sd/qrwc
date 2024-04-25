@@ -176,7 +176,7 @@ export class ControlDecorator {
    * console.log(valueMin);
    * // Output: The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
    */
-  public getMetaProperty(propertyName: string): any | undefined {
+  public getMetaProperty(propertyName: string): string | number | boolean | undefined {
     if (!this.control.hasOwnProperty(propertyName)) {
       this.handleEvent(qrwcEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`);
       return;
