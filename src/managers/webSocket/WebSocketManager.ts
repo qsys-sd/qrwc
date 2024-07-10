@@ -63,24 +63,9 @@ export default class WebSocketManager {
     }
   }
 
-// a method to remove socket if it exists
-public removeSocket(): void {
-  if (this?.socket) {
-    this.socket.onmessage = null
-    this.socket.onerror = null
-    this.socket.onclose = null
-
-    // Check if the socket is open before trying to close it
-    if (this.isOpen()) {
-      this.socket.close()
-    }
-
-    this.socket = null
-  }
-}
 
   // a method to clean up the websocket
   public cleanUp(): void {
-    this.removeSocket();
+    this.close();
   }
 }
