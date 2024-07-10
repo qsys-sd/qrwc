@@ -1,7 +1,7 @@
-import WebSocketManager from '../managers/webSocket/WebSocketManager';
+import WebSocketManager from '../src/managers/webSocket/WebSocketManager';
 import { WebSocket, Server } from 'mock-socket';
-import { EventManager } from '../managers';
-import { qrwcEvents } from '../constants';
+import { EventManager } from '../src/managers';
+import { qrwcEvents } from '../src/constants';
 
 describe('WebSocketManager', () => {
   let mockServer: Server;
