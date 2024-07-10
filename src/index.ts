@@ -1,2 +1,2 @@
-import { Qrwc } from "./qrwc";
+import { Qrwc } from "./managers/qrwc/Qrwc";
 export { Qrwc };

@@ -4,10 +4,10 @@ import {
   ControlManager,
   EventManager,
   RequestManager
-} from "../managers"
-import { ChangeGroupService, PollingService } from "../services"
-import { IComponent } from "../index.interface"
-import { qrwcEvents } from "../constants"
+} from ".."
+import { ChangeGroupService, PollingService } from "../../services"
+import { IComponent } from "../../index.interface"
+import { qrwcEvents } from "../../constants"
 
 export class Qrwc {
   webSocketManager: WebSocketManager | null = null

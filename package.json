@@ -33,11 +33,15 @@
     "ts-jest": "^29.2.2"
   },
   "jest": {
-  "preset": "ts-jest",
-  "testEnvironment": "node",
-  "roots": ["./"],
-  "testMatch": ["**/*.test.ts"]
-},
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "./"
+    ],
+    "testMatch": [
+      "**/*.test.ts"
+    ]
+  },
   "dependencies": {
     "typescript": "^5.1.6",
     "uuid": "^9.0.0"
