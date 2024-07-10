@@ -5,7 +5,7 @@ import { qrwcEvents } from '../src/constants';
 
 describe('WebSocketManager', () => {
   let mockServer: Server;
-  let wsManager: WebSocketManager;
+  let wsManager: WebSocketManager | null;
   let eventManager: EventManager;
   let mockSocket: WebSocket;
 
@@ -58,19 +58,21 @@ describe('WebSocketManager', () => {
       });
     });
 
-    wsManager.send(testData);
+    wsManager?.send(testData);
   });
 
   // Example test for isOpen method
   test('isOpen should return true when WebSocket is open', () => {
     // Mock the getReadyState method to return WebSocket.OPEN
-    wsManager.getReadyState = jest.fn().mockReturnValue(WebSocket.OPEN);
+    if (wsManager) {
+      wsManager.getReadyState = jest.fn().mockReturnValue(WebSocket.OPEN);
+    }
 
-    expect(wsManager.getReadyState()).toBe(WebSocket.OPEN);
+    expect(wsManager?.getReadyState()).toBe(WebSocket.OPEN);
   });
 
   test('getReadyState should return the current readyState of the WebSocket', () => {
-    const readyState = wsManager.getReadyState();
+    const readyState = wsManager?.getReadyState();
     expect(readyState).toBe(WebSocket.OPEN);
   });
 
@@ -89,6 +91,6 @@ describe('WebSocketManager', () => {
       done();
     });
 
-    wsManager.close();
+    wsManager?.close();
   });
 });
