@@ -88,7 +88,7 @@ export class Qrwc {
     } else {
       // create auto start manager
       this.autoStartManager = new AutoStartManager(
-        this.webSocketManager,
+        this.webSocketManager.send.bind(this.webSocketManager),
         this.controlManager,
         this.eventManager
       )

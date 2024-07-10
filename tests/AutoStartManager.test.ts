@@ -1,0 +1,56 @@
+import AutoStartManager from '../src/managers/autoStart/AutoStartManager';
+import WebSocketManager from '../src/managers/webSocket/WebSocketManager';
+import ControlManager from '../src/managers/control/ControlManager';
+import EventManager from '../src/managers/event/EventManager';
+import { RequestManager } from '../src/managers';
+import { WebSocket, Server as MockServer } from 'mock-socket';
+import { qrwcEvents } from '../src/constants';
+
+describe('AutoStartManager', () => {
+  let autoStartManager: AutoStartManager;
+  let webSocketManager: WebSocketManager;
+  let controlManager: ControlManager;
+  let eventManager: EventManager;
+  let requestManager: RequestManager;
+  let mockServer: MockServer;
+  let mockWebSocket: WebSocket;
+
+  beforeEach(done => {
+    mockServer = new MockServer('ws://localhost:1234');
+    mockWebSocket = new WebSocket('ws://localhost:1234');
+    mockWebSocket.onopen = () => {
+      done();
+    }
+    eventManager = new EventManager();
+    webSocketManager = new WebSocketManager(mockWebSocket, eventManager);
+    requestManager = new RequestManager(eventManager);
+    controlManager = new ControlManager(eventManager, requestManager);
+    autoStartManager = new AutoStartManager(webSocketManager.send.bind(webSocketManager), controlManager, eventManager);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockServer.stop();
+  });
+
+  test('AutoStartManager starts correctly', () => {
+    const spy = jest.spyOn(autoStartManager, 'start');
+    autoStartManager.start();
+    expect(spy).toHaveBeenCalled();
+  });
+
+  test('AutoStartManager creates auto start change group', () => {
+    const spy = jest.spyOn(autoStartManager, 'createAutoStartChangeGroup' as any);
+    eventManager.emit(qrwcEvents.controlsReceived);
+    expect(spy).toHaveBeenCalled();
+  });
+
+  test('AutoStartManager cleans up correctly', () => {
+    const spy = jest.spyOn(autoStartManager, 'cleanUp');
+    autoStartManager.cleanUp();
+    expect(spy).toHaveBeenCalled();
+    expect(autoStartManager['changeGroupService']).toBeNull();
+    expect(autoStartManager['controlManager']).toBeNull();
+    expect(autoStartManager['eventManager']).toBeNull();
+  });
+});

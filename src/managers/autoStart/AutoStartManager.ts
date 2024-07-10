@@ -14,12 +14,11 @@ export default class AutoStartManager {
   private changeGroupService: ChangeGroupService | null = null
 
   constructor(
-    private webSocketManager: WebSocketManager,
+    private websocketSend: (message: any) => void,
     private controlManager: ControlManager,
     private eventManager: EventManager
   ) {
     // main dependencies
-    this.webSocketManager = webSocketManager
     this.controlManager = controlManager
     this.eventManager = eventManager
 
@@ -73,7 +72,7 @@ export default class AutoStartManager {
     this.getComponentsId = uuidv4()
 
     // send getComponents request for all components
-    this.webSocketManager.send(
+    this.websocketSend(
       createJSONRPCMessage(
         qrcMethods.components.getComponents,
         "test",
@@ -106,7 +105,7 @@ export default class AutoStartManager {
     this.componentList.forEach((component: string) => {
       const id = uuidv4()
       // send getControls request for each component with id
-      this.webSocketManager.send(
+      this.websocketSend(
         createJSONRPCMessage(
           qrcMethods.components.getControls,
           { Name: component },
@@ -166,7 +165,7 @@ export default class AutoStartManager {
     // create change group service
     this.changeGroupService = new ChangeGroupService(
       this.autoStartChangeGroupId,
-      this.webSocketManager.send.bind(this.webSocketManager),
+      this.websocketSend,
       this.controlManager.handleControlChanges.bind(this.controlManager),
       this.eventManager
     )
@@ -215,9 +214,6 @@ public cleanUp() {
 
     this.changeGroupService = null
   }
-
-  // set webSocketManager to null
-  this.webSocketManager = null
 
   // set controlManager to null
   this.controlManager = null
