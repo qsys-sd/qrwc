@@ -5,7 +5,7 @@ import { qrwcEvents } from '../src/constants';
 
 describe('WebSocketManager', () => {
   let mockServer: Server;
-  let wsManager: WebSocketManager | null;
+  let wsManager: WebSocketManager;
   let eventManager: EventManager;
   let mockSocket: WebSocket;
 
@@ -23,7 +23,6 @@ describe('WebSocketManager', () => {
 
   afterEach(() => { // Use afterAll for cleanup
     mockServer.stop();
-    wsManager = null;
   });
 
   test('should handle onMessage event', done => {
@@ -58,7 +57,7 @@ describe('WebSocketManager', () => {
       });
     });
 
-    wsManager?.send(testData);
+    wsManager.send(testData);
   });
 
   // Example test for isOpen method
@@ -68,11 +67,11 @@ describe('WebSocketManager', () => {
       wsManager.getReadyState = jest.fn().mockReturnValue(WebSocket.OPEN);
     }
 
-    expect(wsManager?.getReadyState()).toBe(WebSocket.OPEN);
+    expect(wsManager.getReadyState()).toBe(WebSocket.OPEN);
   });
 
   test('getReadyState should return the current readyState of the WebSocket', () => {
-    const readyState = wsManager?.getReadyState();
+    const readyState = wsManager.getReadyState();
     expect(readyState).toBe(WebSocket.OPEN);
   });
 
@@ -91,6 +90,6 @@ describe('WebSocketManager', () => {
       done();
     });
 
-    wsManager?.close();
+    wsManager.close();
   });
 });
