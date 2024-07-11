@@ -35,7 +35,7 @@ export default class WebSocketManager {
     return this.getReadyState() === this.socket.OPEN
   }
 
-  public send(data: object): void {
+  public send = (data: object): void => {
     if (this.socket !== null && this.isOpen()) {
       this.socket.send(JSON.stringify(data))
     } else {
