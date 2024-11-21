@@ -1,4 +1,6 @@
-class FrontendEventEmitter {
+import { IEventEmitter } from "./IEventEmitter";
+
+class FrontendEventEmitter implements IEventEmitter {
   private eventTarget: EventTarget;
   private listeners: Map<(...args: any[]) => void, EventListenerOrEventListenerObject>;
 
