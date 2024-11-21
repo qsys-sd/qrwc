@@ -56,7 +56,7 @@ export default class ChangeGroup {
     // check if polling service is already initialized
     if (this.pollingService) {
       // emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "Polling service already initialized"
       )
@@ -156,14 +156,14 @@ export default class ChangeGroup {
 
       // if change group requests is empty, emit change group created event
       if (this.changeGroupUpdateRequests.length === 0) {
-        this.eventManager.handleEvent(
+        this.eventManager.emit(
           qrwcEvents.componentChangeGroupCreated,
           this.changeGroupName
         )
       }
     } else {
       // emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         `Change group - ${this.changeGroupName} - request failed`
       )

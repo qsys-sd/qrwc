@@ -49,7 +49,7 @@ export class Qrwc {
     // check if webSocketManager is defined
     if (this.webSocketManager) {
       // emit event for websocket already attached
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "web socket already attached"
       )
@@ -63,7 +63,7 @@ export class Qrwc {
     this.setWsDependencies()
 
     // emit event for websocket attached
-    this.eventManager.handleEvent(qrwcEvents.webSocketAttached)
+    this.eventManager.emit(qrwcEvents.webSocketAttached)
   }
 
   private setWsDependencies(): void {
@@ -81,7 +81,7 @@ export class Qrwc {
     // check if autoStartManager is defined
     if (this.autoStartManager) {
       // emit event for auto start already started
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "auto start already initialized"
       )
@@ -104,7 +104,7 @@ export class Qrwc {
     // check if changeGroupManager is defined
     if (this.changeGroupServices[changeGroupName]) {
       // emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         `ChangeGroup - ${changeGroupName} - already exists`
       )
@@ -116,7 +116,7 @@ export class Qrwc {
       changeGroupName,
       this.webSocketManager.send.bind(this.webSocketManager),
       this.controlManager.handleControlChanges.bind(this.controlManager),
-      this.eventManager.handleEvent.bind(this.eventManager)
+      this.eventManager.emit.bind(this.eventManager)
     )
 
     // get a component object from control manager
@@ -149,7 +149,7 @@ export class Qrwc {
     // check if changeGroupManager is defined
     if (!this.changeGroupServices[changeGroupName]) {
       // emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         `ChangeGroup - ${changeGroupName} - is not defined`
       )

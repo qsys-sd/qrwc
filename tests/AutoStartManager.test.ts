@@ -43,7 +43,7 @@ describe('AutoStartManager', () => {
     const eventName = 'autoStartChangeGroup';
 
     eventManager.on(eventName, mockCallback);
-    eventManager.handleEvent(eventName, { key: 'value' });
+    eventManager.emit(eventName, { key: 'value' });
 
     expect(mockCallback).toHaveBeenCalledWith({ key: 'value' });
   });

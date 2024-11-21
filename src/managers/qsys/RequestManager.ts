@@ -90,13 +90,13 @@ export default class RequestManager {
 
   // a method for emitting a successful change request
   private emitSuccessfulChangeRequest(changeRequest: IChangeRequest): void {
-    this.eventManager.handleEvent(qrwcEvents.changeRequestSuccessful, changeRequest)
+    this.eventManager.emit(qrwcEvents.changeRequestSuccessful, changeRequest)
   }
 
   // a method for emitting a failed change request
   private emitFailedChangeRequest(changeRequest: IChangeRequest): void {
     const errorMessage = `Change request for ${changeRequest.component} failed`
-    this.eventManager.handleEvent(qrwcEvents.error, errorMessage)
+    this.eventManager.emit(qrwcEvents.error, errorMessage)
   }
 
   // a temp method to check if is array and not emtpy

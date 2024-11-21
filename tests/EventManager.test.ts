@@ -13,7 +13,7 @@ describe('EventManager', () => {
     const eventData = { key: 'value' };
 
     eventManager.on(eventName, mockCallback);
-    eventManager.handleEvent(eventName, eventData);
+    eventManager.emit(eventName, eventData);
 
     expect(mockCallback).toHaveBeenCalledWith(eventData);
   });
@@ -24,7 +24,7 @@ describe('EventManager', () => {
 
     eventManager.on(eventName, mockCallback);
     eventManager.removeListener(eventName, mockCallback);
-    eventManager.handleEvent(eventName);
+    eventManager.emit(eventName);
 
     expect(mockCallback).not.toHaveBeenCalled();
   });
@@ -40,8 +40,8 @@ describe('EventManager', () => {
 
     eventManager.removeAllEventListeners();
 
-    eventManager.handleEvent(eventName1);
-    eventManager.handleEvent(eventName2);
+    eventManager.emit(eventName1);
+    eventManager.emit(eventName2);
 
     expect(mockCallback1).not.toHaveBeenCalled();
     expect(mockCallback2).not.toHaveBeenCalled();

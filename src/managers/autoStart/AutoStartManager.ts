@@ -93,7 +93,7 @@ export default class AutoStartManager {
     })
 
     // emit event when all components have been added to componentList
-    this.eventManager.handleEvent(qrwcEvents.componentsRecieved)
+    this.eventManager.emit(qrwcEvents.componentsRecieved)
 
     // reset getComponentsId
     this.getComponentsId = ""
@@ -127,7 +127,7 @@ export default class AutoStartManager {
         const decoratedControl = new ControlDecorator(
           { ...control, Component: result.Name },
           this.controlManager.setComponent.bind(this.controlManager), 
-          this.eventManager.handleEvent.bind(this.eventManager)
+          this.eventManager.emit.bind(this.eventManager)
         )
 
         return {
@@ -156,7 +156,7 @@ export default class AutoStartManager {
     // check if getControlIds is empty
     if (this.getControlIds.length === 0) {
       // emit event
-      this.eventManager.handleEvent(qrwcEvents.controlsReceived)
+      this.eventManager.emit(qrwcEvents.controlsReceived)
     }
   }
 
@@ -191,7 +191,7 @@ export default class AutoStartManager {
     }
 
     // emit event for auto start complete
-    this.eventManager.handleEvent(qrwcEvents.autoStartComplete)
+    this.eventManager.emit(qrwcEvents.autoStartComplete)
   }
 
 // a method for cleaning up the auto start manager

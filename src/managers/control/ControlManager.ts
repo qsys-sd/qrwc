@@ -23,7 +23,7 @@ export default class ControlManager {
       // check if change is valid
       if (!isValidControlChange(change)) {
         // if change is invalid, emit error
-        this.eventManager.handleEvent(qrwcEvents.error, "Invalid change")
+        this.eventManager.emit(qrwcEvents.error, "Invalid change")
         return
       }
 
@@ -45,7 +45,7 @@ export default class ControlManager {
         this.updateControls(newControl)
       } else {
         // emit error
-        this.eventManager.handleEvent(
+        this.eventManager.emit(
           qrwcEvents.error,
           "Connot update Control, existing Control not found"
         )
@@ -58,7 +58,7 @@ export default class ControlManager {
     // check if websocketManager is defined
     if (this.webSocketManager) {
       // emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "Websocket manager already attached"
       )
@@ -85,7 +85,7 @@ export default class ControlManager {
     }
 
     // emit component updated event
-    this.eventManager.handleEvent(qrwcEvents.controlsUpdated, updatedComponent)
+    this.eventManager.emit(qrwcEvents.controlsUpdated, updatedComponent)
   }
 
   // a method for adding a new component to components
@@ -93,7 +93,7 @@ export default class ControlManager {
     // check if component exists
     if (this.components[componentName]) {
       // if component exists, emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "Component already exists"
       )
@@ -130,7 +130,7 @@ export default class ControlManager {
     // check if webSocketManager is defined
     if (!this.webSocketManager) {
       // if webSocketManager is not defined, emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "WebSocketManager is not defined"
       )
@@ -154,7 +154,7 @@ export default class ControlManager {
     // check if component exists
     if (!this.components[componentName]) {
       // if component does not exist, emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "Component does not exist"
       )
@@ -164,7 +164,7 @@ export default class ControlManager {
     // check if control exists
     if (!this.components[componentName][controlName]) {
       // if control does not exist, emit error
-      this.eventManager.handleEvent(
+      this.eventManager.emit(
         qrwcEvents.error,
         "Control does not exist"
       )
@@ -187,7 +187,7 @@ export default class ControlManager {
     return new ControlDecorator(
       newControl,
       this.setComponent.bind(this),
-      this.eventManager.handleEvent.bind(this.eventManager)
+      this.eventManager.emit.bind(this.eventManager)
     )
   }
 

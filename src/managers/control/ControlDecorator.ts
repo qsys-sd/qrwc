@@ -21,18 +21,18 @@ export class ControlDecorator {
   private setComponent: (controlToUpdate: IControl) => void
 
   // Private property to hold the function to handle events
-  private handleEvent: (event: string, message?: string) => void
+  private emit: (event: string, message?: string) => void
 
   /**
    * ControlDecorator constructor
    * @param control - The control to decorate
    * @param setComponent - The function to use to update the control
-   * @param handleEvent - The function to handle events
+   * @param emit - The function to handle events
    */
-  constructor(control: IControl, setComponent: (controlToUpdate: IControl) => void, handleEvent: (event: string, message?: string) => void) {
+  constructor(control: IControl, setComponent: (controlToUpdate: IControl) => void, emit: (event: string, message?: string) => void) {
     this.control = control
     this.setComponent = setComponent
-    this.handleEvent = handleEvent
+    this.emit = emit
   }
 
   // Getter for the Name property of the control
@@ -82,7 +82,7 @@ export class ControlDecorator {
    */
   get Bool(): boolean | undefined {
     if (this.Type !== 'Boolean') {
-      this.handleEvent(qrwcEvents.error, `Type mismatch for property Bool. This control is Type ${this.Type}`);
+      this.emit(qrwcEvents.error, `Type mismatch for property Bool. This control is Type ${this.Type}`);
       return undefined;
     }
 
@@ -98,12 +98,12 @@ export class ControlDecorator {
    */
   set Bool(value: boolean | undefined) {
     if (typeof value !== 'boolean') {
-      this.handleEvent(qrwcEvents.error, `Type mismatch for property Bool. Expected boolean, got ${typeof value}`);
+      this.emit(qrwcEvents.error, `Type mismatch for property Bool. Expected boolean, got ${typeof value}`);
       return;
     }
 
     if (this.Type !== 'Boolean') {
-      this.handleEvent(qrwcEvents.error, `Type mismatch for property Bool. Expected Boolean, got ${this.Type}`);
+      this.emit(qrwcEvents.error, `Type mismatch for property Bool. Expected Boolean, got ${this.Type}`);
       return;
     }
 
@@ -125,7 +125,7 @@ export class ControlDecorator {
    */
   private updateQsysDesign(property: keyof IControl, value: string | number | boolean): void {
     if (!(property in this.control)) {
-      this.handleEvent(qrwcEvents.error, `Property ${property} does not exist on the control: ${this.control.Name}`);
+      this.emit(qrwcEvents.error, `Property ${property} does not exist on the control: ${this.control.Name}`);
       return;
     }
     
@@ -133,7 +133,7 @@ export class ControlDecorator {
     const valueType = typeof value;
   
     if (expectedType !== valueType) {
-      this.handleEvent(qrwcEvents.error, `Type mismatch for property ${property}. Expected ${expectedType}, got ${valueType}`);
+      this.emit(qrwcEvents.error, `Type mismatch for property ${property}. Expected ${expectedType}, got ${valueType}`);
       return;
     }
 
@@ -178,7 +178,7 @@ export class ControlDecorator {
    */
   public getMetaProperty(propertyName: string): string | number | boolean | undefined {
     if (!this.control.hasOwnProperty(propertyName)) {
-      this.handleEvent(qrwcEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`);
+      this.emit(qrwcEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`);
       return;
     }
     return this.control[propertyName as keyof IControl];

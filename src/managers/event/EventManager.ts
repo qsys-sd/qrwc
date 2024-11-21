@@ -12,7 +12,7 @@ export default class EventManager {
     this.emitter.on(event, listener);
   }
 
-  public handleEvent(event: string, ...args: any[]): void {
+  public emit(event: string, ...args: any[]): void {
     this.emitter.emit(event, ...args)
   }
 

@@ -20,15 +20,15 @@ export default class WebSocketManager {
 
   public onMessage(event: MessageEvent) {
     const message = JSON.parse(event.data)
-    this.eventManager.handleEvent(qrwcEvents.message, message)
+    this.eventManager.emit(qrwcEvents.message, message)
   }
 
   private onError(error: Event): void {
-    this.eventManager.handleEvent(qrwcEvents.error, error)
+    this.eventManager.emit(qrwcEvents.error, error)
   }
 
   private onClose(event: CloseEvent): void {
-    this.eventManager.handleEvent(qrwcEvents.disconnected, event)
+    this.eventManager.emit(qrwcEvents.disconnected, event)
   }
 
   private isOpen() {
@@ -39,7 +39,7 @@ export default class WebSocketManager {
     if (this.socket !== null && this.isOpen()) {
       this.socket.send(JSON.stringify(data))
     } else {
-      this.eventManager.handleEvent(qrwcEvents.error, "WebSocket is not open or not initialized.")
+      this.eventManager.emit(qrwcEvents.error, "WebSocket is not open or not initialized.")
     }
   }
 
@@ -47,7 +47,7 @@ export default class WebSocketManager {
     if (this.socket) {
       return this.socket.readyState
     } else {
-      this.eventManager.handleEvent(qrwcEvents.error, "WebSocket is not initialized.")
+      this.eventManager.emit(qrwcEvents.error, "WebSocket is not initialized.")
     }
   }
 
@@ -55,11 +55,11 @@ export default class WebSocketManager {
     if (this.socket !== null && this.isOpen()) {
       // this.clearIntervals()
       // emit event for websocket close
-      this.eventManager.handleEvent(qrwcEvents.disconnected, "WebSocket closed.")
+      this.eventManager.emit(qrwcEvents.disconnected, "WebSocket closed.")
 
       this.socket.close(code, reason)
     } else {
-      this.eventManager.handleEvent(qrwcEvents.error, "WebSocket is not open or not initialized.")
+      this.eventManager.emit(qrwcEvents.error, "WebSocket is not open or not initialized.")
     }
   }
 

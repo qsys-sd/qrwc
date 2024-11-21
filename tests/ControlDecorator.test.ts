@@ -5,7 +5,7 @@ describe('ControlDecorator setters', () => {
   let mockControl: IControl;
   let controlDecorator: ControlDecorator;
   let setComponent: jest.Mock;
-  let handleEvent: jest.Mock;
+  let emit: jest.Mock;
 
   beforeEach(() => {
     mockControl = {
@@ -18,10 +18,10 @@ describe('ControlDecorator setters', () => {
 
     // Mock functions for updating the control and handling events
     setComponent = jest.fn();
-    handleEvent = jest.fn();
+    emit = jest.fn();
 
     // Initialize the ControlDecorator with the mock control
-    controlDecorator = new ControlDecorator(mockControl, setComponent, handleEvent);
+    controlDecorator = new ControlDecorator(mockControl, setComponent, emit);
   });
 
   test('should request update with new Position', () => {
