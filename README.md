@@ -157,7 +157,7 @@ console.log(valueMin); // The minimum value of the control, or undefined if the 
   * Public: Serves as an interface to private values or a variable that shouldn't be secret
 * If changes are saved in `/src` 
   * `npm run build`
-  * now in your FE project terminal you can use `npm link {path to control-connect}` to reinstall with new changes
+  * now in your FE project terminal you can use `npm link {path to QRWC}` to reinstall with new changes
 
 ### How do I get set up as a tester? ###
 * Clone repo
@@ -166,7 +166,7 @@ console.log(valueMin); // The minimum value of the control, or undefined if the 
   * `npm install`
   * `npm run build`
   * `npm link`
-  * now in your FE project terminal you can use `npm link {path to control-connect}`
+  * now in your FE project terminal you can use `npm link {path to QRWC}`
   * this should install this project as a `node_module`
 
 ### Testing ###

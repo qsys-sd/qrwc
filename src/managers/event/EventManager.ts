@@ -1,22 +1,26 @@
 import { EventEmitter } from "events"
+import FrontendEmitter from "./FrontendEvents";
 
-export default class EventManager extends EventEmitter {
+export default class EventManager {
+  private emitter: EventEmitter | FrontendEmitter;
 
   constructor() {
-    super()
+    const isInBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+    this.emitter = isInBrowser ? new FrontendEmitter() : new EventEmitter();}
+
+  public on(event: string, listener: (...args: any[]) => void): void {
+    this.emitter.on(event, listener);
   }
 
   public handleEvent(event: string, ...args: any[]): void {
-    this.emit(event, ...args)
+    this.emitter.emit(event, ...args)
   }
 
-  public removeEventListener(event: string, listener: (...args: any[]) => void): void {
-    this.removeListener(event, listener);
+  public removeListener(event: string, listener: (...args: any[]) => void): void {
+    this.emitter.removeListener(event, listener);
   }
 
-  // a method for removing all listeners using super(EventEmitter) and returning a promise when complete
   public removeAllEventListeners() {
-    // remove all listeners using super
-    super.removeAllListeners()
+    this.emitter.removeAllListeners()
   }
 }

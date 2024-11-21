@@ -23,7 +23,7 @@ describe('EventManager', () => {
     const eventName = 'testEvent';
 
     eventManager.on(eventName, mockCallback);
-    eventManager.removeEventListener(eventName, mockCallback);
+    eventManager.removeListener(eventName, mockCallback);
     eventManager.handleEvent(eventName);
 
     expect(mockCallback).not.toHaveBeenCalled();

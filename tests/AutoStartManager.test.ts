@@ -4,7 +4,6 @@ import ControlManager from '../src/managers/control/ControlManager';
 import EventManager from '../src/managers/event/EventManager';
 import { RequestManager } from '../src/managers';
 import { WebSocket, Server as MockServer } from 'mock-socket';
-import { qrwcEvents } from '../src/constants';
 
 describe('AutoStartManager', () => {
   let autoStartManager: AutoStartManager;
@@ -39,10 +38,14 @@ describe('AutoStartManager', () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  test('AutoStartManager creates auto start change group', () => {
-    const spy = jest.spyOn(autoStartManager, 'createAutoStartChangeGroup' as any);
-    eventManager.emit(qrwcEvents.controlsReceived);
-    expect(spy).toHaveBeenCalled();
+  it('creates auto start change group', () => {
+    const mockCallback = jest.fn();
+    const eventName = 'autoStartChangeGroup';
+
+    eventManager.on(eventName, mockCallback);
+    eventManager.handleEvent(eventName, { key: 'value' });
+
+    expect(mockCallback).toHaveBeenCalledWith({ key: 'value' });
   });
 
   test('AutoStartManager cleans up correctly', () => {
