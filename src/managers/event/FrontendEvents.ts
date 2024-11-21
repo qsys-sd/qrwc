@@ -1,14 +1,18 @@
 class FrontendEventEmitter {
   private eventTarget: EventTarget;
+  private listeners: Map<(...args: any[]) => void, EventListenerOrEventListenerObject>;
 
   constructor() {
     this.eventTarget = new EventTarget();
+    this.listeners = new Map();
   }
 
   public on(event: string, listener: (...args: any[]) => void): void {
-    this.eventTarget.addEventListener(event, (e: Event) => {
+    const wrappedListener = (e: Event) => {
       listener(...(e as CustomEvent).detail);
-    });
+    };
+    this.listeners.set(listener, wrappedListener);
+    this.eventTarget.addEventListener(event, wrappedListener);
   }
 
   public emit(event: string, ...args: any[]): void {
@@ -17,12 +21,16 @@ class FrontendEventEmitter {
   }
 
   public removeListener(event: string, listener: (...args: any[]) => void): void {
-    this.eventTarget.removeEventListener(event, listener);
+    const wrappedListener = this.listeners.get(listener);
+    if (wrappedListener) {
+      this.eventTarget.removeEventListener(event, wrappedListener);
+      this.listeners.delete(listener);
+    }
   }
 
-  public removeAllListeners() {
-    // remove all events
+  public removeAllListeners(): void {
     this.eventTarget = new EventTarget();
+    this.listeners.clear();
   }
 }
 
