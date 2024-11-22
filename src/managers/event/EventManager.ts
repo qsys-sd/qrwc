@@ -6,9 +6,6 @@ const isInBrowser = typeof window !== 'undefined' && typeof window.document !== 
 export default class EventManager {
   private emitter: IEventEmitter
 
-  constructor() {
-  }
-
   public async initializeEmitter() {
     if (isInBrowser) {
       // In a browser environment, use the FrontendEventEmitter
