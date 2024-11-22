@@ -29,19 +29,19 @@ describe('FrontendEventEmitter', () => {
     expect(mockCallback).not.toHaveBeenCalled();
   });
 
-    it('should remove all event listeners', () => {
-      const mockCallback1 = jest.fn();
-      const mockCallback2 = jest.fn();
-      const eventName1 = 'testEvent1';
-      const eventName2 = 'testEvent2';
+  it('should remove all event listeners', () => {
+    const mockCallback1 = jest.fn();
+    const mockCallback2 = jest.fn();
+    const eventName1 = 'testEvent1';
+    const eventName2 = 'testEvent2';
 
-      frontendEventEmitter.on(eventName1, mockCallback1);
-      frontendEventEmitter.on(eventName2, mockCallback2);
-      frontendEventEmitter.removeAllListeners();
-      frontendEventEmitter.emit(eventName1);
-      frontendEventEmitter.emit(eventName2);
+    frontendEventEmitter.on(eventName1, mockCallback1);
+    frontendEventEmitter.on(eventName2, mockCallback2);
+    frontendEventEmitter.removeAllListeners();
+    frontendEventEmitter.emit(eventName1);
+    frontendEventEmitter.emit(eventName2);
 
-      expect(mockCallback1).not.toHaveBeenCalled();
-      expect(mockCallback2).not.toHaveBeenCalled();
-    });
+    expect(mockCallback1).not.toHaveBeenCalled();
+    expect(mockCallback2).not.toHaveBeenCalled();
+  });
 });
