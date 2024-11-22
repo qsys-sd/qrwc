@@ -7,14 +7,16 @@ export default class EventManager {
   private emitter: IEventEmitter
 
   constructor() {
-    this.initializeEmitter()
   }
 
-  private async initializeEmitter() {
+  public async initializeEmitter() {
     if (isInBrowser) {
+      // In a browser environment, use the FrontendEventEmitter
       this.emitter = new FrontendEventEmitter()
     } else {
+      // In a Node.js environment, dynamically import the 'events' module
       const { EventEmitter } = await import('events')
+      // Create an instance of EventEmitter
       this.emitter = new EventEmitter() as IEventEmitter
     }
   }

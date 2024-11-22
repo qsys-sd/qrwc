@@ -20,9 +20,14 @@ export class Qrwc {
   requestManager: RequestManager
 
   constructor() {
-    // main dependencies
+    this.initialize()
+  }
+
+  private initialize = async () => {
+        // main dependencies
     // create EventManager instance
     this.eventManager = new EventManager()
+    await this.eventManager.initializeEmitter()
     // create RequestManager instance
     this.requestManager = new RequestManager(
       this.eventManager
@@ -38,6 +43,7 @@ export class Qrwc {
       this.qrwcCleanUp()
     })
   }
+
 
   // a getter method for components
   get components(): IComponent {

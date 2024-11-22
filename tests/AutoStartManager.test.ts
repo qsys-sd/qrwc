@@ -1,59 +1,61 @@
-import AutoStartManager from '../src/managers/autoStart/AutoStartManager';
-import WebSocketManager from '../src/managers/webSocket/WebSocketManager';
-import ControlManager from '../src/managers/control/ControlManager';
-import EventManager from '../src/managers/event/EventManager';
-import { RequestManager } from '../src/managers';
-import { WebSocket, Server as MockServer } from 'mock-socket';
+import AutoStartManager from '../src/managers/autoStart/AutoStartManager'
+import WebSocketManager from '../src/managers/webSocket/WebSocketManager'
+import ControlManager from '../src/managers/control/ControlManager'
+import EventManager from '../src/managers/event/EventManager'
+import { RequestManager } from '../src/managers'
+import { WebSocket, Server as MockServer } from 'mock-socket'
 
 describe('AutoStartManager', () => {
-  let autoStartManager: AutoStartManager;
-  let webSocketManager: WebSocketManager;
-  let controlManager: ControlManager;
-  let eventManager: EventManager;
-  let requestManager: RequestManager;
-  let mockServer: MockServer;
-  let mockWebSocket: WebSocket;
+  let autoStartManager: AutoStartManager
+  let webSocketManager: WebSocketManager
+  let controlManager: ControlManager
+  let requestManager: RequestManager
+  let mockServer: MockServer
+  let mockWebSocket: WebSocket
+  const eventManager = new EventManager()
+
+  eventManager.initializeEmitter()
 
   beforeEach(done => {
-    mockServer = new MockServer('ws://localhost:1234');
-    mockWebSocket = new WebSocket('ws://localhost:1234');
+    mockServer = new MockServer('ws://localhost:1234')
+    mockWebSocket = new WebSocket('ws://localhost:1234')
     mockWebSocket.onopen = () => {
-      done();
+      done()
     }
-    eventManager = new EventManager();
-    webSocketManager = new WebSocketManager(mockWebSocket, eventManager);
-    requestManager = new RequestManager(eventManager);
-    controlManager = new ControlManager(eventManager, requestManager);
-    autoStartManager = new AutoStartManager(webSocketManager.send.bind(webSocketManager), controlManager, eventManager);
-  });
+
+    webSocketManager = new WebSocketManager(mockWebSocket, eventManager)
+    requestManager = new RequestManager(eventManager)
+    controlManager = new ControlManager(eventManager, requestManager)
+    autoStartManager = new AutoStartManager(webSocketManager.send.bind(webSocketManager), controlManager, eventManager)
+  })
 
   afterEach(() => {
-    jest.clearAllMocks();
-    mockServer.stop();
-  });
+    jest.clearAllMocks()
+    mockServer.stop()
+  })
 
   test('AutoStartManager starts correctly', () => {
-    const spy = jest.spyOn(autoStartManager, 'start');
-    autoStartManager.start();
-    expect(spy).toHaveBeenCalled();
-  });
+    const spy = jest.spyOn(autoStartManager, 'start')
+    autoStartManager.start()
+    expect(spy).toHaveBeenCalled()
+  })
 
   it('creates auto start change group', () => {
-    const mockCallback = jest.fn();
-    const eventName = 'autoStartChangeGroup';
+    const mockCallback = jest.fn()
+    const eventName = 'autoStartChangeGroup'
 
-    eventManager.on(eventName, mockCallback);
-    eventManager.emit(eventName, { key: 'value' });
+    eventManager.on(eventName, mockCallback)
+    eventManager.emit(eventName, { key: 'value' })
 
-    expect(mockCallback).toHaveBeenCalledWith({ key: 'value' });
-  });
+    expect(mockCallback).toHaveBeenCalledWith({ key: 'value' })
+  })
 
   test('AutoStartManager cleans up correctly', () => {
-    const spy = jest.spyOn(autoStartManager, 'cleanUp');
-    autoStartManager.cleanUp();
-    expect(spy).toHaveBeenCalled();
-    expect(autoStartManager['changeGroupService']).toBeNull();
-    expect(autoStartManager['controlManager']).toBeNull();
-    expect(autoStartManager['eventManager']).toBeNull();
-  });
-});
+    const spy = jest.spyOn(autoStartManager, 'cleanUp')
+    autoStartManager.cleanUp()
+    expect(spy).toHaveBeenCalled()
+    expect(autoStartManager['changeGroupService']).toBeNull()
+    expect(autoStartManager['controlManager']).toBeNull()
+    expect(autoStartManager['eventManager']).toBeNull()
+  })
+})
