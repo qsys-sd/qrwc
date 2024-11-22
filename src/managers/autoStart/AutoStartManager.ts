@@ -1,16 +1,16 @@
-import { v4 as uuidv4 } from "uuid"
-import { qrcMethods, qrwcEvents } from "../../constants"
-import { createJSONRPCMessage, JSONRPCMessage } from "../../utils"
-import { IComponentsGetResult, IControlGet, IControlGetResult, IServerMessage } from "../../index.interface"
-import { ControlManager, EventManager } from ".."
-import { ChangeGroupService } from "../../services"
-import { ControlDecorator } from "../control/ControlDecorator"
+import { v4 as uuidv4 } from 'uuid'
+import { qrcMethods, qrwcEvents } from '../../constants'
+import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
+import { IComponentsGetResult, IControlGet, IControlGetResult, IServerMessage } from '../../index.interface'
+import { ControlManager, EventManager } from '..'
+import { ChangeGroupService } from '../../services'
+import { ControlDecorator } from '../control/ControlDecorator'
 
 export default class AutoStartManager {
-  private getComponentsId: string = ""
+  private getComponentsId: string = ''
   private componentList: string[] = []
   private getControlIds: string[] = []
-  private autoStartChangeGroupId: string = "AutoStartChangeGroup"
+  private autoStartChangeGroupId: string = 'AutoStartChangeGroup'
   private changeGroupService: ChangeGroupService | null = null
 
   constructor(
@@ -75,7 +75,7 @@ export default class AutoStartManager {
     this.websocketSend(
       createJSONRPCMessage(
         qrcMethods.components.getComponents,
-        "test",
+        'test',
         this.getComponentsId
       )
     )
@@ -96,7 +96,7 @@ export default class AutoStartManager {
     this.eventManager.emit(qrwcEvents.componentsRecieved)
 
     // reset getComponentsId
-    this.getComponentsId = ""
+    this.getComponentsId = ''
   }
 
   // a method for getting controls
@@ -126,7 +126,7 @@ export default class AutoStartManager {
         // decorate control
         const decoratedControl = new ControlDecorator(
           { ...control, Component: result.Name },
-          this.controlManager.setComponent.bind(this.controlManager), 
+          this.controlManager.setComponent.bind(this.controlManager),
           this.eventManager.emit.bind(this.eventManager)
         )
 
@@ -143,7 +143,7 @@ export default class AutoStartManager {
           ...controlObject
         }
       }
-      
+
       // add component to control manager
       this.controlManager.addComponent(componentToAdd, result.Name)
     }
@@ -194,31 +194,31 @@ export default class AutoStartManager {
     this.eventManager.emit(qrwcEvents.autoStartComplete)
   }
 
-// a method for cleaning up the auto start manager
-public cleanUp() {
+  // a method for cleaning up the auto start manager
+  public cleanUp() {
   // clear componentList
-  this.componentList = []
+    this.componentList = []
 
-  // clear getControlIds
-  this.getControlIds = []
+    // clear getControlIds
+    this.getControlIds = []
 
-  // clear autoStartChangeGroupId
-  this.autoStartChangeGroupId = ""
+    // clear autoStartChangeGroupId
+    this.autoStartChangeGroupId = ''
 
-  // clear getComponentsId
-  this.getComponentsId = ""
+    // clear getComponentsId
+    this.getComponentsId = ''
 
-  // stop ongoing polling and cleanup changeGroupService
-  if (this.changeGroupService) {
-    this.changeGroupService.cleanUp()
+    // stop ongoing polling and cleanup changeGroupService
+    if (this.changeGroupService) {
+      this.changeGroupService.cleanUp()
 
-    this.changeGroupService = null
+      this.changeGroupService = null
+    }
+
+    // set controlManager to null
+    this.controlManager = null
+
+    // set eventManager to null
+    this.eventManager = null
   }
-
-  // set controlManager to null
-  this.controlManager = null
-
-  // set eventManager to null
-  this.eventManager = null
-}
 }

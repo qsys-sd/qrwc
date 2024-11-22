@@ -2,9 +2,9 @@ import { IChange, IComponentChangeGroup, IRequestChanges, IRequestControls, IReq
 
 export type JSONRPCMessage = ReturnType<typeof createJSONRPCMessage>
 
-export const createJSONRPCMessage = (method: string, params: "test" | IRequestChanges | IRequestControls | IComponentChangeGroup | IRequestPoll, id: string | number) => (
+export const createJSONRPCMessage = (method: string, params: 'test' | IRequestChanges | IRequestControls | IComponentChangeGroup | IRequestPoll, id: string | number) => (
   {
-    jsonrpc: "2.0",
+    jsonrpc: '2.0',
     method,
     params,
     id

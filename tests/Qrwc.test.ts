@@ -4,7 +4,7 @@ import { Server, WebSocket} from 'mock-socket'
 
 describe('Qrwc', () => {
   let qrwc: Qrwc
-  
+
   beforeEach(()=> {
     qrwc = new Qrwc()
   })

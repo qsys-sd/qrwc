@@ -1,9 +1,9 @@
-import { v4 as uuidv4 } from "uuid"
-import { qrcMethods, qrwcEvents } from "../../constants"
-import { IChange, IComponent, IControl } from "../../index.interface"
-import { EventManager, RequestManager, WebSocketManager } from ".."
-import { createJSONRPCMessage, isValidControlChange} from "../../utils"
-import { ControlDecorator } from "./ControlDecorator"
+import { v4 as uuidv4 } from 'uuid'
+import { qrcMethods, qrwcEvents } from '../../constants'
+import { IChange, IComponent, IControl } from '../../index.interface'
+import { EventManager, RequestManager, WebSocketManager } from '..'
+import { createJSONRPCMessage, isValidControlChange} from '../../utils'
+import { ControlDecorator } from './ControlDecorator'
 
 export default class ControlManager {
   public components: IComponent = {}
@@ -23,7 +23,7 @@ export default class ControlManager {
       // check if change is valid
       if (!isValidControlChange(change)) {
         // if change is invalid, emit error
-        this.eventManager.emit(qrwcEvents.error, "Invalid change")
+        this.eventManager.emit(qrwcEvents.error, 'Invalid change')
         return
       }
 
@@ -47,7 +47,7 @@ export default class ControlManager {
         // emit error
         this.eventManager.emit(
           qrwcEvents.error,
-          "Connot update Control, existing Control not found"
+          'Connot update Control, existing Control not found'
         )
       }
     })
@@ -60,7 +60,7 @@ export default class ControlManager {
       // emit error
       this.eventManager.emit(
         qrwcEvents.error,
-        "Websocket manager already attached"
+        'Websocket manager already attached'
       )
       return
     }
@@ -95,7 +95,7 @@ export default class ControlManager {
       // if component exists, emit error
       this.eventManager.emit(
         qrwcEvents.error,
-        "Component already exists"
+        'Component already exists'
       )
       return
     }
@@ -132,7 +132,7 @@ export default class ControlManager {
       // if webSocketManager is not defined, emit error
       this.eventManager.emit(
         qrwcEvents.error,
-        "WebSocketManager is not defined"
+        'WebSocketManager is not defined'
       )
       return
     }
@@ -156,7 +156,7 @@ export default class ControlManager {
       // if component does not exist, emit error
       this.eventManager.emit(
         qrwcEvents.error,
-        "Component does not exist"
+        'Component does not exist'
       )
       return
     }
@@ -166,7 +166,7 @@ export default class ControlManager {
       // if control does not exist, emit error
       this.eventManager.emit(
         qrwcEvents.error,
-        "Control does not exist"
+        'Control does not exist'
       )
       return
     }
@@ -201,7 +201,7 @@ export default class ControlManager {
     return Object.keys(this.components[componentName])
   }
 
-  // a method for clean up 
+  // a method for clean up
   public cleanUp() {
     // reset components
     this.components = {}

@@ -1,5 +1,5 @@
-import PollingService from "./PollingService"
-import ChangeGroupService from "./ChangeGroupService"
+import PollingService from './PollingService'
+import ChangeGroupService from './ChangeGroupService'
 
 export {
   PollingService,

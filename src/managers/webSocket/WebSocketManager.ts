@@ -1,6 +1,6 @@
-import { qrwcEvents } from "../../constants"
+import { qrwcEvents } from '../../constants'
 import { WebSocket as WsWebsocket } from 'ws'
-import { EventManager } from ".."
+import { EventManager } from '..'
 
 export default class WebSocketManager {
   private socket: WebSocket | WsWebsocket | null = null
@@ -39,7 +39,7 @@ export default class WebSocketManager {
     if (this.socket !== null && this.isOpen()) {
       this.socket.send(JSON.stringify(data))
     } else {
-      this.eventManager.emit(qrwcEvents.error, "WebSocket is not open or not initialized.")
+      this.eventManager.emit(qrwcEvents.error, 'WebSocket is not open or not initialized.')
     }
   }
 
@@ -47,7 +47,7 @@ export default class WebSocketManager {
     if (this.socket) {
       return this.socket.readyState
     } else {
-      this.eventManager.emit(qrwcEvents.error, "WebSocket is not initialized.")
+      this.eventManager.emit(qrwcEvents.error, 'WebSocket is not initialized.')
     }
   }
 
@@ -55,11 +55,11 @@ export default class WebSocketManager {
     if (this.socket !== null && this.isOpen()) {
       // this.clearIntervals()
       // emit event for websocket close
-      this.eventManager.emit(qrwcEvents.disconnected, "WebSocket closed.")
+      this.eventManager.emit(qrwcEvents.disconnected, 'WebSocket closed.')
 
       this.socket.close(code, reason)
     } else {
-      this.eventManager.emit(qrwcEvents.error, "WebSocket is not open or not initialized.")
+      this.eventManager.emit(qrwcEvents.error, 'WebSocket is not open or not initialized.')
     }
   }
 

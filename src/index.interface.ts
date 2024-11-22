@@ -1,4 +1,4 @@
-import { ControlDecorator } from "./managers/control/ControlDecorator"
+import { ControlDecorator } from './managers/control/ControlDecorator'
 
 export interface IControl {
   Name: string
@@ -39,7 +39,7 @@ export interface IOnChangeRequest {
 }
 
 interface IDesignMessage {
-  jsonrpc: "2.0"
+  jsonrpc: '2.0'
   method?: string
   params?: IParams
   id?: string

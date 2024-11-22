@@ -1,5 +1,5 @@
-import { qrcMethods, qrwcPollReset } from "../constants"
-import { createJSONRPCMessage } from "../utils"
+import { qrcMethods, qrwcPollReset } from '../constants'
+import { createJSONRPCMessage } from '../utils'
 
 
 export default class PollingService {
@@ -74,10 +74,10 @@ export default class PollingService {
   public cleanUp(): void {
     // clear the interval
     clearInterval(this.intervalId as NodeJS.Timer)
-  
+
     // reset the pollInterval to its initial value
     this.pollInterval = this.minInterval
-  
+
     // reset the socketPollId
     this.socketPollId = 1
 

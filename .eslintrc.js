@@ -2,10 +2,13 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2021,
-    sourceType: 'module',
+    sourceType: 'module'
   },
   plugins: ['@typescript-eslint'],
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended'
+  ],
   env: {
     browser: true,
     es2021: true,
@@ -13,8 +16,13 @@ module.exports = {
     jest: true
   },
   rules: {
-    semi: ['error', 'never'],
+    'semi': ['error', 'never'],
     'comma-dangle': ['error', 'never'],
+    'quotes': ['error', 'single'],
+    'indent': ['error', 2],
+    'no-trailing-spaces': 'error',
+    'eol-last': ['error', 'always']
+    // Add any additional ESLint rules here
   },
   ignorePatterns: ['dist/', 'node_modules/']
 }

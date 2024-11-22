@@ -4,10 +4,10 @@ import {
   ControlManager,
   EventManager,
   RequestManager
-} from ".."
-import { ChangeGroupService, PollingService } from "../../services"
-import { IComponent } from "../../index.interface"
-import { qrwcEvents } from "../../constants"
+} from '..'
+import { ChangeGroupService, PollingService } from '../../services'
+import { IComponent } from '../../index.interface'
+import { qrwcEvents } from '../../constants'
 
 export class Qrwc {
   webSocketManager: WebSocketManager | null = null
@@ -24,7 +24,7 @@ export class Qrwc {
   }
 
   private initialize = async () => {
-        // main dependencies
+    // main dependencies
     // create EventManager instance
     this.eventManager = new EventManager()
     await this.eventManager.initializeEmitter()
@@ -57,7 +57,7 @@ export class Qrwc {
       // emit event for websocket already attached
       this.eventManager.emit(
         qrwcEvents.error,
-        "web socket already attached"
+        'web socket already attached'
       )
       return
     }
@@ -81,7 +81,7 @@ export class Qrwc {
   public autoStart(): void {
     // check if webSocketManager is defined
     if (!this.webSocketManager) {
-      throw new Error("WebSocketManager is not defined")
+      throw new Error('WebSocketManager is not defined')
     }
 
     // check if autoStartManager is defined
@@ -89,7 +89,7 @@ export class Qrwc {
       // emit event for auto start already started
       this.eventManager.emit(
         qrwcEvents.error,
-        "auto start already initialized"
+        'auto start already initialized'
       )
     } else {
       // create auto start manager

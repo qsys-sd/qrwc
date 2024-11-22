@@ -1,14 +1,14 @@
 // Imports
 import { IControl } from '../../index.interface'
-import { qrwcEvents } from "../../constants"
+import { qrwcEvents } from '../../constants'
 
 /**
  * ControlDecorator class
- * 
+ *
  * This class is used to decorate an Control object, providing getters and setters for its properties.
  * The decorator pattern allows us to add new behavior or responsibilities to objects without modifying their code.
  * This class also provides a method to update the control using a provided function and a method to handle events.
- * 
+ *
  * The updateQsysDesign method is used to update a property on the control and triggers an update request of the parent component.
  * The getMetaProperty method returns the value of a requested property, or undefined if the property does not exist.
  * If the property does not exist, an error event is also emitted.
@@ -119,7 +119,7 @@ export class ControlDecorator {
 
   /**
    * Updates a property on the control and triggers an update request of the parent component.
-   * 
+   *
    * @param property - The name of the property to update.
    * @param value - The new value for the property.
    */
@@ -153,10 +153,10 @@ export class ControlDecorator {
 
   /**
    * Returns a deep copy of all the properties of the control.
-   * 
+   *
    * This method uses JSON.parse and JSON.stringify to create a deep copy of the control object.
    * This ensures that modifications to the returned object do not affect the original control.
-   * 
+   *
    * @returns A deep copy of the control's properties.
    * @example
    * const properties = controlDecorator.getProperties();
@@ -169,9 +169,9 @@ export class ControlDecorator {
 
   /**
    * Gets a property from the control that is not defined in the IControl interface.
-   * 
+   *
    * If the property does not exist, an error event is emitted and the function execution ends.
-   * 
+   *
    * @param propertyName - The name of the property to get.
    * @returns The value of the property, or undefined if the property does not exist.
    * @example

@@ -1,4 +1,4 @@
-import { IEventEmitter } from "./IEventEmitter"
+import { IEventEmitter } from './IEventEmitter'
 
 class FrontendEventEmitter implements IEventEmitter {
   private eventTarget: EventTarget

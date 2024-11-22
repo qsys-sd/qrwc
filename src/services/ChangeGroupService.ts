@@ -1,16 +1,16 @@
-import { v4 as uuidv4 } from "uuid"
-import { qrcMethods, qrwcEvents } from "../constants"
-import { EventManager } from "../managers"
-import { createJSONRPCMessage } from "../utils"
-import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent } from "../index.interface"
-import { PollingService } from "../services"
+import { v4 as uuidv4 } from 'uuid'
+import { qrcMethods, qrwcEvents } from '../constants'
+import { EventManager } from '../managers'
+import { createJSONRPCMessage } from '../utils'
+import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent } from '../index.interface'
+import { PollingService } from '../services'
 
 export default class ChangeGroup {
   private changeGroupUpdateRequests: string[] = []
   private changeGroupId: string = uuidv4()
   private pollingService: PollingService | null = null
   private changeGroupComponents: IComponentChangeGroup[] = []
-  changeGroupName: string = ""
+  changeGroupName: string = ''
 
   constructor(
     changeGroupName: string,
@@ -58,7 +58,7 @@ export default class ChangeGroup {
       // emit error
       this.eventManager.emit(
         qrwcEvents.error,
-        "Polling service already initialized"
+        'Polling service already initialized'
       )
       return
     }
@@ -187,6 +187,6 @@ export default class ChangeGroup {
     this.eventManager = null
 
     // reset changeGroupName
-    this.changeGroupName = ""
+    this.changeGroupName = ''
   }
 }

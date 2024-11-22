@@ -45,7 +45,7 @@ describe('ControlManager', () => {
       String: 'TestString'
     }
     const newControl = new ControlDecorator(mockControl, jest.fn(), jest.fn())
-    
+
     // Use type assertion to access private method
     const controlManagerWithPrivateMethods = controlManager as unknown as { updateControls: (control: ControlDecorator) => void }
     controlManagerWithPrivateMethods.updateControls(newControl)

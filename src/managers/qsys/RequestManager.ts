@@ -1,6 +1,6 @@
-import { qrwcEvents } from "../../constants"
-import { IChange, IChangeRequest, IServerMessage, IMessageChangeResult, IOnChangeRequest } from "../../index.interface"
-import { EventManager } from ".."
+import { qrwcEvents } from '../../constants'
+import { IChange, IChangeRequest, IServerMessage, IMessageChangeResult, IOnChangeRequest } from '../../index.interface'
+import { EventManager } from '..'
 
 export default class RequestManager {
   private changeRequestIds: IChangeRequest[] = []
