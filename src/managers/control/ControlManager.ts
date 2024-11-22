@@ -109,7 +109,7 @@ export default class ControlManager {
 
   // a method for setting a control values for a components
   public setComponent(
-    controlToUpdate: IControl,
+    controlToUpdate: IControl
   ): void {
     // create change request id
     const requestId = uuidv4()

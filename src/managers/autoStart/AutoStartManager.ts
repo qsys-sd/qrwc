@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from "uuid"
 import { qrcMethods, qrwcEvents } from "../../constants"
-import { createJSONRPCMessage } from "../../utils"
+import { createJSONRPCMessage, JSONRPCMessage } from "../../utils"
 import { IComponentsGetResult, IControlGet, IControlGetResult, IServerMessage } from "../../index.interface"
-import { WebSocketManager, ControlManager, EventManager } from ".."
+import { ControlManager, EventManager } from ".."
 import { ChangeGroupService } from "../../services"
 import { ControlDecorator } from "../control/ControlDecorator"
 
@@ -14,7 +14,7 @@ export default class AutoStartManager {
   private changeGroupService: ChangeGroupService | null = null
 
   constructor(
-    private websocketSend: (message: any) => void,
+    private websocketSend: (message: JSONRPCMessage) => void,
     private controlManager: ControlManager,
     private eventManager: EventManager
   ) {

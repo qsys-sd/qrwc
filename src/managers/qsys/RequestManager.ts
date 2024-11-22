@@ -3,7 +3,7 @@ import { IChange, IChangeRequest, IServerMessage, IMessageChangeResult, IOnChang
 import { EventManager } from ".."
 
 export default class RequestManager {
-  private changeRequestIds: IChangeRequest[] = [];
+  private changeRequestIds: IChangeRequest[] = []
 
   constructor(
     private eventManager: EventManager

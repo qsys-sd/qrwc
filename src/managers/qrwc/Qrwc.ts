@@ -140,7 +140,7 @@ export class Qrwc {
 
     // create change group
     this.changeGroupServices[changeGroupName].createChangeGroup(
-      groomedComponents,
+      groomedComponents
     )
   }
 
@@ -177,60 +177,60 @@ export class Qrwc {
   }
 
   // a method that decorates the .on method of the eventManager
-  public on(event: string, listener: (...args: any[]) => void): void {
+  public on(event: string, listener: (...args: unknown[]) => void): void {
     this.eventManager.on(event, listener)
   }
 
   // a method for initating clean up for QRWC
   public qrwcCleanUp(): void {
     // remove all listeners from eventManager
-    this.eventManager.removeAllEventListeners();
+    this.eventManager.removeAllEventListeners()
 
     // set eventManager to null
-    this.eventManager = null;
+    this.eventManager = null
 
     // check if webSocketManager is defined
     if (this.webSocketManager) {
       // initiate cleanup for webSocketManager
-      this.webSocketManager.cleanUp();
+      this.webSocketManager.cleanUp()
 
       // set webSocketManager to null
-      this.webSocketManager = null;
+      this.webSocketManager = null
     }
 
     // check if autoStartManager is defined
     if (this.autoStartManager) {
       // initiate cleanUp for autoStartManager
-      this.autoStartManager.cleanUp();
+      this.autoStartManager.cleanUp()
 
       // set autoStartManager to null
-      this.autoStartManager = null;
+      this.autoStartManager = null
     }
 
     // initiate cleanUp for controlManager
-    this.controlManager.cleanUp();
+    this.controlManager.cleanUp()
 
     // set controlManager to null
-    this.controlManager = null;
+    this.controlManager = null
 
     // check if requestManager is defined
     if (this.requestManager) {
       // initiate cleanUp for requestManager
-      this.requestManager.cleanUp();
+      this.requestManager.cleanUp()
 
       // set requestManager to null
-      this.requestManager = null;
+      this.requestManager = null
     }
 
     // check if changeGroupServices is defined
     if (this.changeGroupServices) {
       // initiate cleanUp for each ChangeGroupService
-      for (let key in this.changeGroupServices) {
-        this.changeGroupServices[key].cleanUp();
+      for (const key in this.changeGroupServices) {
+        this.changeGroupServices[key].cleanUp()
       }
 
       // set changeGroupServices to null
-      this.changeGroupServices = null;
+      this.changeGroupServices = null
     }
   }
 }

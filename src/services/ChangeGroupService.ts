@@ -16,7 +16,7 @@ export default class ChangeGroup {
     changeGroupName: string,
     private send: (data: object) => void,
     private handleControlChanges: (changes: IChange[]) => void,
-    private eventManager: EventManager,
+    private eventManager: EventManager
   ) {
     // listen for messages
     this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {

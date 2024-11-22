@@ -1,4 +1,6 @@
-import { IChange, IComponentChangeGroup, IRequestChanges, IRequestControls, IRequestPoll } from '../index.interface';
+import { IChange, IComponentChangeGroup, IRequestChanges, IRequestControls, IRequestPoll } from '../index.interface'
+
+export type JSONRPCMessage = ReturnType<typeof createJSONRPCMessage>
 
 export const createJSONRPCMessage = (method: string, params: "test" | IRequestChanges | IRequestControls | IComponentChangeGroup | IRequestPoll, id: string | number) => (
   {
@@ -15,5 +17,5 @@ export function isValidControlChange(control: IChange): control is IChange {
     typeof control.Component === 'string' &&
     typeof control.Value === 'number' &&
     typeof control.String === 'string' &&
-    typeof control.Position === 'number';
+    typeof control.Position === 'number'
 }

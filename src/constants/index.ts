@@ -2,12 +2,12 @@ export const qrcMethods = {
   components: {
     getComponents: "Component.GetComponents",
     getControls: "Component.GetControls",
-    set: "Component.Set",
+    set: "Component.Set"
   },
   changeGroup: {
     poll: "ChangeGroup.Poll",
     addControl: "ChangeGroup.AddControl",
-    addComponentControl: "ChangeGroup.AddComponentControl",
+    addComponentControl: "ChangeGroup.AddComponentControl"
   }
 }
 

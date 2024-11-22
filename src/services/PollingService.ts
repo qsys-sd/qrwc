@@ -1,20 +1,20 @@
 import { qrcMethods, qrwcPollReset } from "../constants"
-import { createJSONRPCMessage } from "../utils";
+import { createJSONRPCMessage } from "../utils"
 
 
 export default class PollingService {
-  private minInterval: number = 350;
-  private pollInterval: number = 350;
-  private intervalId: NodeJS.Timer | null = null;
-  private socketPollId: number = 1;
-  public changeGroupId: string;
+  private minInterval: number = 350
+  private pollInterval: number = 350
+  private intervalId: NodeJS.Timer | null = null
+  private socketPollId: number = 1
+  public changeGroupId: string
 
 
   constructor(
     changeGroupId: string,
     private send: (data: object) => void
   ){
-    this.changeGroupId = changeGroupId;
+    this.changeGroupId = changeGroupId
   }
 
 
@@ -76,12 +76,12 @@ export default class PollingService {
     clearInterval(this.intervalId as NodeJS.Timer)
   
     // reset the pollInterval to its initial value
-    this.pollInterval = this.minInterval;
+    this.pollInterval = this.minInterval
   
     // reset the socketPollId
-    this.socketPollId = 1;
+    this.socketPollId = 1
 
     // replace the send method with a no-op
-    this.send = () => {};
+    this.send = () => {}
   }
 }

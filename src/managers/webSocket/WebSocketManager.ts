@@ -1,13 +1,13 @@
 import { qrwcEvents } from "../../constants"
-import { WebSocket as WsWebsocket } from 'ws';
-import { EventManager } from "..";
+import { WebSocket as WsWebsocket } from 'ws'
+import { EventManager } from ".."
 
 export default class WebSocketManager {
-  private socket: WebSocket | WsWebsocket | null = null;
-  eventManager: EventManager;
+  private socket: WebSocket | WsWebsocket | null = null
+  eventManager: EventManager
 
   constructor(socket: WebSocket, eventManager: EventManager) {
-    this.socket = socket;
+    this.socket = socket
 
     // main dependencies
     this.eventManager = eventManager
@@ -66,6 +66,6 @@ export default class WebSocketManager {
 
   // a method to clean up the websocket
   public cleanUp(): void {
-    this.close();
+    this.close()
   }
 }
