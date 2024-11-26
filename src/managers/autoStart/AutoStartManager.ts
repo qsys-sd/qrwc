@@ -1,22 +1,22 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
-import { IComponentsGetResult, IControlGet, IControlGetResult, IServerMessage } from '../../index.interface'
+import { IControlGet, IControlGetResult, IServerMessage } from '../../index.interface'
 import { ControlManager, EventManager } from '..'
 import { ChangeGroupService } from '../../services'
-import { ControlDecorator } from '../control/ControlDecorator'
+import { ControlDecorator } from '../components/ControlDecorator'
 
 export default class AutoStartManager {
-  private getComponentsId: string = ''
-  private componentList: string[] = []
   private getControlIds: string[] = []
   private autoStartChangeGroupId: string = 'AutoStartChangeGroup'
   private changeGroupService: ChangeGroupService | null = null
+  private didAutoStart: boolean = false
 
   constructor(
     private websocketSend: (message: JSONRPCMessage) => void,
     private controlManager: ControlManager,
-    private eventManager: EventManager
+    private eventManager: EventManager,
+    private getComponentNames: () => string[]
   ) {
     // main dependencies
     this.controlManager = controlManager
@@ -27,8 +27,11 @@ export default class AutoStartManager {
       this.parseMessage(message)
     })
 
-    this.eventManager.on(qrwcEvents.componentsRecieved, () => {
-      this.getControls()
+    this.eventManager.on(qrwcEvents.componentsReceived, () => {
+      if (this.didAutoStart) {
+        const componentNames = this.getComponentNames()
+        this.getControls(componentNames)
+      }
     })
 
     this.eventManager.on(qrwcEvents.controlsReceived, () => {
@@ -50,11 +53,6 @@ export default class AutoStartManager {
 
   // a method for parsing messages
   private parseMessage(message: IServerMessage): void {
-    // check for getComponents response
-    if (message?.id === this.getComponentsId) {
-      this.handleComponentGetResponse(message.result as IComponentsGetResult[])
-    }
-
     // check for getControls response
     if (this.getControlIds.includes(message?.id)) {
       this.handleControlGetResponse(message.result as IControlGetResult, message.id)
@@ -63,46 +61,13 @@ export default class AutoStartManager {
 
   // a method for starting auto start process
   public start(): void {
-    this.getComponents()
-  }
-
-  // a method for getting components
-  private getComponents(): void {
-    // create id for getComponents request
-    this.getComponentsId = uuidv4()
-
-    // send getComponents request for all components
-    this.websocketSend(
-      createJSONRPCMessage(
-        qrcMethods.components.getComponents,
-        'test',
-        this.getComponentsId
-      )
-    )
-  }
-
-  // a method for handling getComponents response
-  private handleComponentGetResponse(result: IComponentsGetResult[]) {
-    // iterate through components in response
-    result.forEach((component: IComponentsGetResult) => {
-      // check if component is not already in componentList
-      if (!this.componentList.includes(component.Name)) {
-        // add component to componentList
-        this.componentList = [...this.componentList, component.Name]
-      }
-    })
-
-    // emit event when all components have been added to componentList
-    this.eventManager.emit(qrwcEvents.componentsRecieved)
-
-    // reset getComponentsId
-    this.getComponentsId = ''
+    this.didAutoStart = true
   }
 
   // a method for getting controls
-  private getControls(): void {
+  private getControls(componentNames: string[]): void {
     // iterate through components list
-    this.componentList.forEach((component: string) => {
+    componentNames.forEach((component: string) => {
       const id = uuidv4()
       // send getControls request for each component with id
       this.websocketSend(
@@ -196,17 +161,11 @@ export default class AutoStartManager {
 
   // a method for cleaning up the auto start manager
   public cleanUp() {
-  // clear componentList
-    this.componentList = []
-
     // clear getControlIds
     this.getControlIds = []
 
     // clear autoStartChangeGroupId
     this.autoStartChangeGroupId = ''
-
-    // clear getComponentsId
-    this.getComponentsId = ''
 
     // stop ongoing polling and cleanup changeGroupService
     if (this.changeGroupService) {

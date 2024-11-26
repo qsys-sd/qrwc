@@ -1,4 +1,4 @@
-import { ControlDecorator } from './managers/control/ControlDecorator'
+import { ControlDecorator } from './managers/components/ControlDecorator'
 
 export interface IControl {
   Name: string
@@ -147,4 +147,18 @@ export interface IRequestControls {
 
 export interface IRequestPoll {
   Id: string;
+}
+
+export type QrwcEvents = {
+  message: 'message',
+  error: 'error',
+  disconnected: 'disconnected',
+  connected: 'connected',
+  webSocketAttached: 'webSocketAttached',
+  autoStartComplete: 'autoStartComplete',
+  controlsUpdated: 'controlsUpdated',
+  controlsReceived: 'controlsReceived',
+  componentsReceived: 'componentsReceived',
+  changeRequestSuccessful: 'changeRequestSuccessful',
+  componentChangeGroupCreated: 'componentChangeGroupCreated'
 }

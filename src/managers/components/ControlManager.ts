@@ -1,13 +1,13 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { IChange, IComponent, IControl } from '../../index.interface'
-import { EventManager, RequestManager, WebSocketManager } from '..'
-import { createJSONRPCMessage, isValidControlChange} from '../../utils'
+import { EventManager, RequestManager } from '..'
+import { createJSONRPCMessage, isValidControlChange, JSONRPCMessage } from '../../utils'
 import { ControlDecorator } from './ControlDecorator'
 
 export default class ControlManager {
   public components: IComponent = {}
-  private webSocketManager: WebSocketManager
+  private webSocketSend: (message: JSONRPCMessage) => void
 
   constructor(
     private eventManager: EventManager,
@@ -53,19 +53,19 @@ export default class ControlManager {
     })
   }
 
-  // a setter for websocketManager
-  public setWebSocketManager(webSocketManager: WebSocketManager): void {
+  // a setter for websocket send method
+  public setWebSocketSend(send: (message: JSONRPCMessage) => void): void {
     // check if websocketManager is defined
-    if (this.webSocketManager) {
+    if (this.webSocketSend) {
       // emit error
       this.eventManager.emit(
         qrwcEvents.error,
-        'Websocket manager already attached'
+        'Websocket send already attached'
       )
       return
     }
 
-    this.webSocketManager = webSocketManager
+    this.webSocketSend = send
   }
 
   // a method for adding a new control to components
@@ -127,8 +127,8 @@ export default class ControlManager {
       this.controlChangeCallback
     )
 
-    // check if webSocketManager is defined
-    if (!this.webSocketManager) {
+    // check if webSocketSend is defined
+    if (!this.webSocketSend) {
       // if webSocketManager is not defined, emit error
       this.eventManager.emit(
         qrwcEvents.error,
@@ -138,7 +138,7 @@ export default class ControlManager {
     }
 
     // send setControlValue request
-    this.webSocketManager.send(
+    this.webSocketSend(
       createJSONRPCMessage(qrcMethods.components.set, componentChange, requestId)
     )
   }

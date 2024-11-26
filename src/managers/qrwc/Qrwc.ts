@@ -3,7 +3,8 @@ import {
   WebSocketManager,
   ControlManager,
   EventManager,
-  RequestManager
+  RequestManager,
+  ComponentManager
 } from '..'
 import { ChangeGroupService, PollingService } from '../../services'
 import { IComponent } from '../../index.interface'
@@ -14,6 +15,7 @@ export class Qrwc {
   autoStartManager: AutoStartManager | null = null
   controlManager: ControlManager
   eventManager: EventManager
+  componentManager: ComponentManager
   changeGroupServices: {
     [key: string]: ChangeGroupService
   } = {}
@@ -37,13 +39,17 @@ export class Qrwc {
       this.eventManager,
       this.requestManager
     )
+    // create component manager
+    this.componentManager = new ComponentManager(
+      this.eventManager.on.bind(this.eventManager),
+      this.eventManager.emit.bind(this.eventManager)
+    )
 
     this.eventManager.on(qrwcEvents.disconnected, () => {
       // initate clean up
       this.qrwcCleanUp()
     })
   }
-
 
   // a getter method for components
   get components(): IComponent {
@@ -66,40 +72,51 @@ export class Qrwc {
     this.webSocketManager = new WebSocketManager(socket, this.eventManager)
 
     // set webSocketManager dependencies
-    this.setWsDependencies()
+    this.setWsSendDependencies()
 
     // emit event for websocket attached
     this.eventManager.emit(qrwcEvents.webSocketAttached)
   }
 
-  private setWsDependencies(): void {
-    // set webSocketManager for controlManager
-    this.controlManager.setWebSocketManager(this.webSocketManager)
+  private setWsSendDependencies(): void {
+    // set webSocketSend for controlManager
+    this.controlManager.setWebSocketSend(this.webSocketManager.send.bind(this.webSocketManager))
+
+    // set webSocketSend for componentManager
+    this.componentManager.setWebSocketSend(this.webSocketManager.send.bind(this.webSocketManager))
   }
 
   // a method to initate the auto start process
   public autoStart(): void {
-    // check if webSocketManager is defined
+    // check if webSocketManager is initialized
     if (!this.webSocketManager) {
-      throw new Error('WebSocketManager is not defined')
+      // emit event for webSocketManager not initialized
+      this.eventManager.emit(
+        qrwcEvents.error,
+        'web socket not initialized'
+      )
+      return
     }
 
-    // check if autoStartManager is defined
+    // check if autoStartManager is initialized
     if (this.autoStartManager) {
       // emit event for auto start already started
       this.eventManager.emit(
         qrwcEvents.error,
         'auto start already initialized'
       )
-    } else {
-      // create auto start manager
-      this.autoStartManager = new AutoStartManager(
-        this.webSocketManager.send,
-        this.controlManager,
-        this.eventManager
-      )
-      this.autoStartManager.start()
+      return
     }
+
+    // create auto start manager
+    this.autoStartManager = new AutoStartManager(
+      this.webSocketManager.send,
+      this.controlManager,
+      this.eventManager,
+      this.componentManager.getComponentNames.bind(this.componentManager)
+    )
+
+    this.autoStartManager.start()
   }
 
   // a method to create a change group

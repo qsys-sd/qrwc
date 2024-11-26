@@ -1,3 +1,5 @@
+import { QrwcEvents } from '../index.interface'
+
 export const qrcMethods = {
   components: {
     getComponents: 'Component.GetComponents',
@@ -11,7 +13,7 @@ export const qrcMethods = {
   }
 }
 
-export const qrwcEvents = {
+export const qrwcEvents: QrwcEvents = {
   message: 'message',
   error: 'error',
   disconnected: 'disconnected',
@@ -20,7 +22,7 @@ export const qrwcEvents = {
   autoStartComplete: 'autoStartComplete',
   controlsUpdated: 'controlsUpdated',
   controlsReceived: 'controlsReceived',
-  componentsRecieved: 'componentsReceived',
+  componentsReceived: 'componentsReceived',
   changeRequestSuccessful: 'changeRequestSuccessful',
   componentChangeGroupCreated: 'componentChangeGroupCreated'
 }
