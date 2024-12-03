@@ -2,7 +2,7 @@ import AutoStartManager from './autoStart/AutoStartManager'
 import WebSocketManager from './webSocket/WebSocketManager'
 import ControlManager from './components/ControlManager'
 import EventManager from './event/EventManager'
-import RequestManager from './qsys/RequestManager'
+import ChangeRequestManager from './qsys/ChangeRequestManager'
 import ComponentManager from './components/ComponentManager'
 import ChangeGroupManager from './qsys/ChangeGroupManager'
 import PollingManager from './polling/PollingManager'
@@ -12,7 +12,7 @@ export {
   WebSocketManager,
   ControlManager,
   EventManager,
-  RequestManager,
+  ChangeRequestManager,
   ChangeGroupManager,
   PollingManager,
   ComponentManager

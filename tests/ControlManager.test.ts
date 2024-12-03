@@ -1,22 +1,22 @@
-import { ControlManager, EventManager, RequestManager } from '../src/managers'
+import { ControlManager, EventManager, ChangeRequestManager } from '../src/managers'
 import { ControlDecorator } from '../src/managers/components/ControlDecorator'
 import { IControl } from '../src/index.interface'
 
 jest.mock('../src/managers/event/EventManager')
-jest.mock('../src/managers/qsys/RequestManager')
+jest.mock('../src/managers/qsys/ChangeRequestManager')
 jest.mock('../src/managers/webSocket/WebSocketManager')
 
 describe('ControlManager', () => {
   let controlManager: ControlManager
   let mockEventManager: EventManager
-  let mockRequestManager: RequestManager
+  let mockChangeRequestManager: ChangeRequestManager
 
   beforeEach(() => {
     mockEventManager = new EventManager()
 
-    mockRequestManager = new RequestManager(mockEventManager)
+    mockChangeRequestManager = new ChangeRequestManager(mockEventManager)
 
-    controlManager = new ControlManager(mockEventManager, mockRequestManager)
+    controlManager = new ControlManager(mockEventManager, mockChangeRequestManager)
   })
 
   it('should add a new control', () => {

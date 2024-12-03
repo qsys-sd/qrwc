@@ -1,11 +1,11 @@
-import { AutoStartManager, WebSocketManager, ControlManager, EventManager, RequestManager } from '../src/managers'
+import { AutoStartManager, WebSocketManager, ControlManager, EventManager, ChangeRequestManager } from '../src/managers'
 import { WebSocket, Server as MockServer } from 'mock-socket'
 
 describe('AutoStartManager', () => {
   let autoStartManager: AutoStartManager
   let webSocketManager: WebSocketManager
   let controlManager: ControlManager
-  let requestManager: RequestManager
+  let changeRequestManager: ChangeRequestManager
   let mockServer: MockServer
   let mockWebSocket: WebSocket
   const eventManager = new EventManager()
@@ -20,8 +20,8 @@ describe('AutoStartManager', () => {
     }
 
     webSocketManager = new WebSocketManager(mockWebSocket, eventManager)
-    requestManager = new RequestManager(eventManager)
-    controlManager = new ControlManager(eventManager, requestManager)
+    changeRequestManager = new ChangeRequestManager(eventManager)
+    controlManager = new ControlManager(eventManager, changeRequestManager)
     autoStartManager = new AutoStartManager(
       webSocketManager.send.bind(webSocketManager),
       controlManager,

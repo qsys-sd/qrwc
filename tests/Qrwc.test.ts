@@ -1,5 +1,5 @@
 import { Qrwc } from '../src/managers/qrwc/Qrwc'
-import { EventManager, ControlManager, RequestManager } from '../src/managers'
+import { EventManager, ControlManager, ChangeRequestManager } from '../src/managers'
 import { Server, WebSocket} from 'mock-socket'
 
 describe('Qrwc', () => {
@@ -11,7 +11,7 @@ describe('Qrwc', () => {
 
   it('should properly instantiate its dependencies', () => {
     expect(qrwc.eventManager).toBeInstanceOf(EventManager)
-    expect(qrwc.requestManager).toBeInstanceOf(RequestManager)
+    expect(qrwc.changeRequestManager).toBeInstanceOf(ChangeRequestManager)
     expect(qrwc.controlManager).toBeInstanceOf(ControlManager)
   })
 

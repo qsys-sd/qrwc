@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { IChange, IComponent, IControl } from '../../index.interface'
-import { EventManager, RequestManager } from '..'
+import { EventManager, ChangeRequestManager } from '..'
 import { createJSONRPCMessage, isValidControlChange, JSONRPCMessage } from '../../utils'
 import { ControlDecorator } from './ControlDecorator'
 
@@ -11,7 +11,7 @@ export default class ControlManager {
 
   constructor(
     private eventManager: EventManager,
-    private requestManager: RequestManager
+    private changeRequestManager: ChangeRequestManager
   ) { }
 
   // a method for handling changes
@@ -121,7 +121,7 @@ export default class ControlManager {
     }
 
     // create change request
-    this.requestManager.createChangeRequest(
+    this.changeRequestManager.createChangeRequest(
       controlToUpdate.Component,
       requestId,
       this.controlChangeCallback
@@ -143,7 +143,7 @@ export default class ControlManager {
     )
   }
 
-  // callBack for requestManager
+  // callBack for changeRequestManager
   private controlChangeCallback = (changes: IChange[]) => {
     // handle control changes
     this.handleControlChanges(changes)

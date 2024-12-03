@@ -2,7 +2,7 @@ import { qrwcEvents } from '../../constants'
 import { IChange, IChangeRequest, IServerMessage, IMessageChangeResult, IOnChangeRequest } from '../../index.interface'
 import { EventManager } from '..'
 
-export default class RequestManager {
+export default class ChangeRequestManager {
   private changeRequestIds: IChangeRequest[] = []
 
   constructor(
@@ -104,7 +104,7 @@ export default class RequestManager {
     return Array.isArray(array) && array.length > 0
   }
 
-  // a method for initiating clean up for ChangeRequestManager
+  // a method for initiating clean up for ChangeChangeRequestManager
   public cleanUp(): void {
     // set eventManager to null
     this.eventManager = null

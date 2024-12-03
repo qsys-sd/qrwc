@@ -3,7 +3,7 @@ import {
   WebSocketManager,
   ControlManager,
   EventManager,
-  RequestManager,
+  ChangeRequestManager,
   PollingManager,
   ChangeGroupManager,
   ComponentManager
@@ -20,7 +20,7 @@ export class Qrwc {
   changeGroupManagers: {
     [key: string]: ChangeGroupManager
   } = {}
-  requestManager: RequestManager
+  changeRequestManager: ChangeRequestManager
 
   constructor() {
     this.initialize()
@@ -31,14 +31,14 @@ export class Qrwc {
     // create EventManager instance
     this.eventManager = new EventManager()
     await this.eventManager.initializeEmitter()
-    // create RequestManager instance
-    this.requestManager = new RequestManager(
+    // create ChangeRequestManager instance
+    this.changeRequestManager = new ChangeRequestManager(
       this.eventManager
     )
     // create ControlManager instance
     this.controlManager = new ControlManager(
       this.eventManager,
-      this.requestManager
+      this.changeRequestManager
     )
     // create component manager
     this.componentManager = new ComponentManager(
@@ -237,13 +237,13 @@ export class Qrwc {
     // set controlManager to null
     this.controlManager = null
 
-    // check if requestManager is defined
-    if (this.requestManager) {
-      // initiate cleanUp for requestManager
-      this.requestManager.cleanUp()
+    // check if changeRequestManager is defined
+    if (this.changeRequestManager) {
+      // initiate cleanUp for changeRequestManager
+      this.changeRequestManager.cleanUp()
 
-      // set requestManager to null
-      this.requestManager = null
+      // set changeRequestManager to null
+      this.changeRequestManager = null
     }
 
     // check if changeGroupManagers is defined
