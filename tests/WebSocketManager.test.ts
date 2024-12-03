@@ -1,6 +1,5 @@
-import { WebSocketManager } from '../src/managers'
+import { WebSocketManager, EventManager } from '../src/managers'
 import { WebSocket, Server } from 'mock-socket'
-import { EventManager } from '../src/managers'
 import { qrwcEvents } from '../src/constants'
 
 describe('WebSocketManager', () => {

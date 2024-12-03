@@ -1,4 +1,4 @@
-import { IEventEmitter } from './IEventEmitter'
+import { IEventEmitter } from '../../index.interface'
 import FrontendEventEmitter from './FrontendEvents'
 
 const isInBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'

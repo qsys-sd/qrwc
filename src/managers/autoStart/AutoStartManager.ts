@@ -2,14 +2,13 @@ import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
 import { IControlGet, IControlGetResult, IServerMessage } from '../../index.interface'
-import { ControlManager, EventManager } from '..'
-import { ChangeGroupService } from '../../services'
+import { ControlManager, EventManager, ChangeGroupManager } from '..'
 import { ControlDecorator } from '../components/ControlDecorator'
 
 export default class AutoStartManager {
   private getControlIds: string[] = []
   private autoStartChangeGroupId: string = 'AutoStartChangeGroup'
-  private changeGroupService: ChangeGroupService | null = null
+  private changeGroupManager: ChangeGroupManager | null = null
   private didAutoStart: boolean = false
 
   constructor(
@@ -43,9 +42,9 @@ export default class AutoStartManager {
       qrwcEvents.componentChangeGroupCreated,
       (changeGroupId: string) => {
         // check if change group id matches autoStartChangeGroupId
-        if (changeGroupId === this.autoStartChangeGroupId && this.changeGroupService) {
+        if (changeGroupId === this.autoStartChangeGroupId && this.changeGroupManager) {
           // create auto start change group polling service
-          this.createAutoStartChangePollingService()
+          this.createAutoStartChangePollingManager()
         }
       }
     )
@@ -128,7 +127,7 @@ export default class AutoStartManager {
   // a method for creating change groups
   private createAutoStartChangeGroup(): void {
     // create change group service
-    this.changeGroupService = new ChangeGroupService(
+    this.changeGroupManager = new ChangeGroupManager(
       this.autoStartChangeGroupId,
       this.websocketSend,
       this.controlManager.handleControlChanges.bind(this.controlManager),
@@ -136,23 +135,23 @@ export default class AutoStartManager {
     )
 
     // groom components for change group
-    const groomedComponents = this.changeGroupService.groomComponents(this.controlManager.components)
+    const groomedComponents = this.changeGroupManager.groomComponents(this.controlManager.components)
 
     // create change group
-    this.changeGroupService.createChangeGroup(groomedComponents)
+    this.changeGroupManager.createChangeGroup(groomedComponents)
   }
 
   // a method for creating auto start change group polling service
-  private createAutoStartChangePollingService(): void {
+  private createAutoStartChangePollingManager(): void {
     // init polling service
-    this.changeGroupService.initPollingService()
+    this.changeGroupManager.initPollingManager()
 
-    const { polling } = this.changeGroupService
+    const { polling } = this.changeGroupManager
 
     // check if polling service is initialized
     if (polling) {
       // start polling service
-      this.changeGroupService.polling.start()
+      this.changeGroupManager.polling.start()
     }
 
     // emit event for auto start complete
@@ -167,11 +166,11 @@ export default class AutoStartManager {
     // clear autoStartChangeGroupId
     this.autoStartChangeGroupId = ''
 
-    // stop ongoing polling and cleanup changeGroupService
-    if (this.changeGroupService) {
-      this.changeGroupService.cleanUp()
+    // stop ongoing polling and cleanup changeGroupManager
+    if (this.changeGroupManager) {
+      this.changeGroupManager.cleanUp()
 
-      this.changeGroupService = null
+      this.changeGroupManager = null
     }
 
     // set controlManager to null

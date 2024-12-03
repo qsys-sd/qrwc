@@ -4,9 +4,10 @@ import {
   ControlManager,
   EventManager,
   RequestManager,
+  PollingManager,
+  ChangeGroupManager,
   ComponentManager
 } from '..'
-import { ChangeGroupService, PollingService } from '../../services'
 import { IComponent } from '../../index.interface'
 import { qrwcEvents } from '../../constants'
 
@@ -16,8 +17,8 @@ export class Qrwc {
   controlManager: ControlManager
   eventManager: EventManager
   componentManager: ComponentManager
-  changeGroupServices: {
-    [key: string]: ChangeGroupService
+  changeGroupManagers: {
+    [key: string]: ChangeGroupManager
   } = {}
   requestManager: RequestManager
 
@@ -125,7 +126,7 @@ export class Qrwc {
     componentNames: string[]
   ): void {
     // check if changeGroupManager is defined
-    if (this.changeGroupServices[changeGroupName]) {
+    if (this.changeGroupManagers[changeGroupName]) {
       // emit error
       this.eventManager.emit(
         qrwcEvents.error,
@@ -135,7 +136,7 @@ export class Qrwc {
     }
 
     // create change group service
-    this.changeGroupServices[changeGroupName] = new ChangeGroupService(
+    this.changeGroupManagers[changeGroupName] = new ChangeGroupManager(
       changeGroupName,
       this.webSocketManager.send.bind(this.webSocketManager),
       this.controlManager.handleControlChanges.bind(this.controlManager),
@@ -157,20 +158,20 @@ export class Qrwc {
     )
 
     // groom components for change group
-    const groomedComponents = this.changeGroupServices[
+    const groomedComponents = this.changeGroupManagers[
       changeGroupName
     ].groomComponents(filteredComponents)
 
     // create change group
-    this.changeGroupServices[changeGroupName].createChangeGroup(
+    this.changeGroupManagers[changeGroupName].createChangeGroup(
       groomedComponents
     )
   }
 
   // a method to return the polling service for a change group
-  public getPollingService(changeGroupName: string): PollingService {
+  public getPollingManager(changeGroupName: string): PollingManager {
     // check if changeGroupManager is defined
-    if (!this.changeGroupServices[changeGroupName]) {
+    if (!this.changeGroupManagers[changeGroupName]) {
       // emit error
       this.eventManager.emit(
         qrwcEvents.error,
@@ -179,16 +180,16 @@ export class Qrwc {
     }
 
     // check if polling service is already initialized
-    if (this.changeGroupServices[changeGroupName].polling) {
+    if (this.changeGroupManagers[changeGroupName].polling) {
       // return polling service
-      return this.changeGroupServices[changeGroupName].polling
+      return this.changeGroupManagers[changeGroupName].polling
     }
 
     // initiate polling service
-    this.changeGroupServices[changeGroupName].initPollingService()
+    this.changeGroupManagers[changeGroupName].initPollingManager()
 
     // return polling service
-    return this.changeGroupServices[changeGroupName].polling
+    return this.changeGroupManagers[changeGroupName].polling
   }
 
   public getReadyState(): number {
@@ -245,15 +246,15 @@ export class Qrwc {
       this.requestManager = null
     }
 
-    // check if changeGroupServices is defined
-    if (this.changeGroupServices) {
-      // initiate cleanUp for each ChangeGroupService
-      for (const key in this.changeGroupServices) {
-        this.changeGroupServices[key].cleanUp()
+    // check if changeGroupManagers is defined
+    if (this.changeGroupManagers) {
+      // initiate cleanUp for each ChangeGroupManager
+      for (const key in this.changeGroupManagers) {
+        this.changeGroupManagers[key].cleanUp()
       }
 
-      // set changeGroupServices to null
-      this.changeGroupServices = null
+      // set changeGroupManagers to null
+      this.changeGroupManagers = null
     }
   }
 }

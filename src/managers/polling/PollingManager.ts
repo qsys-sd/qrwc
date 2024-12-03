@@ -1,8 +1,8 @@
-import { qrcMethods, qrwcPollReset } from '../constants'
-import { createJSONRPCMessage } from '../utils'
+import { qrcMethods, qrwcPollReset } from '../../constants'
+import { createJSONRPCMessage } from '../../utils'
 
 
-export default class PollingService {
+export default class PollingManager {
   private minInterval: number = 350
   private pollInterval: number = 350
   private intervalId: NodeJS.Timer | null = null

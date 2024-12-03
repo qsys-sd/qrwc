@@ -1,5 +1,4 @@
-import { AutoStartManager, WebSocketManager, ControlManager, EventManager } from '../src/managers'
-import { RequestManager } from '../src/managers'
+import { AutoStartManager, WebSocketManager, ControlManager, EventManager, RequestManager } from '../src/managers'
 import { WebSocket, Server as MockServer } from 'mock-socket'
 
 describe('AutoStartManager', () => {
@@ -56,7 +55,7 @@ describe('AutoStartManager', () => {
     const spy = jest.spyOn(autoStartManager, 'cleanUp')
     autoStartManager.cleanUp()
     expect(spy).toHaveBeenCalled()
-    expect(autoStartManager['changeGroupService']).toBeNull()
+    expect(autoStartManager['changeGroupManager']).toBeNull()
     expect(autoStartManager['controlManager']).toBeNull()
     expect(autoStartManager['eventManager']).toBeNull()
   })

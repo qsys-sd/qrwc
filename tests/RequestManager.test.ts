@@ -1,5 +1,4 @@
-import RequestManager from '../src/managers/qsys/RequestManager'
-import EventManager from '../src/managers/event/EventManager'
+import { RequestManager, EventManager } from '../src/managers'
 
 describe('RequestManager', () => {
   let requestManager: RequestManager

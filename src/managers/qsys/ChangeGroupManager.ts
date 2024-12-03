@@ -1,14 +1,13 @@
 import { v4 as uuidv4 } from 'uuid'
-import { qrcMethods, qrwcEvents } from '../constants'
-import { EventManager } from '../managers'
-import { createJSONRPCMessage } from '../utils'
-import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent } from '../index.interface'
-import { PollingService } from '../services'
+import { qrcMethods, qrwcEvents } from '../../constants'
+import { EventManager, PollingManager } from '..'
+import { createJSONRPCMessage } from '../../utils'
+import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent } from '../../index.interface'
 
-export default class ChangeGroup {
+export default class ChangeGroupManager {
   private changeGroupUpdateRequests: string[] = []
   private changeGroupId: string = uuidv4()
-  private pollingService: PollingService | null = null
+  private pollingManager: PollingManager | null = null
   private changeGroupComponents: IComponentChangeGroup[] = []
   changeGroupName: string = ''
 
@@ -47,14 +46,14 @@ export default class ChangeGroup {
   }
 
   // getter for polling service
-  get polling(): PollingService | null {
-    return this.pollingService
+  get polling(): PollingManager | null {
+    return this.pollingManager
   }
 
   // initialize the polling service
-  public initPollingService(): void {
+  public initPollingManager(): void {
     // check if polling service is already initialized
-    if (this.pollingService) {
+    if (this.pollingManager) {
       // emit error
       this.eventManager.emit(
         qrwcEvents.error,
@@ -64,7 +63,7 @@ export default class ChangeGroup {
     }
 
     // create polling service
-    this.pollingService = new PollingService(this.changeGroupId, this.send)
+    this.pollingManager = new PollingManager(this.changeGroupId, this.send)
   }
 
   // a method for parsing messages
@@ -177,10 +176,10 @@ export default class ChangeGroup {
     // set changeGroupComponents to empty array
     this.changeGroupComponents = []
 
-    // nullify the pollingService
-    if (this.pollingService) {
-      this.pollingService.cleanUp()
-      this.pollingService = null
+    // nullify the pollingManager
+    if (this.pollingManager) {
+      this.pollingManager.cleanUp()
+      this.pollingManager = null
     }
 
     // remove event manager
