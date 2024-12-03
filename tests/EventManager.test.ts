@@ -1,4 +1,4 @@
-import EventManager from '../src/managers/event/EventManager'
+import { EventManager } from '../src/managers'
 
 describe('EventManager', () => {
   let eventManager: EventManager

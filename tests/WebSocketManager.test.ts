@@ -1,4 +1,4 @@
-import WebSocketManager from '../src/managers/webSocket/WebSocketManager'
+import { WebSocketManager } from '../src/managers'
 import { WebSocket, Server } from 'mock-socket'
 import { EventManager } from '../src/managers'
 import { qrwcEvents } from '../src/constants'

@@ -1,4 +1,4 @@
-import { ControlDecorator } from '../src/managers/control/ControlDecorator'
+import { ControlDecorator } from '../src/managers/components/ControlDecorator'
 import { IControl } from '../src/index.interface'
 
 describe('ControlDecorator setters', () => {

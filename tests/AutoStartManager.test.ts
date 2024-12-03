@@ -1,7 +1,4 @@
-import AutoStartManager from '../src/managers/autoStart/AutoStartManager'
-import WebSocketManager from '../src/managers/webSocket/WebSocketManager'
-import ControlManager from '../src/managers/control/ControlManager'
-import EventManager from '../src/managers/event/EventManager'
+import { AutoStartManager, WebSocketManager, ControlManager, EventManager } from '../src/managers'
 import { RequestManager } from '../src/managers'
 import { WebSocket, Server as MockServer } from 'mock-socket'
 
@@ -26,7 +23,12 @@ describe('AutoStartManager', () => {
     webSocketManager = new WebSocketManager(mockWebSocket, eventManager)
     requestManager = new RequestManager(eventManager)
     controlManager = new ControlManager(eventManager, requestManager)
-    autoStartManager = new AutoStartManager(webSocketManager.send.bind(webSocketManager), controlManager, eventManager)
+    autoStartManager = new AutoStartManager(
+      webSocketManager.send.bind(webSocketManager),
+      controlManager,
+      eventManager,
+      controlManager.getComponentNames.bind(controlManager)
+    )
   })
 
   afterEach(() => {

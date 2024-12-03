@@ -15,6 +15,7 @@ export default class RequestManager {
 
   // a method for parsing messages
   private parseMessage(message: IServerMessage): void {
+    console.log('message', message)
     // if no meesage id return
     if (!message?.id) return
 
