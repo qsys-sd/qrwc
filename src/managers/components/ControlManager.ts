@@ -7,12 +7,12 @@ import { ControlDecorator } from './ControlDecorator'
 
 export default class ControlManager {
   public components: IComponent = {}
-  private webSocketSend: (message: JSONRPCMessage) => void
 
   constructor(
+    private webSocketSend: (message: JSONRPCMessage) => void,
     private eventManager: EventManager,
     private changeRequestManager: ChangeRequestManager
-  ) { }
+  ) {}
 
   // a method for handling changes
   public handleControlChanges(changes: IChange[]): void {

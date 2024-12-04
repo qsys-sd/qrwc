@@ -67,6 +67,13 @@ export interface IMessageChangeResult extends IDesignMessage {
 
 export type IServerMessage = IMessageAddComponent | IMessagePollResult | IMessageControlGetResult | IMessageComponentsGetResult | IMessageChangeResult
 
+export interface IStartOptions {
+  componentFilter?: IComponentFilter
+}
+
+export interface IComponentFilter {
+  (component: IComponentsGetResult): boolean
+}
 
 interface IParams {
   Platform: string
@@ -162,7 +169,7 @@ export type QrwcEvents = {
   disconnected: 'disconnected',
   connected: 'connected',
   webSocketAttached: 'webSocketAttached',
-  autoStartComplete: 'autoStartComplete',
+  startComplete: 'startComplete',
   controlsUpdated: 'controlsUpdated',
   controlsReceived: 'controlsReceived',
   componentsReceived: 'componentsReceived',

@@ -1,19 +1,19 @@
 import {
-  AutoStartManager,
   WebSocketManager,
   ControlManager,
   EventManager,
   ChangeRequestManager,
   PollingManager,
   ChangeGroupManager,
-  ComponentManager
+  ComponentManager,
+  StartManager
 } from '..'
-import { IComponent } from '../../index.interface'
+import { IComponent, IStartOptions } from '../../index.interface'
 import { qrwcEvents } from '../../constants'
 
 export class Qrwc {
   webSocketManager: WebSocketManager | null = null
-  autoStartManager: AutoStartManager | null = null
+  startManager: StartManager | null = null
   controlManager: ControlManager
   eventManager: EventManager
   componentManager: ComponentManager
@@ -34,16 +34,6 @@ export class Qrwc {
     // create ChangeRequestManager instance
     this.changeRequestManager = new ChangeRequestManager(
       this.eventManager
-    )
-    // create ControlManager instance
-    this.controlManager = new ControlManager(
-      this.eventManager,
-      this.changeRequestManager
-    )
-    // create component manager
-    this.componentManager = new ComponentManager(
-      this.eventManager.on.bind(this.eventManager),
-      this.eventManager.emit.bind(this.eventManager)
     )
 
     this.eventManager.on(qrwcEvents.disconnected, () => {
@@ -72,23 +62,12 @@ export class Qrwc {
     // create webSocketManager
     this.webSocketManager = new WebSocketManager(socket, this.eventManager)
 
-    // set webSocketManager dependencies
-    this.setWsSendDependencies()
-
     // emit event for websocket attached
     this.eventManager.emit(qrwcEvents.webSocketAttached)
   }
 
-  private setWsSendDependencies(): void {
-    // set webSocketSend for controlManager
-    this.controlManager.setWebSocketSend(this.webSocketManager.send.bind(this.webSocketManager))
-
-    // set webSocketSend for componentManager
-    this.componentManager.setWebSocketSend(this.webSocketManager.send.bind(this.webSocketManager))
-  }
-
-  // a method to initate the auto start process
-  public autoStart(): void {
+  // a method to initate the QRWC start process
+  public start({ componentFilter }: IStartOptions = {}): void {
     // check if webSocketManager is initialized
     if (!this.webSocketManager) {
       // emit event for webSocketManager not initialized
@@ -99,25 +78,40 @@ export class Qrwc {
       return
     }
 
-    // check if autoStartManager is initialized
-    if (this.autoStartManager) {
-      // emit event for auto start already started
+    // check if startManager is initialized
+    if (this.startManager) {
+      // emit event for start already initialized
       this.eventManager.emit(
         qrwcEvents.error,
-        'auto start already initialized'
+        'start already initialized'
       )
       return
     }
 
-    // create auto start manager
-    this.autoStartManager = new AutoStartManager(
-      this.webSocketManager.send,
-      this.controlManager,
+    // create ControlManager instance
+    this.controlManager = new ControlManager(
+      this.webSocketManager.send.bind(this.webSocketManager),
       this.eventManager,
-      this.componentManager.getComponentNames.bind(this.componentManager)
+      this.changeRequestManager
     )
 
-    this.autoStartManager.start()
+    // create ComponentManager instance
+    this.componentManager = new ComponentManager(
+      this.eventManager.on.bind(this.eventManager),
+      this.eventManager.emit.bind(this.eventManager),
+      this.webSocketManager.send.bind(this.webSocketManager),
+      componentFilter
+    )
+
+    // create start manager
+    this.startManager = new StartManager(
+      this.webSocketManager.send,
+      this.componentManager,
+      this.controlManager,
+      this.eventManager
+    )
+
+    this.startManager.start()
   }
 
   // a method to create a change group
@@ -222,20 +216,30 @@ export class Qrwc {
       this.webSocketManager = null
     }
 
-    // check if autoStartManager is defined
-    if (this.autoStartManager) {
-      // initiate cleanUp for autoStartManager
-      this.autoStartManager.cleanUp()
+    // check if startManager is defined
+    if (this.startManager) {
+      // initiate cleanUp for startManager
+      this.startManager.cleanUp()
 
-      // set autoStartManager to null
-      this.autoStartManager = null
+      // set startManager to null
+      this.startManager = null
     }
 
-    // initiate cleanUp for controlManager
-    this.controlManager.cleanUp()
+    // check if componentManager is defined
+    if (this.componentManager) {
 
-    // set controlManager to null
-    this.controlManager = null
+      // set componentManager to null
+      this.componentManager = null
+    }
+
+    // check if controlManager is defined
+    if (this.controlManager) {
+      // initiate cleanUp for controlManager
+      this.controlManager.cleanUp()
+
+      // set controlManager to null
+      this.controlManager = null
+    }
 
     // check if changeRequestManager is defined
     if (this.changeRequestManager) {

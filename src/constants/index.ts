@@ -19,7 +19,7 @@ export const qrwcEvents: QrwcEvents = {
   disconnected: 'disconnected',
   connected: 'connected',
   webSocketAttached: 'webSocketAttached',
-  autoStartComplete: 'autoStartComplete',
+  startComplete: 'startComplete',
   controlsUpdated: 'controlsUpdated',
   controlsReceived: 'controlsReceived',
   componentsReceived: 'componentsReceived',

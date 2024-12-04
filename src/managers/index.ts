@@ -1,4 +1,4 @@
-import AutoStartManager from './autoStart/AutoStartManager'
+import StartManager from './start/StartManager'
 import WebSocketManager from './webSocket/WebSocketManager'
 import ControlManager from './components/ControlManager'
 import EventManager from './event/EventManager'
@@ -8,7 +8,7 @@ import ChangeGroupManager from './qsys/ChangeGroupManager'
 import PollingManager from './polling/PollingManager'
 
 export {
-  AutoStartManager,
+  StartManager,
   WebSocketManager,
   ControlManager,
   EventManager,

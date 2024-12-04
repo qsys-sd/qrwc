@@ -8,6 +8,7 @@ jest.mock('../src/managers/webSocket/WebSocketManager')
 
 describe('ControlManager', () => {
   let controlManager: ControlManager
+  let webSocketSend: jest.Mock
   let mockEventManager: EventManager
   let mockChangeRequestManager: ChangeRequestManager
 
@@ -16,7 +17,7 @@ describe('ControlManager', () => {
 
     mockChangeRequestManager = new ChangeRequestManager(mockEventManager)
 
-    controlManager = new ControlManager(mockEventManager, mockChangeRequestManager)
+    controlManager = new ControlManager(webSocketSend, mockEventManager, mockChangeRequestManager)
   })
 
   it('should add a new control', () => {

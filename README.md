@@ -5,7 +5,7 @@
 * QDS Version 9.7.0 or higher
 
 ### Implementation and use ###
-#### Getting started with auto start ####
+#### Getting started ####
 ```typescript
 import { Qrwc } from "qrwc" 
 // const { Qrwc } = require('qrwc'); // for BE/node environments
@@ -19,11 +19,11 @@ socket.onopen = () => {
 }
 
 qrwc.on("webSocketAttached", () => {
-  qrwc.autoStart()
+  qrwc.start()
 })
 
-qrwc.on("autoStartComplete", () => {
-  console.log("autoStartComplete", qrwc.components)
+qrwc.on("startComplete", () => {
+  console.log("startComplete", qrwc.components)
 
   // This is when all controls should be available for use by your application
 })
@@ -51,7 +51,7 @@ qrwc.on("disconnected", (event) => {
 ```
 
 #### Getting to controls ####
-* After the event listener for "autoStartComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrwc.components`
+* After the event listener for "startComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrwc.components`
 * `Qrwc.components` is formatted as dictionary using component and control names as the field key name. 
 ```typescript
 {

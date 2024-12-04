@@ -1,21 +1,22 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
-import { IControlGet, IControlGetResult, IServerMessage } from '../../index.interface'
-import { ControlManager, EventManager, ChangeGroupManager } from '..'
+import { IControlGet, IControlGetResult, IServerMessage, IComponentFilter } from '../../index.interface'
+import { ControlManager, EventManager, ChangeGroupManager, ComponentManager } from '..'
 import { ControlDecorator } from '../components/ControlDecorator'
 
-export default class AutoStartManager {
+export default class StartManager {
   private getControlIds: string[] = []
-  private autoStartChangeGroupId: string = 'AutoStartChangeGroup'
+  private startChangeGroupId: string = 'StartChangeGroup'
   private changeGroupManager: ChangeGroupManager | null = null
-  private didAutoStart: boolean = false
+  componentFilter: IComponentFilter | null = null
 
   constructor(
     private websocketSend: (message: JSONRPCMessage) => void,
+    private componentManager: ComponentManager,
     private controlManager: ControlManager,
-    private eventManager: EventManager,
-    private getComponentNames: () => string[]
+    private eventManager: EventManager
+
   ) {
     // main dependencies
     this.controlManager = controlManager
@@ -27,24 +28,22 @@ export default class AutoStartManager {
     })
 
     this.eventManager.on(qrwcEvents.componentsReceived, () => {
-      if (this.didAutoStart) {
-        const componentNames = this.getComponentNames()
-        this.getControls(componentNames)
-      }
+      const componentNames = this.componentManager.getComponentNames()
+      this.getControls(componentNames)
     })
 
     this.eventManager.on(qrwcEvents.controlsReceived, () => {
-      this.createAutoStartChangeGroup()
+      this.createStartChangeGroup()
     })
 
     // listen for change group created event
     this.eventManager.on(
       qrwcEvents.componentChangeGroupCreated,
       (changeGroupId: string) => {
-        // check if change group id matches autoStartChangeGroupId
-        if (changeGroupId === this.autoStartChangeGroupId && this.changeGroupManager) {
-          // create auto start change group polling service
-          this.createAutoStartChangePollingManager()
+        // check if change group id matches startChangeGroupId
+        if (changeGroupId === this.startChangeGroupId && this.changeGroupManager) {
+          // create start change group polling service
+          this.createStartChangePollingManager()
         }
       }
     )
@@ -58,9 +57,9 @@ export default class AutoStartManager {
     }
   }
 
-  // a method for starting auto start process
+  // a method for kicking off the getComponents process
   public start(): void {
-    this.didAutoStart = true
+    this.componentManager.getComponents()
   }
 
   // a method for getting controls
@@ -125,10 +124,10 @@ export default class AutoStartManager {
   }
 
   // a method for creating change groups
-  private createAutoStartChangeGroup(): void {
+  private createStartChangeGroup(): void {
     // create change group service
     this.changeGroupManager = new ChangeGroupManager(
-      this.autoStartChangeGroupId,
+      this.startChangeGroupId,
       this.websocketSend,
       this.controlManager.handleControlChanges.bind(this.controlManager),
       this.eventManager
@@ -141,8 +140,8 @@ export default class AutoStartManager {
     this.changeGroupManager.createChangeGroup(groomedComponents)
   }
 
-  // a method for creating auto start change group polling service
-  private createAutoStartChangePollingManager(): void {
+  // a method for creating start change group polling service
+  private createStartChangePollingManager(): void {
     // init polling service
     this.changeGroupManager.initPollingManager()
 
@@ -154,17 +153,17 @@ export default class AutoStartManager {
       this.changeGroupManager.polling.start()
     }
 
-    // emit event for auto start complete
-    this.eventManager.emit(qrwcEvents.autoStartComplete)
+    // emit event for start complete
+    this.eventManager.emit(qrwcEvents.startComplete)
   }
 
-  // a method for cleaning up the auto start manager
+  // a method for cleaning up the start manager
   public cleanUp() {
     // clear getControlIds
     this.getControlIds = []
 
-    // clear autoStartChangeGroupId
-    this.autoStartChangeGroupId = ''
+    // clear startChangeGroupId
+    this.startChangeGroupId = ''
 
     // stop ongoing polling and cleanup changeGroupManager
     if (this.changeGroupManager) {

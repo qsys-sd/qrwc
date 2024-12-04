@@ -7,19 +7,16 @@ export default class ComponentManager {
   public componentList: IComponentsGetResult[] = []
   public componentNames: string[] = []
   private getComponentsId: string = ''
-  private websocketSend: (message: JSONRPCMessage) => void
 
   constructor(
     private onMessage: (event: string, listener: (message: IServerMessage) => void) => void,
-    private emit: (event: string, ...args: unknown[]) => void
+    private emit: (event: string, ...args: unknown[]) => void,
+    private websocketSend: (message: JSONRPCMessage) => void,
+    private componentFilter?: (component: IComponentsGetResult) => boolean
   ) {
     //event listener for handling websocket messages
     this.onMessage(qrwcEvents.message, (message: IServerMessage) => {
       this.parseMessage(message)
-    })
-
-    this.onMessage(qrwcEvents.webSocketAttached, () => {
-      this.getComponents()
     })
   }
 
@@ -28,13 +25,8 @@ export default class ComponentManager {
     return this.componentNames
   }
 
-  // set websocket send method
-  public setWebSocketSend(send: (message: JSONRPCMessage) => void): void {
-    this.websocketSend = send
-  }
-
-  private setComponentNames(): void {
-    const names = this.componentList.map((component) => component.Name)
+  private setComponentNames(newComponents: IComponentsGetResult[]): void {
+    const names = newComponents.map((component) => component.Name)
     this.componentNames = names
   }
 
@@ -63,10 +55,21 @@ export default class ComponentManager {
 
   // // a method for handling getComponents response
   private handleComponentGetResponse(result: IComponentsGetResult[]): void {
-    this.componentList = result
+    let checkedComponents: IComponentsGetResult[] = result
+
+    // check if componentList is empty
+    if (!result.length) {
+      this.emit(qrwcEvents.error, 'No components found')
+    }
+
+    // check if there is a filter
+    if (this.componentFilter) {
+      // filter components
+      checkedComponents = result.filter(this.componentFilter)
+    }
 
     // set component names
-    this.setComponentNames()
+    this.setComponentNames(checkedComponents)
 
     // emit event when all components have been added to componentList
     this.emit(qrwcEvents.componentsReceived, this.componentList)
