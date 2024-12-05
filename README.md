@@ -36,6 +36,39 @@ qrwc.on("controlsUpdated", (updatedComponent: any) => {
 })
 ```
 
+#### Start options ####
+`qrwc.start()` can optionally take an object. That contains options
+- componentFilter
+  - Allows users to set a filter, enabling a specific change group to be created upon start
+  - IComponentFilter must be a call back that returns a boolean, it will recieve a sinle instance of a component
+
+IStartOptions
+```typescript
+export interface IStartOptions {
+  componentFilter?: IComponentFilter
+}
+
+export interface IComponentFilter {
+  (component: IComponentsGetResult): boolean
+}
+```
+
+##### example ######
+```typescript
+function componentFilter(component){
+  return component.Name === "Gain"
+}
+
+qrwc.on("webSocketAttached", () => {
+  const options = {
+    componentFilter
+  }
+  qrwc.start(options)
+})
+```
+
+Note: If no options object is provided or if no values are present in the object, QRWC will perform all actions per default settings.
+
 #### Attempting reconnects ####
 * Qrwc has an automated clean up that is triggered by the "disconnected" event.'
   * This cleans up all listeners attached to the instance / intervals / classes
