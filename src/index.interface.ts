@@ -74,9 +74,7 @@ export interface IStartOptions {
 
 export type IPollingInterval = number
 
-export interface IComponentFilter {
-  (component: IComponentsGetResult): boolean
-}
+export type IComponentFilter = (component: IComponentsGetResult) => boolean
 
 interface IParams {
   Platform: string

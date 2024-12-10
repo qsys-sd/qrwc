@@ -8,8 +8,8 @@ import {
   ComponentManager,
   StartManager
 } from '..'
-import { IComponent, IStartOptions } from '../../index.interface'
-import { qrwcEvents } from '../../constants'
+import { IComponent, IComponentFilter, IStartOptions } from '../../index.interface'
+import { qrwcEvents, qrwcMinPollInterval, qrwcMockComponentGetResult } from '../../constants'
 
 export class Qrwc {
   webSocketManager: WebSocketManager | null = null
@@ -68,6 +68,16 @@ export class Qrwc {
 
   // a method to initate the QRWC start process
   public start({ componentFilter, pollingInterval }: IStartOptions = {}): void {
+    // check start options
+    const validatedComponentFilter =
+      componentFilter && this.isComponentFilterValid(componentFilter)
+        ? componentFilter
+        : null
+    const validatedPollingInterval =
+      pollingInterval && this.isPollingIntervalValid(pollingInterval)
+        ? pollingInterval
+        : null
+
     // check if webSocketManager is initialized
     if (!this.webSocketManager) {
       // emit event for webSocketManager not initialized
@@ -100,7 +110,7 @@ export class Qrwc {
       this.eventManager.on.bind(this.eventManager),
       this.eventManager.emit.bind(this.eventManager),
       this.webSocketManager.send.bind(this.webSocketManager),
-      componentFilter
+      validatedComponentFilter
     )
 
     // create start manager
@@ -109,10 +119,48 @@ export class Qrwc {
       this.componentManager,
       this.controlManager,
       this.eventManager,
-      pollingInterval
+      validatedPollingInterval
     )
 
     this.startManager.start()
+  }
+
+  public isComponentFilterValid(componentFilter: IComponentFilter): boolean {
+    if (typeof componentFilter !== 'function') {
+      this.eventManager.emit(
+        qrwcEvents.error,
+        'componentFilter must be a function, using defaults'
+      )
+      return false
+    }
+
+    if (typeof componentFilter(qrwcMockComponentGetResult) !== 'boolean') {
+      this.eventManager.emit(
+        qrwcEvents.error,
+        'componentFilter must return a boolean, using defaults'
+      )
+      return false
+    }
+    return true
+  }
+
+  public isPollingIntervalValid(pollingInterval: number): boolean {
+    if (typeof pollingInterval !== 'number') {
+      this.eventManager.emit(
+        qrwcEvents.error,
+        'pollingInterval must be a number, using defaults'
+      )
+      return false
+    }
+
+    if (pollingInterval < qrwcMinPollInterval) {
+      this.eventManager.emit(
+        qrwcEvents.error,
+        `pollingInterval must be greater than ${qrwcMinPollInterval}, using defaults`
+      )
+      return false
+    }
+    return true
   }
 
   // a method to create a change group

@@ -1,11 +1,10 @@
-import { qrcMethods, qrwcEvents, qrwcPollReset } from '../../constants'
+import { qrcMethods, qrwcPollReset, qrwcMinPollInterval, qrwcDefaultPollInterval } from '../../constants'
 import { IPollingInterval } from '../../index.interface'
 import { createJSONRPCMessage } from '../../utils'
 
 
 export default class PollingManager {
-  public minInterval = 34 as const
-  private pollInterval: number = 350
+  private pollInterval: number = qrwcDefaultPollInterval
   private intervalId: NodeJS.Timer | null = null
   private socketPollId: number = 1
   public changeGroupId: string
@@ -14,16 +13,11 @@ export default class PollingManager {
   constructor(
     changeGroupId: string,
     private send: (data: object) => void,
-    private emit: (event: string, ...args: unknown[]) => void,
-    private newPollingRate?: IPollingInterval
+    private newPollingInterval?: IPollingInterval
   ){
     this.changeGroupId = changeGroupId
 
-    if (this.newPollingRate && this.isValidInterval(newPollingRate)) {
-      this.pollInterval = this.newPollingRate
-    } else if (this.newPollingRate && !this.isValidInterval(newPollingRate)) {
-      this.emitInvalidPollingInterval()
-    }
+    this.pollInterval = this.newPollingInterval
   }
 
   // getter for polling interval
@@ -34,12 +28,12 @@ export default class PollingManager {
   // setter for polling interval
   set interval(interval: number) {
     // set interval if above Minimum interval
-    if(interval >= this.minInterval) this.pollInterval = interval
+    if(interval >= qrwcMinPollInterval) this.pollInterval = interval
   }
 
   // check if given polling interval is valid
   private isValidInterval(interval: number): boolean {
-    return interval >= this.minInterval
+    return interval >= qrwcMinPollInterval
   }
 
   // a method to start polling
@@ -78,19 +72,13 @@ export default class PollingManager {
     }
   }
 
-  // a method for emitting an error when new polling rate is invalid
-  private emitInvalidPollingInterval(): void {
-    const errorMessage = `Invalid polling interval of ${this.newPollingRate}, must be greater than or equal to ${this.minInterval}`
-    this.emit(qrwcEvents.error, errorMessage)
-  }
-
   // a method to clean up the polling service
   public cleanUp(): void {
     // clear the interval
     clearInterval(this.intervalId as NodeJS.Timer)
 
     // reset the pollInterval to its initial value
-    this.pollInterval = this.minInterval
+    this.pollInterval = qrwcDefaultPollInterval
 
     // reset the socketPollId
     this.socketPollId = 1

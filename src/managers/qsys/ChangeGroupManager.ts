@@ -66,7 +66,6 @@ export default class ChangeGroupManager {
     // create polling service
     this.pollingManager = new PollingManager(
       this.changeGroupId, this.send,
-      this.eventManager.emit.bind(this.eventManager),
       this.newPollingRate
     )
   }
