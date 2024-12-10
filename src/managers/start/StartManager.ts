@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
-import { IControlGet, IControlGetResult, IServerMessage, IComponentFilter } from '../../index.interface'
+import { IControlGet, IControlGetResult, IServerMessage, IComponentFilter, IPollingInterval } from '../../index.interface'
 import { ControlManager, EventManager, ChangeGroupManager, ComponentManager } from '..'
 import { ControlDecorator } from '../components/ControlDecorator'
 
@@ -15,8 +15,8 @@ export default class StartManager {
     private websocketSend: (message: JSONRPCMessage) => void,
     private componentManager: ComponentManager,
     private controlManager: ControlManager,
-    private eventManager: EventManager
-
+    private eventManager: EventManager,
+    private newPollingRate?: IPollingInterval
   ) {
     // main dependencies
     this.controlManager = controlManager
@@ -130,7 +130,8 @@ export default class StartManager {
       this.startChangeGroupId,
       this.websocketSend,
       this.controlManager.handleControlChanges.bind(this.controlManager),
-      this.eventManager
+      this.eventManager,
+      this.newPollingRate
     )
 
     // groom components for change group

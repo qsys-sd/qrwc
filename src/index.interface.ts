@@ -69,7 +69,10 @@ export type IServerMessage = IMessageAddComponent | IMessagePollResult | IMessag
 
 export interface IStartOptions {
   componentFilter?: IComponentFilter
+  pollingInterval?: IPollingInterval
 }
+
+export type IPollingInterval = number
 
 export interface IComponentFilter {
   (component: IComponentsGetResult): boolean

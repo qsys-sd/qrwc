@@ -67,7 +67,7 @@ export class Qrwc {
   }
 
   // a method to initate the QRWC start process
-  public start({ componentFilter }: IStartOptions = {}): void {
+  public start({ componentFilter, pollingInterval }: IStartOptions = {}): void {
     // check if webSocketManager is initialized
     if (!this.webSocketManager) {
       // emit event for webSocketManager not initialized
@@ -108,7 +108,8 @@ export class Qrwc {
       this.webSocketManager.send,
       this.componentManager,
       this.controlManager,
-      this.eventManager
+      this.eventManager,
+      pollingInterval
     )
 
     this.startManager.start()

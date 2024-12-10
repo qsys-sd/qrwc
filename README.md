@@ -46,7 +46,10 @@ IStartOptions
 ```typescript
 export interface IStartOptions {
   componentFilter?: IComponentFilter
+  pollingInterval?: IPollingInterval
 }
+
+export type IPollingInterval = number // must be equal to or greater than 34
 
 export interface IComponentFilter {
   (component: IComponentsGetResult): boolean
@@ -61,13 +64,19 @@ function componentFilter(component){
 
 qrwc.on("webSocketAttached", () => {
   const options = {
-    componentFilter
+    componentFilter,
+    pollingInterval: 34 // roughly 30 times a second
   }
   qrwc.start(options)
 })
 ```
 
-Note: If no options object is provided or if no values are present in the object, QRWC will perform all actions per default settings.
+Note: If no options object is provided or if values are not present in the object, QRWC will perform all actions per default settings.
+
+#### Default Settings ####
+If no options are provided for specific values...
+- componentFilter - All scriptable components and their nested controls will be made into one change group
+- pollingInterval - A polling rate will be set of 350, or roughly 3 times a second
 
 #### Attempting reconnects ####
 * Qrwc has an automated clean up that is triggered by the "disconnected" event.'

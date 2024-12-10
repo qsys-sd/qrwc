@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { EventManager, PollingManager } from '..'
 import { createJSONRPCMessage } from '../../utils'
-import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent } from '../../index.interface'
+import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent, IPollingInterval } from '../../index.interface'
 
 export default class ChangeGroupManager {
   private changeGroupUpdateRequests: string[] = []
@@ -15,7 +15,8 @@ export default class ChangeGroupManager {
     changeGroupName: string,
     private send: (data: object) => void,
     private handleControlChanges: (changes: IChange[]) => void,
-    private eventManager: EventManager
+    private eventManager: EventManager,
+    private newPollingRate?: IPollingInterval
   ) {
     // listen for messages
     this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {
@@ -63,7 +64,11 @@ export default class ChangeGroupManager {
     }
 
     // create polling service
-    this.pollingManager = new PollingManager(this.changeGroupId, this.send)
+    this.pollingManager = new PollingManager(
+      this.changeGroupId, this.send,
+      this.eventManager.emit.bind(this.eventManager),
+      this.newPollingRate
+    )
   }
 
   // a method for parsing messages
