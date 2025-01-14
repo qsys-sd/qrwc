@@ -1,10 +1,12 @@
 import { v4 as uuidv4 } from 'uuid'
-import { IComponentsGetResult, IServerMessage } from '../../index.interface'
+import { IComponent, IServerMessage } from '../../index.interface'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { JSONRPCMessage, createJSONRPCMessage } from '../../utils'
 
 export default class ComponentManager {
-  public componentList: IComponentsGetResult[] = []
+  public componentList: {
+    [componentName: string]: IComponent
+  }
   public componentNames: string[] = []
   private getComponentsId: string = ''
 
@@ -12,7 +14,7 @@ export default class ComponentManager {
     private onMessage: (event: string, listener: (message: IServerMessage) => void) => void,
     private emit: (event: string, ...args: unknown[]) => void,
     private websocketSend: (message: JSONRPCMessage) => void,
-    private componentFilter?: (component: IComponentsGetResult) => boolean
+    private componentFilter?: (component: IComponent) => boolean
   ) {
     //event listener for handling websocket messages
     this.onMessage(qrwcEvents.message, (message: IServerMessage) => {
@@ -25,7 +27,7 @@ export default class ComponentManager {
     return this.componentNames
   }
 
-  private setComponentNames(newComponents: IComponentsGetResult[]): void {
+  private setComponentNames(newComponents: IComponent[]): void {
     const names = newComponents.map((component) => component.Name)
     this.componentNames = names
   }
@@ -34,7 +36,7 @@ export default class ComponentManager {
   private parseMessage(message: IServerMessage): void {
     // check for getComponents response
     if (message?.id === this.getComponentsId) {
-      this.handleComponentGetResponse(message.result as IComponentsGetResult[])
+      this.handleComponentGetResponse(message.result as IComponent[])
     }
   }
 
@@ -53,9 +55,17 @@ export default class ComponentManager {
     )
   }
 
+  private setComponentList(components: IComponent[]): void {
+    this.componentList = components.reduce((acc: { [key: string]: IComponent }, component: IComponent) => {
+      const { Name } = component
+      acc[Name] = component
+      return acc
+    }, {})
+  }
+
   // // a method for handling getComponents response
-  private handleComponentGetResponse(result: IComponentsGetResult[]): void {
-    let checkedComponents: IComponentsGetResult[] = result
+  private handleComponentGetResponse(result: IComponent[]): void {
+    let checkedComponents: IComponent[] = result
 
     // check if componentList is empty
     if (!result.length) {
@@ -70,6 +80,8 @@ export default class ComponentManager {
 
     // set component names
     this.setComponentNames(checkedComponents)
+    // set component list
+    this.setComponentList(checkedComponents)
 
     // emit event when all components have been added to componentList
     this.emit(qrwcEvents.componentsReceived, this.componentList)

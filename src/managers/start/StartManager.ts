@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
 import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
-import { IControlGet, IControlGetResult, IServerMessage, IComponentFilter, IPollingInterval } from '../../index.interface'
+import { IControlGet, IControlGetResult, IServerMessage, IComponentFilter, IPollingInterval, IComponent } from '../../index.interface'
 import { ControlManager, EventManager, ChangeGroupManager, ComponentManager } from '..'
-import { ControlDecorator } from '../components/ControlDecorator'
 
 export default class StartManager {
   private getControlIds: string[] = []
@@ -27,9 +26,8 @@ export default class StartManager {
       this.parseMessage(message)
     })
 
-    this.eventManager.on(qrwcEvents.componentsReceived, () => {
-      const componentNames = this.componentManager.getComponentNames()
-      this.getControls(componentNames)
+    this.eventManager.on(qrwcEvents.componentsReceived, (components: { [componentName: string]: IComponent}) => {
+      this.getControls(components)
     })
 
     this.eventManager.on(qrwcEvents.controlsReceived, () => {
@@ -63,7 +61,13 @@ export default class StartManager {
   }
 
   // a method for getting controls
-  private getControls(componentNames: string[]): void {
+  private getControls(components: { [componentName: string]: IComponent }): void {
+    // get component names
+    const componentNames = Object.keys(components)
+
+    // set components in control manager
+    this.controlManager.components = components
+
     // iterate through components list
     componentNames.forEach((component: string) => {
       const id = uuidv4()
@@ -85,30 +89,13 @@ export default class StartManager {
     // check if the results has "Name" and "Controls" populated
     if (result?.Name && result?.Controls) {
       // reformat controls into object
-      const controlObject = result.Controls.reduce((acc: { [key: string]: ControlDecorator }, control: IControlGet) => {
+
+      result.Controls.forEach((control: IControlGet) => {
         // decorate control
-        const decoratedControl = new ControlDecorator(
-          { ...control, Component: result.Name },
-          this.controlManager.setComponent.bind(this.controlManager),
-          this.eventManager.emit.bind(this.eventManager)
-        )
-
-        return {
-          ...acc,
-          [control.Name]: decoratedControl
-        }
-      }
-      , {})
-
-      // create component object
-      const componentToAdd = {
-        [result.Name]: {
-          ...controlObject
-        }
-      }
-
-      // add component to control manager
-      this.controlManager.addComponent(componentToAdd, result.Name)
+        const decoratedControl = this.controlManager.decorateControl({...control, Component: result.Name})
+        // set control
+        this.controlManager.updateControls(decoratedControl)
+      })
     }
 
     // remove id from getControlIds

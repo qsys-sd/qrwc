@@ -6,13 +6,21 @@ import { createJSONRPCMessage, isValidControlChange, JSONRPCMessage } from '../.
 import { ControlDecorator } from './ControlDecorator'
 
 export default class ControlManager {
-  public components: IComponent = {}
+  public components: { [componentName: string]: IComponent} = {}
 
   constructor(
     private webSocketSend: (message: JSONRPCMessage) => void,
     private eventManager: EventManager,
     private changeRequestManager: ChangeRequestManager
   ) {}
+
+  public decorateControl(control: IControl): ControlDecorator {
+    return new ControlDecorator(
+      control,
+      this.setComponent.bind(this),
+      this.eventManager.emit.bind(this.eventManager)
+    )
+  }
 
   // a method for handling changes
   public handleControlChanges(changes: IChange[]): void {
@@ -69,23 +77,21 @@ export default class ControlManager {
   }
 
   // a method for adding a new control to components
-  private updateControls(newControl: ControlDecorator): void {
+  public updateControls(newControl: ControlDecorator): void {
     // update component
     this.components = {
       ...this.components,
       [newControl.Component]: {
         ...this.components[newControl.Component],
-        [newControl.Name]: newControl
+        Controls: {
+          ...this.components[newControl.Component].Controls,
+          [newControl.Name]: newControl
+        }
       }
     }
 
-    // create object for event
-    const updatedComponent = {
-      [newControl.Component]: newControl
-    }
-
     // emit component updated event
-    this.eventManager.emit(qrwcEvents.controlsUpdated, updatedComponent)
+    this.eventManager.emit(qrwcEvents.controlsUpdated, this.components[newControl.Component])
   }
 
   // a method for adding a new component to components
@@ -103,7 +109,7 @@ export default class ControlManager {
     // add component to components
     this.components = {
       ...this.components,
-      ...component
+      [componentName]: component
     }
   }
 
@@ -162,7 +168,7 @@ export default class ControlManager {
     }
 
     // check if control exists
-    if (!this.components[componentName][controlName]) {
+    if (!this.components[componentName].Controls[controlName]) {
       // if control does not exist, emit error
       this.eventManager.emit(
         qrwcEvents.error,
@@ -172,7 +178,7 @@ export default class ControlManager {
     }
 
     // return control
-    return this.components[componentName][controlName]
+    return this.components[componentName].Controls[controlName]
   }
 
   // a method for creating a new decorated control based on both old and updated properties

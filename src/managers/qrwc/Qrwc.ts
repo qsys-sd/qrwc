@@ -43,7 +43,7 @@ export class Qrwc {
   }
 
   // a getter method for components
-  get components(): IComponent {
+  get components(): { [componentName: string]: IComponent } {
     return this.controlManager.components
   }
 
@@ -197,7 +197,7 @@ export class Qrwc {
         }
         return acc
       },
-      {} as IComponent
+      {} as { [key: string]: IComponent }
     )
 
     // groom components for change group

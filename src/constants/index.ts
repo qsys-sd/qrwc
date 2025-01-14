@@ -1,4 +1,4 @@
-import { IComponentsGetResult, QrwcEvents } from '../index.interface'
+import { IComponent, QrwcEvents } from '../index.interface'
 
 export const qrcMethods = {
   components: {
@@ -31,7 +31,7 @@ export const qrwcPollReset: number = 30000
 export const qrwcMinPollInterval: number = 34
 export const qrwcDefaultPollInterval: number = 350
 
-export const qrwcMockComponentGetResult: IComponentsGetResult = {
+export const qrwcMockComponentGetResult: IComponent = {
   Name: 'mock',
   Properties: [],
   ID: 'mock',

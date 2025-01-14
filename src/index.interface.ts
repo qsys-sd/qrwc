@@ -2,17 +2,11 @@ import { ControlDecorator } from './managers/components/ControlDecorator'
 
 export interface IControl {
   Name: string
-  Component?: string
+  Component: string
   Value?: string | number | boolean
   String?: string
   Position?: number
   Type?: string
-}
-
-export interface IComponent {
-  [componentName: string]: {
-    [controlName: string]: ControlDecorator
-  }
 }
 
 export interface IChangeGroup {
@@ -24,7 +18,9 @@ export interface IComponentChangeGroup {
   Id: string
   Component: {
     Name: string
-    Controls: IControl[]
+    Controls: {
+      Name: string
+    }[]
   }
 }
 
@@ -58,7 +54,7 @@ export interface IMessageControlGetResult extends IDesignMessage {
 }
 
 export interface IMessageComponentsGetResult extends IDesignMessage {
-  result: IComponentsGetResult[];
+  result: IComponent[];
 }
 
 export interface IMessageChangeResult extends IDesignMessage {
@@ -74,7 +70,7 @@ export interface IStartOptions {
 
 export type IPollingInterval = number
 
-export type IComponentFilter = (component: IComponentsGetResult) => boolean
+export type IComponentFilter = (component: IComponent) => boolean
 
 interface IParams {
   Platform: string
@@ -95,12 +91,12 @@ interface IComponentsGetProperty {
   PrettyName: string;
 }
 
-export interface IComponentsGetResult {
+export interface IComponent {
   Properties: IComponentsGetProperty[];
   ID: string;
   Name: string;
   Type: string;
-  Controls: null;
+  Controls: { [controlName: string]: ControlDecorator } | null;
   ControlSource: number;
 }
 

@@ -52,7 +52,7 @@ export interface IStartOptions {
 export type IPollingInterval = number // must be equal to or greater than 34
 
 export interface IComponentFilter {
-  (component: IComponentsGetResult): boolean
+  (component: IComponent): boolean
 }
 ```
 

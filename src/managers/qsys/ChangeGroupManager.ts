@@ -91,7 +91,7 @@ export default class ChangeGroupManager {
   }
 
   // a method recieves components from control manager and grooms them into IComponentChangeGroup
-  public groomComponents(components: IComponent): IComponentChangeGroup[] {
+  public groomComponents(components: { [componentName: string]: IComponent }): IComponentChangeGroup[] {
     // create empty array to hold groomed components
     let groomedComponents: IComponentChangeGroup[] = []
     // iterate through components
@@ -101,7 +101,7 @@ export default class ChangeGroupManager {
         Id: this.changeGroupId,
         Component: {
           Name: componentName,
-          Controls: Object.keys(components[componentName]).map(
+          Controls: Object.keys(components[componentName].Controls).map(
             (controlName: string) => ({
               Name: controlName
             })
