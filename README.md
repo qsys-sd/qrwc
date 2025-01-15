@@ -94,27 +94,76 @@ qrwc.on("disconnected", (event) => {
 
 #### Getting to controls ####
 * After the event listener for "startComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrwc.components`
-* `Qrwc.components` is formatted as dictionary using component and control names as the field key name. 
-```typescript
+* `Qrwc.components` is formatted as dictionary using component names as key names. Controls is also formatted as a dictionary within `component.Controls` with control names as key names.
+```JSON
 {
-   "Gain": { // Component name
-      "bypass": { // Control name
-         // ... Control object
+   "Text_Box": {
+      "ID": "Text_Box",
+      "Name": "Text_Box",
+      "Type": "custom_controls",
+      "Properties": [
+         {
+            "Name":"type_1",
+            "Value":"13",
+            "PrettyName":"Type"
+         },
+         // continued ...
+      ],
+      "Controls": {
+         "text.1": {
+            "control": {
+               "Name": "text.1",
+               "Type": "Text",
+               "String": "textin",
+               "Direction": "Read/Write",
+               "Component": "Text_Box",
+               "Value": 0,
+               "Position": 0,
+               "Choices": [],
+               "Color": "",
+               "Indeterminate": false,
+               "Invisible": false,
+               "Disabled": false,
+               "Legend": "",
+               "CssClass": ""
+            }
+         }
       },
-      "gain": { // Control name
-         // ... Control object
-      },
-      "invert": { // Control name
-         // ... Control object
-      },
-      "mute": { // Control name
-         // ... Control object
-      }
+      "ControlSource": 2
    },
-   "LED": { // Component name
-      "led.1": { // Control name
-         // ... Control object
-      }
+   "LED": {
+      "ID": "LED",
+      "Name": "LED",
+      "Type": "custom_controls",
+      "Properties": [
+         {
+            "Name": "type_1",
+            "Value": "15",
+            "PrettyName": "Type"
+         },
+         // continued ...
+      ],
+      "Controls": {
+         "led.1": {
+            "control": {
+               "Name": "led.1",
+               "Type": "Boolean",
+               "Value": 0,
+               "String": "false",
+               "Position": 0,
+               "Direction": "Read/Write",
+               "Component": "LED",
+               "Choices": [],
+               "Color": "",
+               "Indeterminate": false,
+               "Invisible": false,
+               "Disabled": false,
+               "Legend": "",
+               "CssClass": ""
+            }
+         }
+      },
+      "ControlSource": 2
    }
 }
 ```
@@ -124,14 +173,14 @@ qrwc.on("disconnected", (event) => {
 #### Interacting with the control object ####
 * Accessing a control object
 ```typescript
-const { mute } = Qrwc.components.Gain
+const { mute } = Qrwc.components.Gain.Controls
 
 console.log("Mute: ", mute.Value)
 // logs: Mute: true
 ```
 * Accessing a control object with a complex name
 ```typescript
-const control = Qrwc.components.Text_Box['text.1']
+const control = Qrwc.components.Text_Box.Controls['text.1']
 
 console.log("Text: ", control.String)
 // logs: Text: Some string
