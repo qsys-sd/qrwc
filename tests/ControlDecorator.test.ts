@@ -25,22 +25,23 @@ describe('ControlDecorator setters', () => {
   })
 
   test('should request update with new Position', () => {
+    // Set the Position property of the control
     controlDecorator.Position = 2
-    // Verify setComponent was called with the updated control
-    expect(setComponent).toHaveBeenCalledWith(expect.objectContaining({ Position: 2 }))
+    // Verify setComponent was called with two arguments
+    expect(setComponent).toHaveBeenCalledWith('TestComponent', { Name: 'TestControl', Value: 2 })
   })
 
   test('should request update with new Value', () => {
+    // Set the Value property of the control
     controlDecorator.Value = 'NewValue'
-    // Verify setComponent was called with the updated control
-    // TODO: Set only uses Value & Position may change
-    expect(setComponent).toHaveBeenCalledWith(expect.objectContaining({ Value: 'NewValue' }))
+    // Verify setComponent was called with two arguments
+    expect(setComponent).toHaveBeenCalledWith('TestComponent', { Name: 'TestControl', Value: 'NewValue' })
   })
 
   test('should request update with new String', () => {
+    // Set the String property of the control
     controlDecorator.String = 'NewString'
-    // Verify setComponent was called with the updated control
-    // TODO: Set only uses Value & Position may change
-    expect(setComponent).toHaveBeenCalledWith(expect.objectContaining({ Value: 'NewString' }))
+    // Verify setComponent was called with two arguments
+    expect(setComponent).toHaveBeenCalledWith('TestComponent', { Name: 'TestControl', Value: 'NewString' })
   })
 })

@@ -9,6 +9,11 @@ export interface IControl {
   Type?: string
 }
 
+export interface IControlUpdate {
+  Name: string
+  Value: string | number | boolean
+}
+
 export interface IChangeGroup {
   Id: string
   Controls: string[]

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods, qrwcEvents } from '../../constants'
-import { IChange, IComponent, IControl } from '../../index.interface'
+import { IChange, IComponent, IControl, IControlUpdate } from '../../index.interface'
 import { EventManager, ChangeRequestManager } from '..'
 import { createJSONRPCMessage, isValidControlChange, JSONRPCMessage } from '../../utils'
 import { ControlDecorator } from './ControlDecorator'
@@ -115,20 +115,21 @@ export default class ControlManager {
 
   // a method for setting a control values for a components
   public setComponent(
-    controlToUpdate: IControl
+    componentName: string,
+    controlToUpdate: IControlUpdate
   ): void {
     // create change request id
     const requestId = uuidv4()
 
     const componentChange = {
       ResponseValues: true,
-      Name: controlToUpdate.Component,
+      Name: componentName,
       Controls: [controlToUpdate]
     }
 
     // create change request
     this.changeRequestManager.createChangeRequest(
-      controlToUpdate.Component,
+      componentName,
       requestId,
       this.controlChangeCallback
     )
