@@ -78,7 +78,8 @@ export class ControlDecorator {
   }
 
   /**
-   * Getter for Bool. Bool is a a facade, as it does not exist on QRC controls.
+   * Getter for Bool. Bool is a facade, as it does not exist on QRC controls.
+   * We're providing this getter to allow users easier access to Qsys Booleans.
    * This getter checks if the Position is 0.5 or greater and returns true if it is, false otherwise.
    * This follows the Q-SYS convention
    * @returns {boolean} True if Position is 0.5 or greater, false otherwise.
@@ -89,6 +90,7 @@ export class ControlDecorator {
 
   /**
    * Setter for Bool. Bool is a a facade, as it does not exist on QRC controls.
+   * We're providing this setter to allow users easier access to Qsys Booleans.
    * It also converts true to 1 and false to 0, for compatibility with Q-SYS.
    * @param {boolean} value - The new value for the Position property.
    */
