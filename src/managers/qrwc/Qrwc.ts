@@ -64,8 +64,7 @@ export class Qrwc {
     })
   }
 
-  // a method to initate the QRWC start process
-  public start({ componentFilter, pollingInterval }: IStartOptions = {}): void {
+  public async start({ componentFilter, pollingInterval }: IStartOptions = {}): Promise<void> {
     // check start options
     const validatedComponentFilter =
       componentFilter && this.validateComponentFilter(componentFilter)
@@ -87,6 +86,13 @@ export class Qrwc {
     this.createStartManager(validatedPollingInterval)
 
     this.startManager.start()
+
+    // Return a promise that resolves when the "startComplete" event is emitted
+    return new Promise((resolve) => {
+      this.eventManager.on('startComplete', () => {
+        resolve()
+      })
+    })
   }
 
   private createStartManager = (validatedPollingInterval: number) => {
