@@ -3,7 +3,6 @@ import {
   ControlManager,
   EventManager,
   ChangeRequestManager,
-  PollingManager,
   ChangeGroupManager,
   ComponentManager,
   StartManager
@@ -48,22 +47,21 @@ export class Qrwc {
   }
 
   // a method to create the websocket manager
-  public attachWebSocket(socket: WebSocket): void {
-    // check if webSocketManager is defined
-    if (this.webSocketManager) {
-      // emit event for websocket already attached
-      this.eventManager.emit(
-        qrwcEvents.error,
-        'web socket already attached'
-      )
-      return
-    }
+  public async attachWebSocket(socket: WebSocket): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // check if webSocketManager is defined
+      if (this.webSocketManager) {
+        // reject promise for websocket already attached
+        reject(new Error('web socket already attached'))
+        return
+      }
 
-    // create webSocketManager
-    this.webSocketManager = new WebSocketManager(socket, this.eventManager)
+      // create webSocketManager
+      this.webSocketManager = new WebSocketManager(socket, this.eventManager)
 
-    // emit event for websocket attached
-    this.eventManager.emit(qrwcEvents.webSocketAttached)
+      // resolve promise for websocket attached
+      resolve()
+    })
   }
 
   // a method to initate the QRWC start process
