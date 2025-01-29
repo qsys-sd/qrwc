@@ -68,97 +68,91 @@ export class Qrwc {
   public start({ componentFilter, pollingInterval }: IStartOptions = {}): void {
     // check start options
     const validatedComponentFilter =
-      componentFilter && this.isComponentFilterValid(componentFilter)
+      componentFilter && this.validateComponentFilter(componentFilter)
         ? componentFilter
         : null
     const validatedPollingInterval =
-      pollingInterval && this.isPollingIntervalValid(pollingInterval)
+      pollingInterval && this.validatePollingInterval(pollingInterval)
         ? pollingInterval
         : null
 
     // check if webSocketManager is initialized
-    if (!this.webSocketManager) {
-      // emit event for webSocketManager not initialized
-      this.eventManager.emit(
-        qrwcEvents.error,
-        'web socket not initialized'
-      )
-      return
-    }
+    if (!this.checkWebSocketManagerInitialized()) return
 
     // check if startManager is initialized
-    if (this.startManager) {
-      // emit event for start already initialized
-      this.eventManager.emit(
-        qrwcEvents.error,
-        'start already initialized'
-      )
-      return
-    }
+    if (this.checkStartManagerInitialized()) return
 
+    this.createControlManager()
+    this.createComponentManager(validatedComponentFilter)
+    this.createStartManager(validatedPollingInterval)
+
+    this.startManager.start()
+  }
+
+  private createStartManager = (validatedPollingInterval: number) => {
+    // create StartManager instance
+    this.startManager = new StartManager(
+      this.webSocketManager.send.bind(this.webSocketManager),
+      this.componentManager,
+      this.controlManager,
+      this.eventManager,
+      validatedPollingInterval
+    )
+  }
+
+  private createControlManager = () => {
     // create ControlManager instance
     this.controlManager = new ControlManager(
       this.webSocketManager.send.bind(this.webSocketManager),
       this.eventManager,
       this.changeRequestManager
     )
+  }
 
+  private createComponentManager = (componentFilter: IComponentFilter) => {
     // create ComponentManager instance
     this.componentManager = new ComponentManager(
       this.eventManager.on.bind(this.eventManager),
       this.eventManager.emit.bind(this.eventManager),
       this.webSocketManager.send.bind(this.webSocketManager),
-      validatedComponentFilter
+      componentFilter
     )
-
-    // create start manager
-    this.startManager = new StartManager(
-      this.webSocketManager.send,
-      this.componentManager,
-      this.controlManager,
-      this.eventManager,
-      validatedPollingInterval
-    )
-
-    this.startManager.start()
   }
 
-  public isComponentFilterValid(componentFilter: IComponentFilter): boolean {
-    if (typeof componentFilter !== 'function') {
-      this.eventManager.emit(
-        qrwcEvents.error,
-        'componentFilter must be a function, using defaults'
-      )
-      return false
+  // Helper function to validate component filter
+  public validateComponentFilter(componentFilter: IComponentFilter): boolean {
+    const isValid = typeof componentFilter === 'function' && typeof componentFilter(qrwcMockComponentGetResult) === 'boolean'
+    if (!isValid) {
+      this.eventManager.emit(qrwcEvents.error, 'Invalid componentFilter, using defaults')
     }
+    return isValid
+  }
 
-    if (typeof componentFilter(qrwcMockComponentGetResult) !== 'boolean') {
-      this.eventManager.emit(
-        qrwcEvents.error,
-        'componentFilter must return a boolean, using defaults'
-      )
+  // Helper function to validate polling interval
+  public validatePollingInterval(pollingInterval: number): boolean {
+    const isValid = typeof pollingInterval === 'number' && pollingInterval >= qrwcMinPollInterval
+    if (!isValid) {
+      this.eventManager.emit(qrwcEvents.error, `Invalid pollingInterval, must be a number greater than ${qrwcMinPollInterval}, using defaults`)
+    }
+    return isValid
+  }
+
+  // Method to check if webSocketManager is initialized
+  public checkWebSocketManagerInitialized(): boolean {
+    if (!this.webSocketManager) {
+      this.eventManager.emit(qrwcEvents.error, 'web socket not initialized')
       return false
     }
     return true
   }
 
-  public isPollingIntervalValid(pollingInterval: number): boolean {
-    if (typeof pollingInterval !== 'number') {
-      this.eventManager.emit(
-        qrwcEvents.error,
-        'pollingInterval must be a number, using defaults'
-      )
-      return false
+  // Method to check if startManager is initialized
+  public checkStartManagerInitialized(): boolean {
+    if (this.startManager) {
+      this.eventManager.emit(qrwcEvents.error, 'start already initialized')
+      return true
     }
-
-    if (pollingInterval < qrwcMinPollInterval) {
-      this.eventManager.emit(
-        qrwcEvents.error,
-        `pollingInterval must be greater than ${qrwcMinPollInterval}, using defaults`
-      )
-      return false
-    }
-    return true
+    return false
   }
 
   public getReadyState(): number {
