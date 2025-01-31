@@ -14,19 +14,13 @@ const qrwc = new Qrwc()
 
 const socket = new WebSocket("ws://{IP}/qrc-public-api/v0")
 
-socket.onopen = () => {
-  qrwc.attachWebSocket(socket)
+socket.onopen = async () => {
+  await qrwc.attachWebSocket(socket)
+  await qrwc.start()
+
+  setComponents(qrwc.components)
+  setInitialized(true);
 }
-
-qrwc.on("webSocketAttached", () => {
-  qrwc.start()
-})
-
-qrwc.on("startComplete", () => {
-  console.log("startComplete", qrwc.components)
-
-  // This is when all controls should be available for use by your application
-})
 
 qrwc.on("controlsUpdated", (updatedComponent: any) => {
   console.log("controlsUpdated", updatedComponent)
@@ -62,13 +56,16 @@ function componentFilter(component){
   return component.Name === "Gain"
 }
 
-qrwc.on("webSocketAttached", () => {
-  const options = {
-    componentFilter,
-    pollingInterval: 34 // roughly 30 times a second
-  }
-  qrwc.start(options)
-})
+const options = {
+  componentFilter,
+  pollingInterval: 34 // roughly 30 times a second
+}
+
+socket.onopen = async () => {
+//...
+  await qrwc.start(options)
+//...
+}
 ```
 
 Note: If no options object is provided or if values are not present in the object, QRWC will perform all actions per default settings.
