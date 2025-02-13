@@ -15,13 +15,12 @@
   * `npm run build`
   * `npm link`
   * Now in your front-end (FE) project terminal, you can use `npm link {path to QRWC}`
-  * This should install this project as a `node_module`
-  * The npm library is based off the `/dist` dir, but development happens in src
+  * This should install this QRWC as a `node_module` in your project
 * The Qrwc class has private & public methods and variables
   * Private: Obfuscating the websocket to prevent direct interaction & IP
   * Public: Serves as an interface to private values or a variable that shouldn't be secret
 * If changes are saved in QRWC `/src` 
-  * `npm run build`
+  * `npm run build` - from the QRWC dir
   * If NPM link is set up properly, the node_modules in your app should automatically update with any saved & built changes
 
 ### Testing
