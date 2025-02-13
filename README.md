@@ -1,11 +1,11 @@
 # Q-SYS Remote WebSocket Control
 ## QRWC is a NPM library for controlling 3rd party software while interacting with Qsys design controls
 
-### What is this repository for? ###
+### What is this repository for?
 * QDS Version 9.7.0 or higher
 
-### Implementation and use ###
-#### Getting started ####
+### Implementation and use
+#### Getting started
 ```typescript
 import { Qrwc } from "qrwc" 
 // const { Qrwc } = require('qrwc'); // for BE/node environments
@@ -30,7 +30,7 @@ qrwc.on("controlsUpdated", (updatedComponent: any) => {
 })
 ```
 
-#### Start options ####
+#### Start options
 `qrwc.start()` can optionally take an object. That contains options
 - componentFilter
   - Allows users to set a filter, enabling a specific change group to be created upon start
@@ -50,7 +50,7 @@ export interface IComponentFilter {
 }
 ```
 
-##### example ######
+##### example
 ```typescript
 function componentFilter(component){
   return component.Name === "Gain"
@@ -70,12 +70,12 @@ socket.onopen = async () => {
 
 Note: If no options object is provided or if values are not present in the object, QRWC will perform all actions per default settings.
 
-#### Default Settings ####
+#### Default Settings
 If no options are provided for specific values...
 - componentFilter - All scriptable components and their nested controls will be made into one change group
 - pollingInterval - A polling rate will be set of 350, or roughly 3 times a second
 
-#### Attempting reconnects ####
+#### Attempting reconnects
 * Qrwc has an automated clean up that is triggered by the "disconnected" event.'
   * This cleans up all listeners attached to the instance / intervals / classes
 * This also means that you should be creating a new WebSocket & instance of Qrwc to attempt a reconnect, along with the listeners
@@ -89,7 +89,7 @@ qrwc.on("disconnected", (event) => {
 })
 ```
 
-#### Getting to controls ####
+#### Getting to controls
 * After the event listener for "startComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrwc.components`
 * `Qrwc.components` is formatted as dictionary using component names as key names. Controls is also formatted as a dictionary within `component.Controls` with control names as key names.
 ```JSON
@@ -167,7 +167,7 @@ qrwc.on("disconnected", (event) => {
 * See below for control object API
 
 
-#### Interacting with the control object ####
+#### Interacting with the control object
 * Accessing a control object
 ```typescript
 const { mute } = Qrwc.components.Gain.Controls
@@ -182,7 +182,7 @@ const control = Qrwc.components.Text_Box.Controls['text.1']
 console.log("Text: ", control.String)
 // logs: Text: Some string
 ```
-### Control object API ###
+### Control object API
 The `ControlObject` is used to decorate a control, providing getters and setters for its properties. The decorator pattern allows us to add new behavior or responsibilities to objects without modifying their code.
 
 ## Properties
@@ -231,55 +231,6 @@ console.log(properties); // { Name: 'text.1', Component: 'Text_Box', Value: 0, S
 const valueMin = controlObject.getMetaProperty('ValueMin');
 console.log(valueMin); // The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
 ```
+### Documentation for Developers
 
-### Developing ###
-* The npm library is based off the `/dist` dir but development happens in src 
-* Eslint will tartget `/src` dir
-  * Please lint before commiting changes
-* Tests target `/dist` dir
-  * Please test before commiting changes
-  * `npm run build`
-  * `npm run test`
-* The Qrwc class has private & public methods and variables
-  * Private: Obfuscating the websocket to prevent direct interaction & IP
-  * Public: Serves as an interface to private values or a variable that shouldn't be secret
-* If changes are saved in `/src` 
-  * `npm run build`
-  * now in your FE project terminal you can use `npm link {path to QRWC}` to reinstall with new changes
-
-### How do I get set up as a tester? ###
-* Clone repo
-* Open terimnal inside repo
-* run the following commands
-  * `npm install`
-  * `npm run build`
-  * `npm link`
-  * now in your FE project terminal you can use `npm link {path to QRWC}`
-  * this should install this project as a `node_module`
-
-### Testing ###
-* Currently the project is setup to test the built version available in `/dist`
-* Simple tests with Jest & MockSocket
-* A story is in the backlog to write more tests once more of requirements for functionality take place
-* Currently the test suite hangs because of an unresolved promise. This is documented in a future testing ticket
-
-### Who do I talk to? ###
-* Devin Kapla (Devin.Kapla@qsc.com)
-
-### Tech
-* 14 Node or higher
-* Typescript
-* node/ws for BE support
-* Jest
-* MockSocket
-
-### Some considerations ###
-* Tests are currently broken due to a major refactor
-* This being the main repo, a user will install this differently.
-* Turning off your http server on the core...
-```typescript
-const agent = new https.Agent({
-    rejectUnauthorized: false
-  })
-const socket = new WebSocket('wss://{your.core.ip.address}/qrc', {agent})
-```
+For more information on developing and contributing to this library, please refer to the [Developer Guide](README-Developers.md).
