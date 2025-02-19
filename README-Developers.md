@@ -10,6 +10,8 @@
 ### How do I get set up as a tester?
 * Clone repo
 * Open terminal inside repo
+* Make sure you are managing your Node version it should be at least `16.18.1`
+  * [NVM](https://github.com/nvm-sh/nvm) is a good option
 * Run the following commands
   * `npm install`
   * `npm run build`
