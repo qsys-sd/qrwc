@@ -1,6 +1,6 @@
 {
   "name": "@q-sys/qrwc",
-  "version": "0.2.0-alpha",
+  "version": "0.3.0-alpha",
   "description": "Interface software for Q-SYS controls.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
