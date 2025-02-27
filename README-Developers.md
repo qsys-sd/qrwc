@@ -9,7 +9,7 @@
 
 ### Links to repos
 * [FE QRWC React](https://bitbucket.qsc.com/projects/SANDBOX/repos/qrwc-react-example/browse)
-  * This one should be updated with chnages to QRWC
+  * This one should be updated with changes to QRWC
 * [Thomas Holt Next.js](https://github.com/qsc-thomasholtronczy/qrwc-nextjs-demo)
 
 ### How do I get set up as a tester?
