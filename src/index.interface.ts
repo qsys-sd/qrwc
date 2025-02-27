@@ -3,6 +3,7 @@ import { ControlDecorator } from './managers/components/ControlDecorator'
 export interface IControl {
   Name: string
   Component: string
+  Choices?: string[]
   Value?: string | number | boolean
   String?: string
   Position?: number
@@ -108,6 +109,7 @@ export interface IComponent {
 export interface IControlGet {
   Name: string;
   Type: string;
+  Choices?: string[];
   Value?: number;
   String: string;
   Direction: string;

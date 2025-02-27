@@ -77,6 +77,11 @@ export class ControlDecorator {
     this.updateQsysDesign(position)
   }
 
+  // Getter and setter for the Choices property of the control
+  get Choices(): string[] {
+    return this.control.Choices
+  }
+
   /**
    * Getter for Bool. Bool is a facade, as it does not exist on QRC controls.
    * We're providing this getter to allow users easier access to Qsys Booleans.
@@ -147,7 +152,7 @@ export class ControlDecorator {
    * console.log(valueMin);
    * // Output: The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
    */
-  public getMetaProperty(propertyName: string): string | number | boolean | undefined {
+  public getMetaProperty(propertyName: string): string | number | boolean | string[] | undefined {
     if (!Object.prototype.hasOwnProperty.call(this.control, propertyName)) {
       this.emit(qrwcEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`)
       return

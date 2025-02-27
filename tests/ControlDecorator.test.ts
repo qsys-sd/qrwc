@@ -10,6 +10,7 @@ describe('ControlDecorator setters', () => {
   beforeEach(() => {
     mockControl = {
       Name: 'TestControl',
+      Choices: ['TestChoice1', 'TestChoice2'],
       Component: 'TestComponent',
       Position: 1,
       Value: 'TestValue',
@@ -43,5 +44,12 @@ describe('ControlDecorator setters', () => {
     controlDecorator.String = 'NewString'
     // Verify setComponent was called with two arguments
     expect(setComponent).toHaveBeenCalledWith('TestComponent', { Name: 'TestControl', Value: 'NewString' })
+  })
+
+  test('should provide Choices', () => {
+    // Get the Choices property of the control
+    const choices = controlDecorator.Choices
+    // Verify the Choices property was returned
+    expect(choices).toEqual(mockControl.Choices)
   })
 })
