@@ -82,6 +82,8 @@
   * To update dependencies: `npm update`
 
 ### QRC and QRWC need to knows
+* QRWC is built on the QRC protocol and uses [this documentation](https://q-syshelp.qsc.com/Content/External_Control_APIs/QRC/QRC_Commands.htm)
+
 * Delay on complete controls until first poll response for changes
   * Currently, the call structure to get all components & their controls consists of...
     * `Component.GetComponents` and then `Component.GetControls`
