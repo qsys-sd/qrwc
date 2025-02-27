@@ -81,6 +81,23 @@
 * Updating dependencies should be done on a regular basis
   * To update dependencies: `npm update`
 
+### QRC and QRWC need to knows
+* Delay on complete controls until first poll response for changes
+  * Currently, the call structure to get all components & their controls consists of...
+    * `Component.GetComponents` and then `Component.GetControls`
+  * `Component.GetControls` does not return certain metadata like...
+    * CssClass
+    * Disabled
+    * Indeterminate
+    * Invisible
+    * Legend
+    * Choices
+  * This data is returned on Change Group poll requests for changes
+  * There might be a way to complete the Controls before polling has started (needs exploration)
+
+* Setting `Choices` might be desirable but is not a functionality of QRC thus will not work via QRWC
+  * For now, `Choices` is a read-only data point
+
 ### Who do I talk to?
 * Devin Kapla (Devin.Kapla@qsc.com)
 
