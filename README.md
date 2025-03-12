@@ -2,13 +2,13 @@
 ## QRWC is a NPM library for controlling 3rd party software while interacting with Qsys design controls
 
 ### What is this repository for?
-* QDS Version 9.7.0 or higher
+* QDS Version 10.0.0 or higher
 
 ### Implementation and use
 #### Getting started
 ```typescript
-import { Qrwc } from "qrwc" 
-// const { Qrwc } = require('qrwc'); // for BE/node environments
+import { Qrwc } from "@q-sys/qrwc"
+// const { Qrwc } = require('@q-sys/qrwc'); // for BE/node environments
 
 const qrwc = new Qrwc()
 
