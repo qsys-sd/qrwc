@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { qrcMethods, qrwcEvents } from '../../constants'
+import { qrcMethods } from '../../constants'
 import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
 import { IControlGet, IControlGetResult, IServerMessage, IComponentFilter, IPollingInterval, IComponent } from '../../index.interface'
 import { ControlManager, EventManager, ChangeGroupManager, ComponentManager } from '..'
@@ -22,21 +22,21 @@ export default class StartManager {
     this.eventManager = eventManager
 
     //event listener for handling websocket messages
-    this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {
+    this.eventManager.on('message', (message: IServerMessage) => {
       this.parseMessage(message)
     })
 
-    this.eventManager.on(qrwcEvents.componentsReceived, (components: { [componentName: string]: IComponent}) => {
+    this.eventManager.on('componentsReceived', (components: Record<string, IComponent>) => {
       this.getControls(components)
     })
 
-    this.eventManager.on(qrwcEvents.controlsReceived, () => {
+    this.eventManager.on('controlsReceived', () => {
       this.createStartChangeGroup()
     })
 
     // listen for change group created event
     this.eventManager.on(
-      qrwcEvents.componentChangeGroupCreated,
+      'componentChangeGroupCreated',
       (changeGroupId: string) => {
         // check if change group id matches startChangeGroupId
         if (changeGroupId === this.startChangeGroupId && this.changeGroupManager) {
@@ -61,7 +61,7 @@ export default class StartManager {
   }
 
   // a method for getting controls
-  private getControls(components: { [componentName: string]: IComponent }): void {
+  private getControls(components: Record<string, IComponent>): void {
     // get component names
     const componentNames = Object.keys(components)
 
@@ -106,7 +106,7 @@ export default class StartManager {
     // check if getControlIds is empty
     if (this.getControlIds.length === 0) {
       // emit event
-      this.eventManager.emit(qrwcEvents.controlsReceived)
+      this.eventManager.emit('controlsReceived')
     }
   }
 
@@ -142,7 +142,7 @@ export default class StartManager {
     }
 
     // emit event for start complete
-    this.eventManager.emit(qrwcEvents.startComplete)
+    this.eventManager.emit('startComplete')
   }
 
   // a method for cleaning up the start manager

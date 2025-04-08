@@ -1,4 +1,4 @@
-import { IComponent, QrwcEvents } from '../index.interface'
+import { IComponent } from '../index.interface'
 
 export const qrcMethods = {
   components: {
@@ -11,25 +11,11 @@ export const qrcMethods = {
     addControl: 'ChangeGroup.AddControl',
     addComponentControl: 'ChangeGroup.AddComponentControl'
   }
-}
+} as const
 
-export const qrwcEvents: QrwcEvents = {
-  message: 'message',
-  error: 'error',
-  disconnected: 'disconnected',
-  connected: 'connected',
-  webSocketAttached: 'webSocketAttached',
-  startComplete: 'startComplete',
-  controlsUpdated: 'controlsUpdated',
-  controlsReceived: 'controlsReceived',
-  componentsReceived: 'componentsReceived',
-  changeRequestSuccessful: 'changeRequestSuccessful',
-  componentChangeGroupCreated: 'componentChangeGroupCreated'
-}
-
-export const qrwcPollReset: number = 30000
-export const qrwcMinPollInterval: number = 34
-export const qrwcDefaultPollInterval: number = 350
+export const QrwcPollReset = 30000
+export const QrwcMinPollInterval = 34
+export const QrwcDefaultPollInterval = 350
 
 export const qrwcMockComponentGetResult: IComponent = {
   Name: 'mock',

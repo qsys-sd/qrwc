@@ -1,4 +1,4 @@
-import { ControlDecorator } from './managers/components/ControlDecorator'
+import type { ControlDecorator } from './managers/components/ControlDecorator'
 
 export interface IControl {
   Name: string
@@ -91,7 +91,7 @@ interface IParams {
   }
 }
 
-interface IComponentsGetProperty {
+export interface IComponentsGetProperty {
   Name: string;
   Value: string;
   PrettyName: string;
@@ -102,7 +102,7 @@ export interface IComponent {
   ID: string;
   Name: string;
   Type: string;
-  Controls: { [controlName: string]: ControlDecorator } | null;
+  Controls: Record<string, ControlDecorator> | null;
   ControlSource: number;
 }
 
@@ -149,7 +149,7 @@ export interface IChangePollResult {
 export interface IRequestChanges {
   ResponseValues: boolean;
   Name: string;
-  Controls: IControl[];
+  Controls: IControlUpdate[];
 }
 
 export interface IRequestControls {
@@ -167,16 +167,16 @@ export interface IEventEmitter {
   removeAllListeners(): void;
 }
 
-export type QrwcEvents = {
-  message: 'message',
-  error: 'error',
-  disconnected: 'disconnected',
-  connected: 'connected',
-  webSocketAttached: 'webSocketAttached',
-  startComplete: 'startComplete',
-  controlsUpdated: 'controlsUpdated',
-  controlsReceived: 'controlsReceived',
-  componentsReceived: 'componentsReceived',
-  changeRequestSuccessful: 'changeRequestSuccessful',
-  componentChangeGroupCreated: 'componentChangeGroupCreated'
+export interface IQrwcEvents {
+  message: (message: IServerMessage) => void;
+  error: (error: unknown) => void;
+  disconnected: (event: string) => void;
+  connected: () => void;
+  webSocketAttached: () => void;
+  startComplete: () => void,
+  controlsUpdated: (updatedComponent: IComponent) => void;
+  controlsReceived: () => void;
+  componentsReceived: (components: Record<string, IComponent>) => void;
+  changeRequestSuccessful: (changeRequest: IChangeRequest) => void;
+  componentChangeGroupCreated: (changeGroupId: string) => void;
 }

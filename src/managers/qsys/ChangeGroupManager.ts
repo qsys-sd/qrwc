@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { qrcMethods, qrwcEvents } from '../../constants'
+import { qrcMethods } from '../../constants'
 import { EventManager, PollingManager } from '..'
 import { createJSONRPCMessage } from '../../utils'
 import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent, IPollingInterval } from '../../index.interface'
@@ -19,7 +19,7 @@ export default class ChangeGroupManager {
     private newPollingRate?: IPollingInterval
   ) {
     // listen for messages
-    this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {
+    this.eventManager.on('message', (message: IServerMessage) => {
       this.parseMessage(message)
     })
     // assign change group name
@@ -57,7 +57,7 @@ export default class ChangeGroupManager {
     if (this.pollingManager) {
       // emit error
       this.eventManager.emit(
-        qrwcEvents.error,
+        'error',
         'Polling service already initialized'
       )
       return
@@ -91,7 +91,7 @@ export default class ChangeGroupManager {
   }
 
   // a method recieves components from control manager and grooms them into IComponentChangeGroup
-  public groomComponents(components: { [componentName: string]: IComponent }): IComponentChangeGroup[] {
+  public groomComponents(components: Record<string, IComponent>): IComponentChangeGroup[] {
     // create empty array to hold groomed components
     let groomedComponents: IComponentChangeGroup[] = []
     // iterate through components
@@ -160,14 +160,14 @@ export default class ChangeGroupManager {
       // if change group requests is empty, emit change group created event
       if (this.changeGroupUpdateRequests.length === 0) {
         this.eventManager.emit(
-          qrwcEvents.componentChangeGroupCreated,
+          'componentChangeGroupCreated',
           this.changeGroupName
         )
       }
     } else {
       // emit error
       this.eventManager.emit(
-        qrwcEvents.error,
+        'error',
         `Change group - ${this.changeGroupName} - request failed`
       )
     }

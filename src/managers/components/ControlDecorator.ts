@@ -1,6 +1,5 @@
 // Imports
-import { IControl, IControlUpdate } from '../../index.interface'
-import { qrwcEvents } from '../../constants'
+import { IControl, IControlUpdate, IQrwcEvents } from '../../index.interface'
 
 /**
  * ControlDecorator class
@@ -13,7 +12,7 @@ import { qrwcEvents } from '../../constants'
  * The getMetaProperty method returns the value of a requested property, or undefined if the property does not exist.
  * If the property does not exist, an error event is also emitted.
  */
-export class ControlDecorator {
+export class ControlDecorator implements IControl {
   // Private property to hold the control
   private control: IControl
 
@@ -21,7 +20,10 @@ export class ControlDecorator {
   private setComponent: (componentName: string, controlToUpdate: IControlUpdate) => void
 
   // Private property to hold the function to handle events
-  private emit: (event: string, message?: string) => void
+  private emit: <
+    T extends keyof IQrwcEvents,
+    U extends Parameters<IQrwcEvents[T]>
+  >(event: T, ...args: U) => void;
 
   /**
    * ControlDecorator constructor
@@ -29,10 +31,20 @@ export class ControlDecorator {
    * @param setComponent - The function to use to update the control
    * @param emit - The function to handle events
    */
-  constructor(control: IControl, setComponent: (componentName: string, controlToUpdate: IControlUpdate) => void, emit: (event: string, message?: string) => void) {
-    this.control = control
-    this.setComponent = setComponent
-    this.emit = emit
+  constructor(
+    control: IControl,
+    setComponent: (
+      componentName: string,
+      controlToUpdate: IControlUpdate
+    ) => void,
+    emit: <T extends keyof IQrwcEvents, U extends Parameters<IQrwcEvents[T]>>(
+      event: T,
+      ...args: U
+    ) => void
+  ) {
+    this.control = control;
+    this.setComponent = setComponent;
+    this.emit = emit;
   }
 
   /**
@@ -154,7 +166,7 @@ export class ControlDecorator {
    */
   public getMetaProperty(propertyName: string): string | number | boolean | string[] | undefined {
     if (!Object.prototype.hasOwnProperty.call(this.control, propertyName)) {
-      this.emit(qrwcEvents.error, `Property ${propertyName} does not exist on the control: ${this.control.Name}`)
+      this.emit('error', `Property ${propertyName} does not exist on the control: ${this.control.Name}`)
       return
     }
     return this.control[propertyName as keyof IControl]

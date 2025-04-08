@@ -5,10 +5,15 @@
 * QDS Version 10.0.0 or higher
 
 ### Implementation and use
+
+#### Installation
+```bash
+npm install @q-sys/qrwc
+```
+
 #### Getting started
 ```typescript
-import { Qrwc } from "@q-sys/qrwc"
-// const { Qrwc } = require('@q-sys/qrwc'); // for BE/node environments
+import { Qrwc, type IComponent } from "@q-sys/qrwc"
 
 const qrwc = new Qrwc()
 
@@ -18,11 +23,11 @@ socket.onopen = async () => {
   await qrwc.attachWebSocket(socket)
   await qrwc.start()
 
-  setComponents(qrwc.components)
+  setComponents(qrwc.components) // Record<string, IComponent>
   setInitialized(true);
 }
 
-qrwc.on("controlsUpdated", (updatedComponent: any) => {
+qrwc.on("controlsUpdated", (updatedComponent: IComponent) => {
   console.log("controlsUpdated", updatedComponent)
   // console.log("controlsUpdated", qrwc.components) // another option
 
@@ -38,25 +43,25 @@ qrwc.on("controlsUpdated", (updatedComponent: any) => {
 
 IStartOptions
 ```typescript
-export interface IStartOptions {
+interface IStartOptions {
   componentFilter?: IComponentFilter
   pollingInterval?: IPollingInterval
 }
 
-export type IPollingInterval = number // must be equal to or greater than 34
+type IPollingInterval = number // must be equal to or greater than 34
 
-export interface IComponentFilter {
+interface IComponentFilter {
   (component: IComponent): boolean
 }
 ```
 
 ##### example
 ```typescript
-function componentFilter(component){
+function componentFilter(component: IComponent){
   return component.Name === "Gain"
 }
 
-const options = {
+const options: IStartOptions = {
   componentFilter,
   pollingInterval: 34 // roughly 30 times a second
 }
@@ -82,7 +87,7 @@ If no options are provided for specific values...
 
 ```typescript
 // continued from above example
-qrwc.on("disconnected", (event) => {
+qrwc.on("disconnected", (event: string) => {
   // console.log("disconnected", event)
 
   // attempt reconnect strategy
@@ -182,8 +187,16 @@ const control = Qrwc.components.Text_Box.Controls['text.1']
 console.log("Text: ", control.String)
 // logs: Text: Some string
 ```
-### Control object API
-The `ControlObject` is used to decorate a control, providing getters and setters for its properties. The decorator pattern allows us to add new behavior or responsibilities to objects without modifying their code.
+### Updating the core:
+To update the control on the core, just directly assign a value to the `Value`, `String`, `Position`, or `Bool` properties of the control:
+
+```typescript
+stringControl.String = "Hello world";
+
+numberControl.Value = 20;
+
+boolControl.Bool = true;
+```
 
 ## Properties
 
@@ -200,9 +213,27 @@ The `ControlObject` is used to decorate a control, providing getters and setters
 - `getProperties()`: Returns a deep copy of all the properties of the control.
 - `getMetaProperty(propertyName: string)`: Gets a property from the control that is not available via default getters. If the property does not exist, an error event is emitted and the function execution ends.
 
-## Events
+## Qrwc Events
 
-- `qrwcEvents.error`: Emitted when there is a type mismatch for a property or when a property does not exist on the control.
+- `controlsUpdated`: emitted when a control has been updated by the core:
+```typescript
+qrwc.on("controlsUpdated", (updatedComponent: IComponent) => {
+  console.log("controlsUpdated", updatedComponent)
+  // This is when you application should update
+})
+```
+- `disconnected`: emitted when QRWC has lost its connection and indicates that a new websocket and instance of Qrwc should be created.
+```typescript
+qrwc.on("disconnected", (event: string) => {
+   // attempt reconnect strategy
+})
+```
+- `error`: Emitted when there is a type mismatch for a property or when a property does not exist on the control.
+```typescript
+qrwc.on("error", (error) => {
+   console.error("Qrwc error: ", error)
+})
+```
 
 ## Example
 

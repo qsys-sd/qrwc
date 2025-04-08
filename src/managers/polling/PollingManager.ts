@@ -1,10 +1,10 @@
-import { qrcMethods, qrwcPollReset, qrwcMinPollInterval, qrwcDefaultPollInterval } from '../../constants'
+import { qrcMethods, QrwcPollReset, QrwcMinPollInterval, QrwcDefaultPollInterval } from '../../constants'
 import { IPollingInterval } from '../../index.interface'
 import { createJSONRPCMessage } from '../../utils'
 
 
 export default class PollingManager {
-  private pollInterval: number = qrwcDefaultPollInterval
+  private pollInterval: number = QrwcDefaultPollInterval
   private intervalId: NodeJS.Timer | null = null
   private socketPollId: number = 1
   public changeGroupId: string
@@ -28,12 +28,12 @@ export default class PollingManager {
   // setter for polling interval
   set interval(interval: number) {
     // set interval if above Minimum interval
-    if(interval >= qrwcMinPollInterval) this.pollInterval = interval
+    if(interval >= QrwcMinPollInterval) this.pollInterval = interval
   }
 
   // check if given polling interval is valid
   private isValidInterval(interval: number): boolean {
-    return interval >= qrwcMinPollInterval
+    return interval >= QrwcMinPollInterval
   }
 
   // a method to start polling
@@ -66,7 +66,7 @@ export default class PollingManager {
     this.socketPollId++
 
     // reset socketPollId after 30 seconds
-    const numPollsBeforeReset = Math.floor(qrwcPollReset / this.pollInterval)
+    const numPollsBeforeReset = Math.floor(QrwcPollReset / this.pollInterval)
     if (this.socketPollId > numPollsBeforeReset) {
       this.socketPollId = 1
     }
@@ -78,7 +78,7 @@ export default class PollingManager {
     clearInterval(this.intervalId as NodeJS.Timer)
 
     // reset the pollInterval to its initial value
-    this.pollInterval = qrwcDefaultPollInterval
+    this.pollInterval = QrwcDefaultPollInterval
 
     // reset the socketPollId
     this.socketPollId = 1

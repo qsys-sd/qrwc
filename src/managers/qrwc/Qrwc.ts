@@ -7,8 +7,8 @@ import {
   ComponentManager,
   StartManager
 } from '..'
-import { IComponent, IComponentFilter, IStartOptions } from '../../index.interface'
-import { qrwcEvents, qrwcMinPollInterval, qrwcMockComponentGetResult } from '../../constants'
+import { IComponent, IComponentFilter, IStartOptions, IQrwcEvents } from '../../index.interface'
+import {  QrwcMinPollInterval, qrwcMockComponentGetResult } from '../../constants'
 
 export class Qrwc {
   webSocketManager: WebSocketManager | null = null
@@ -35,14 +35,14 @@ export class Qrwc {
       this.eventManager
     )
 
-    this.eventManager.on(qrwcEvents.disconnected, () => {
+    this.eventManager.on('disconnected', () => {
       // initate clean up
       this.qrwcCleanUp()
     })
   }
 
   // a getter method for components
-  get components(): { [componentName: string]: IComponent } {
+  get components(): Record<string, IComponent> {
     return this.controlManager.components
   }
 
@@ -129,16 +129,16 @@ export class Qrwc {
   public validateComponentFilter(componentFilter: IComponentFilter): boolean {
     const isValid = typeof componentFilter === 'function' && typeof componentFilter(qrwcMockComponentGetResult) === 'boolean'
     if (!isValid) {
-      this.eventManager.emit(qrwcEvents.error, 'Invalid componentFilter, using defaults')
+      this.eventManager.emit('error', 'Invalid componentFilter, using defaults')
     }
     return isValid
   }
 
   // Helper function to validate polling interval
   public validatePollingInterval(pollingInterval: number): boolean {
-    const isValid = typeof pollingInterval === 'number' && pollingInterval >= qrwcMinPollInterval
+    const isValid = typeof pollingInterval === 'number' && pollingInterval >= QrwcMinPollInterval
     if (!isValid) {
-      this.eventManager.emit(qrwcEvents.error, `Invalid pollingInterval, must be a number greater than ${qrwcMinPollInterval}, using defaults`)
+      this.eventManager.emit('error', `Invalid pollingInterval, must be a number greater than ${QrwcMinPollInterval}, using defaults`)
     }
     return isValid
   }
@@ -146,7 +146,7 @@ export class Qrwc {
   // Method to check if webSocketManager is initialized
   public checkWebSocketManagerInitialized(): boolean {
     if (!this.webSocketManager) {
-      this.eventManager.emit(qrwcEvents.error, 'web socket not initialized')
+      this.eventManager.emit('error', 'web socket not initialized')
       return false
     }
     return true
@@ -155,7 +155,7 @@ export class Qrwc {
   // Method to check if startManager is initialized
   public checkStartManagerInitialized(): boolean {
     if (this.startManager) {
-      this.eventManager.emit(qrwcEvents.error, 'start already initialized')
+      this.eventManager.emit('error', 'start already initialized')
       return true
     }
     return false
@@ -170,7 +170,7 @@ export class Qrwc {
   }
 
   // a method that decorates the .on method of the eventManager
-  public on(event: string, listener: (...args: unknown[]) => void): void {
+  public on<T extends keyof IQrwcEvents, U extends IQrwcEvents[T]>(event: T, listener: U): void {
     this.eventManager.on(event, listener)
   }
 

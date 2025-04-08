@@ -1,4 +1,3 @@
-import { qrwcEvents } from '../../constants'
 import { IChange, IChangeRequest, IServerMessage, IMessageChangeResult, IOnChangeRequest } from '../../index.interface'
 import { EventManager } from '..'
 
@@ -8,7 +7,7 @@ export default class ChangeRequestManager {
   constructor(
     private eventManager: EventManager
   ) {
-    this.eventManager.on(qrwcEvents.message, (message: IServerMessage) => {
+    this.eventManager.on('message', (message: IServerMessage) => {
       this.parseMessage(message)
     })
   }
@@ -90,13 +89,13 @@ export default class ChangeRequestManager {
 
   // a method for emitting a successful change request
   private emitSuccessfulChangeRequest(changeRequest: IChangeRequest): void {
-    this.eventManager.emit(qrwcEvents.changeRequestSuccessful, changeRequest)
+    this.eventManager.emit('changeRequestSuccessful', changeRequest)
   }
 
   // a method for emitting a failed change request
   private emitFailedChangeRequest(changeRequest: IChangeRequest): void {
     const errorMessage = `Change request for ${changeRequest.component} failed`
-    this.eventManager.emit(qrwcEvents.error, errorMessage)
+    this.eventManager.emit('error', errorMessage)
   }
 
   // a temp method to check if is array and not emtpy

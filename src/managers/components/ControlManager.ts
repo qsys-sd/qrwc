@@ -1,12 +1,12 @@
 import { v4 as uuidv4 } from 'uuid'
-import { qrcMethods, qrwcEvents } from '../../constants'
+import { qrcMethods } from '../../constants'
 import { IChange, IComponent, IControl, IControlUpdate } from '../../index.interface'
 import { EventManager, ChangeRequestManager } from '..'
 import { createJSONRPCMessage, isValidControlChange, JSONRPCMessage } from '../../utils'
 import { ControlDecorator } from './ControlDecorator'
 
 export default class ControlManager {
-  public components: { [componentName: string]: IComponent} = {}
+  public components: Record<string, IComponent> = {}
 
   constructor(
     private webSocketSend: (message: JSONRPCMessage) => void,
@@ -31,7 +31,7 @@ export default class ControlManager {
       // check if change is valid
       if (!isValidControlChange(change)) {
         // if change is invalid, emit error
-        this.eventManager.emit(qrwcEvents.error, 'Invalid change')
+        this.eventManager.emit('error', 'Invalid change')
         return
       }
 
@@ -54,7 +54,7 @@ export default class ControlManager {
       } else {
         // emit error
         this.eventManager.emit(
-          qrwcEvents.error,
+          'error',
           'Connot update Control, existing Control not found'
         )
       }
@@ -67,7 +67,7 @@ export default class ControlManager {
     if (this.webSocketSend) {
       // emit error
       this.eventManager.emit(
-        qrwcEvents.error,
+        'error',
         'Websocket send already attached'
       )
       return
@@ -91,7 +91,7 @@ export default class ControlManager {
     }
 
     // emit component updated event
-    this.eventManager.emit(qrwcEvents.controlsUpdated, this.components[newControl.Component])
+    this.eventManager.emit('controlsUpdated', this.components[newControl.Component])
   }
 
   // a method for adding a new component to components
@@ -100,7 +100,7 @@ export default class ControlManager {
     if (this.components[componentName]) {
       // if component exists, emit error
       this.eventManager.emit(
-        qrwcEvents.error,
+        'error',
         'Component already exists'
       )
       return
@@ -138,7 +138,7 @@ export default class ControlManager {
     if (!this.webSocketSend) {
       // if webSocketManager is not defined, emit error
       this.eventManager.emit(
-        qrwcEvents.error,
+        'error',
         'WebSocketManager is not defined'
       )
       return
@@ -162,7 +162,7 @@ export default class ControlManager {
     if (!this.components[componentName]) {
       // if component does not exist, emit error
       this.eventManager.emit(
-        qrwcEvents.error,
+        'error',
         'Component does not exist'
       )
       return
@@ -172,7 +172,7 @@ export default class ControlManager {
     if (!this.components[componentName].Controls[controlName]) {
       // if control does not exist, emit error
       this.eventManager.emit(
-        qrwcEvents.error,
+        'error',
         'Control does not exist'
       )
       return

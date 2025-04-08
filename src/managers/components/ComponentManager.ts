@@ -1,12 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import { IComponent, IServerMessage } from '../../index.interface'
-import { qrcMethods, qrwcEvents } from '../../constants'
+import { qrcMethods } from '../../constants'
 import { JSONRPCMessage, createJSONRPCMessage } from '../../utils'
 
 export default class ComponentManager {
-  public componentList: {
-    [componentName: string]: IComponent
-  }
+  public componentList: Record<string, IComponent>
   public componentNames: string[] = []
   private getComponentsId: string = ''
 
@@ -17,7 +15,7 @@ export default class ComponentManager {
     private componentFilter?: (component: IComponent) => boolean
   ) {
     //event listener for handling websocket messages
-    this.onMessage(qrwcEvents.message, (message: IServerMessage) => {
+    this.onMessage('message', (message: IServerMessage) => {
       this.parseMessage(message)
     })
   }
@@ -69,7 +67,7 @@ export default class ComponentManager {
 
     // check if componentList is empty
     if (!result.length) {
-      this.emit(qrwcEvents.error, 'No components found')
+      this.emit('error', 'No components found')
     }
 
     // check if there is a filter
@@ -84,6 +82,6 @@ export default class ComponentManager {
     this.setComponentList(checkedComponents)
 
     // emit event when all components have been added to componentList
-    this.emit(qrwcEvents.componentsReceived, this.componentList)
+    this.emit('componentsReceived', this.componentList)
   }
 }
