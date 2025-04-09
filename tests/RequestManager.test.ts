@@ -20,10 +20,22 @@ describe('ChangeRequestManager', () => {
       const onChangeRequest = jest.fn()
 
       // Call the method under test
-      changeRequestManager.createChangeRequest(componentName, requestId, onChangeRequest)
+      changeRequestManager.createChangeRequest(
+        componentName,
+        requestId,
+        onChangeRequest
+      )
 
       // Use type assertion with index signature to access private property
-      const changeRequestIds = (changeRequestManager as unknown as { [key: string]: Array<{ id: string, component: string, onChangeRequest: () => void }> }).changeRequestIds
+      const changeRequestIds = (
+        changeRequestManager as unknown as {
+          [key: string]: Array<{
+            id: string
+            component: string
+            onChangeRequest: () => void
+          }>
+        }
+      ).changeRequestIds
 
       expect(changeRequestIds).toHaveLength(1)
       expect(changeRequestIds[0]).toEqual({

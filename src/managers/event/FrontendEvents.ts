@@ -2,7 +2,10 @@ import { IEventEmitter } from '../../index.interface'
 
 class FrontendEventEmitter implements IEventEmitter {
   private eventTarget: EventTarget
-  private listeners: Map<(...args: unknown[]) => void, EventListenerOrEventListenerObject>
+  private listeners: Map<
+    (...args: unknown[]) => void,
+    EventListenerOrEventListenerObject
+  >
 
   constructor() {
     this.eventTarget = new EventTarget()
@@ -22,7 +25,10 @@ class FrontendEventEmitter implements IEventEmitter {
     this.eventTarget.dispatchEvent(eventToDispatch)
   }
 
-  public removeListener(event: string, listener: (...args: unknown[]) => void): void {
+  public removeListener(
+    event: string,
+    listener: (...args: unknown[]) => void
+  ): void {
     const wrappedListener = this.listeners.get(listener)
     if (wrappedListener) {
       this.eventTarget.removeEventListener(event, wrappedListener)

@@ -18,7 +18,7 @@
     "test:frontend": "npm run lint && jest --config jest.jsdom.config.js",
     "test": "npm run lint && npm run test:node && npm run test:frontend",
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
-    "fix": "eslint --fix 'src/**/*.ts' 'tests/**/*.ts'",
+    "fix": "eslint --fix 'src/**/*.ts' 'tests/**/*.ts' && prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
     "prepare": "husky install"
   },
   "husky": {
@@ -43,11 +43,13 @@
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
     "eslint": "^8.46.0",
+    "eslint-config-prettier": "^10.1.1",
     "husky": "^7.0.4",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^12.3.8",
     "mock-socket": "^9.3.1",
+    "prettier": "^3.5.3",
     "ts-jest": "^29.2.2"
   },
   "jest": {

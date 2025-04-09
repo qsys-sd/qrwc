@@ -7,7 +7,8 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   extends: [
     'eslint:recommended',
-    'plugin:@typescript-eslint/recommended'
+    'plugin:@typescript-eslint/recommended',
+    'prettier'
   ],
   env: {
     browser: true,
@@ -16,10 +17,9 @@ module.exports = {
     jest: true
   },
   rules: {
-    'semi': ['error', 'never'],
+    semi: ['error', 'never'],
     'comma-dangle': ['error', 'never'],
-    'quotes': ['error', 'single'],
-    'indent': ['error', 2],
+    quotes: ['error', 'single'],
     'no-trailing-spaces': 'error',
     'eol-last': ['error', 'always']
     // Add any additional ESLint rules here

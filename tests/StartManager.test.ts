@@ -1,4 +1,11 @@
-import { StartManager, WebSocketManager, ControlManager, EventManager, ChangeRequestManager, ComponentManager } from '../src/managers'
+import {
+  StartManager,
+  WebSocketManager,
+  ControlManager,
+  EventManager,
+  ChangeRequestManager,
+  ComponentManager
+} from '../src/managers'
 import { WebSocket, Server as MockServer } from 'mock-socket'
 
 describe('startManager', () => {
@@ -13,7 +20,7 @@ describe('startManager', () => {
 
   eventManager.initializeEmitter()
 
-  beforeEach(done => {
+  beforeEach((done) => {
     mockServer = new MockServer('ws://localhost:1234')
     mockWebSocket = new WebSocket('ws://localhost:1234')
     mockWebSocket.onopen = () => {
@@ -23,7 +30,11 @@ describe('startManager', () => {
     webSocketManager = new WebSocketManager(mockWebSocket, eventManager)
     const webSocketSend = webSocketManager.send.bind(webSocketManager)
     changeRequestManager = new ChangeRequestManager(eventManager)
-    controlManager = new ControlManager(webSocketSend, eventManager, changeRequestManager)
+    controlManager = new ControlManager(
+      webSocketSend,
+      eventManager,
+      changeRequestManager
+    )
     componentManager = new ComponentManager(
       eventManager.on.bind(eventManager),
       eventManager.emit.bind(eventManager),

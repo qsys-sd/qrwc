@@ -7,8 +7,16 @@ import {
   ComponentManager,
   StartManager
 } from '..'
-import { IComponent, IComponentFilter, IStartOptions, IQrwcEvents } from '../../index.interface'
-import {  QrwcMinPollInterval, qrwcMockComponentGetResult } from '../../constants'
+import {
+  IComponent,
+  IComponentFilter,
+  IStartOptions,
+  IQrwcEvents
+} from '../../index.interface'
+import {
+  QrwcMinPollInterval,
+  qrwcMockComponentGetResult
+} from '../../constants'
 
 export class Qrwc {
   webSocketManager: WebSocketManager | null = null
@@ -32,9 +40,7 @@ export class Qrwc {
     this.eventManager = new EventManager()
     await this.eventManager.initializeEmitter()
     // create ChangeRequestManager instance
-    this.changeRequestManager = new ChangeRequestManager(
-      this.eventManager
-    )
+    this.changeRequestManager = new ChangeRequestManager(this.eventManager)
 
     this.eventManager.on('disconnected', () => {
       // initate clean up
@@ -65,7 +71,10 @@ export class Qrwc {
     })
   }
 
-  public async start({ componentFilter, pollingInterval }: IStartOptions = {}): Promise<void> {
+  public async start({
+    componentFilter,
+    pollingInterval
+  }: IStartOptions = {}): Promise<void> {
     // check start options
     const validatedComponentFilter =
       componentFilter && this.validateComponentFilter(componentFilter)
@@ -128,7 +137,9 @@ export class Qrwc {
 
   // Helper function to validate component filter
   public validateComponentFilter(componentFilter: IComponentFilter): boolean {
-    const isValid = typeof componentFilter === 'function' && typeof componentFilter(qrwcMockComponentGetResult) === 'boolean'
+    const isValid =
+      typeof componentFilter === 'function' &&
+      typeof componentFilter(qrwcMockComponentGetResult) === 'boolean'
     if (!isValid) {
       this.eventManager.emit('error', 'Invalid componentFilter, using defaults')
     }
@@ -137,9 +148,14 @@ export class Qrwc {
 
   // Helper function to validate polling interval
   public validatePollingInterval(pollingInterval: number): boolean {
-    const isValid = typeof pollingInterval === 'number' && pollingInterval >= QrwcMinPollInterval
+    const isValid =
+      typeof pollingInterval === 'number' &&
+      pollingInterval >= QrwcMinPollInterval
     if (!isValid) {
-      this.eventManager.emit('error', `Invalid pollingInterval, must be a number greater than ${QrwcMinPollInterval}, using defaults`)
+      this.eventManager.emit(
+        'error',
+        `Invalid pollingInterval, must be a number greater than ${QrwcMinPollInterval}, using defaults`
+      )
     }
     return isValid
   }
@@ -171,7 +187,10 @@ export class Qrwc {
   }
 
   // a method that decorates the .on method of the eventManager
-  public on<T extends keyof IQrwcEvents, U extends IQrwcEvents[T]>(event: T, listener: U): void {
+  public on<T extends keyof IQrwcEvents, U extends IQrwcEvents[T]>(
+    event: T,
+    listener: U
+  ): void {
     this.eventManager.on(event, listener)
   }
 
@@ -203,7 +222,6 @@ export class Qrwc {
 
     // check if componentManager is defined
     if (this.componentManager) {
-
       // set componentManager to null
       this.componentManager = null
     }

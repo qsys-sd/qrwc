@@ -1,8 +1,17 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods } from '../../constants'
-import { IChange, IComponent, IControl, IControlUpdate } from '../../index.interface'
+import {
+  IChange,
+  IComponent,
+  IControl,
+  IControlUpdate
+} from '../../index.interface'
 import { EventManager, ChangeRequestManager } from '..'
-import { createJSONRPCMessage, isValidControlChange, JSONRPCMessage } from '../../utils'
+import {
+  createJSONRPCMessage,
+  isValidControlChange,
+  JSONRPCMessage
+} from '../../utils'
 import { ControlDecorator } from './ControlDecorator'
 
 export default class ControlManager {
@@ -36,10 +45,7 @@ export default class ControlManager {
       }
 
       // find existing control
-      const existingControl = this.getControl(
-        change.Component,
-        change.Name
-      )
+      const existingControl = this.getControl(change.Component, change.Name)
 
       // check if existing control exists
       if (existingControl) {
@@ -66,10 +72,7 @@ export default class ControlManager {
     // check if websocketManager is defined
     if (this.webSocketSend) {
       // emit error
-      this.eventManager.emit(
-        'error',
-        'Websocket send already attached'
-      )
+      this.eventManager.emit('error', 'Websocket send already attached')
       return
     }
 
@@ -91,7 +94,10 @@ export default class ControlManager {
     }
 
     // emit component updated event
-    this.eventManager.emit('controlsUpdated', this.components[newControl.Component])
+    this.eventManager.emit(
+      'controlsUpdated',
+      this.components[newControl.Component]
+    )
   }
 
   // a method for adding a new component to components
@@ -99,10 +105,7 @@ export default class ControlManager {
     // check if component exists
     if (this.components[componentName]) {
       // if component exists, emit error
-      this.eventManager.emit(
-        'error',
-        'Component already exists'
-      )
+      this.eventManager.emit('error', 'Component already exists')
       return
     }
 
@@ -137,16 +140,17 @@ export default class ControlManager {
     // check if webSocketSend is defined
     if (!this.webSocketSend) {
       // if webSocketManager is not defined, emit error
-      this.eventManager.emit(
-        'error',
-        'WebSocketManager is not defined'
-      )
+      this.eventManager.emit('error', 'WebSocketManager is not defined')
       return
     }
 
     // send setControlValue request
     this.webSocketSend(
-      createJSONRPCMessage(qrcMethods.components.set, componentChange, requestId)
+      createJSONRPCMessage(
+        qrcMethods.components.set,
+        componentChange,
+        requestId
+      )
     )
   }
 
@@ -157,24 +161,21 @@ export default class ControlManager {
   }
 
   // a method for retuning a existing control otherwise undefined
-  public getControl(componentName: string, controlName: string): ControlDecorator | undefined {
+  public getControl(
+    componentName: string,
+    controlName: string
+  ): ControlDecorator | undefined {
     // check if component exists
     if (!this.components[componentName]) {
       // if component does not exist, emit error
-      this.eventManager.emit(
-        'error',
-        'Component does not exist'
-      )
+      this.eventManager.emit('error', 'Component does not exist')
       return
     }
 
     // check if control exists
     if (!this.components[componentName].Controls[controlName]) {
       // if control does not exist, emit error
-      this.eventManager.emit(
-        'error',
-        'Control does not exist'
-      )
+      this.eventManager.emit('error', 'Control does not exist')
       return
     }
 

@@ -1,8 +1,5 @@
 import { Qrwc } from './Qrwc'
-import {
-  IComponent,
-  ISetupQrwcParams
-} from '../../index.interface'
+import { IComponent, ISetupQrwcParams } from '../../index.interface'
 
 export const setupQrwc = ({
   coreIpAddress,

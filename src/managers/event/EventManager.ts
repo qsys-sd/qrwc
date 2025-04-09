@@ -1,7 +1,8 @@
 import { IEventEmitter, IQrwcEvents } from '../../index.interface'
 import FrontendEventEmitter from './FrontendEvents'
 
-const isInBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'
+const isInBrowser =
+  typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
 export default class EventManager {
   private emitter: IEventEmitter
@@ -32,7 +33,10 @@ export default class EventManager {
     this.emitter.emit(event, ...args)
   }
 
-  public removeListener(event: string, listener: (...args: unknown[]) => void): void {
+  public removeListener(
+    event: string,
+    listener: (...args: unknown[]) => void
+  ): void {
     this.emitter.removeListener(event, listener)
   }
 

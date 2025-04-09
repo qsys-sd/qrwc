@@ -29,21 +29,30 @@ describe('ControlDecorator setters', () => {
     // Set the Position property of the control
     controlDecorator.Position = 2
     // Verify setComponent was called with two arguments
-    expect(setComponent).toHaveBeenCalledWith('TestComponent', { Name: 'TestControl', Value: 2 })
+    expect(setComponent).toHaveBeenCalledWith('TestComponent', {
+      Name: 'TestControl',
+      Value: 2
+    })
   })
 
   test('should request update with new Value', () => {
     // Set the Value property of the control
     controlDecorator.Value = 'NewValue'
     // Verify setComponent was called with two arguments
-    expect(setComponent).toHaveBeenCalledWith('TestComponent', { Name: 'TestControl', Value: 'NewValue' })
+    expect(setComponent).toHaveBeenCalledWith('TestComponent', {
+      Name: 'TestControl',
+      Value: 'NewValue'
+    })
   })
 
   test('should request update with new String', () => {
     // Set the String property of the control
     controlDecorator.String = 'NewString'
     // Verify setComponent was called with two arguments
-    expect(setComponent).toHaveBeenCalledWith('TestComponent', { Name: 'TestControl', Value: 'NewString' })
+    expect(setComponent).toHaveBeenCalledWith('TestComponent', {
+      Name: 'TestControl',
+      Value: 'NewString'
+    })
   })
 
   test('should provide Choices', () => {

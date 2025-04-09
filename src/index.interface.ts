@@ -49,26 +49,31 @@ interface IDesignMessage {
 }
 
 export interface IMessageAddComponent extends IDesignMessage {
-  result: boolean;
+  result: boolean
 }
 
 export interface IMessagePollResult extends IDesignMessage {
-  result: IChangePollResult;
+  result: IChangePollResult
 }
 
 export interface IMessageControlGetResult extends IDesignMessage {
-  result: IControlGetResult;
+  result: IControlGetResult
 }
 
 export interface IMessageComponentsGetResult extends IDesignMessage {
-  result: IComponent[];
+  result: IComponent[]
 }
 
 export interface IMessageChangeResult extends IDesignMessage {
-  result: IChange[];
+  result: IChange[]
 }
 
-export type IServerMessage = IMessageAddComponent | IMessagePollResult | IMessageControlGetResult | IMessageComponentsGetResult | IMessageChangeResult
+export type IServerMessage =
+  | IMessageAddComponent
+  | IMessagePollResult
+  | IMessageControlGetResult
+  | IMessageComponentsGetResult
+  | IMessageChangeResult
 
 export interface IStartOptions {
   componentFilter?: IComponentFilter
@@ -93,107 +98,107 @@ interface IParams {
 }
 
 export interface IComponentsGetProperty {
-  Name: string;
-  Value: string;
-  PrettyName: string;
+  Name: string
+  Value: string
+  PrettyName: string
 }
 
 export interface IComponent {
-  Properties: IComponentsGetProperty[];
-  ID: string;
-  Name: string;
-  Type: string;
-  Controls: Record<string, ControlDecorator> | null;
-  ControlSource: number;
+  Properties: IComponentsGetProperty[]
+  ID: string
+  Name: string
+  Type: string
+  Controls: Record<string, ControlDecorator> | null
+  ControlSource: number
 }
 
 export interface IControlGet {
-  Name: string;
-  Type: string;
-  Choices?: string[];
-  Value?: number;
-  String: string;
-  Direction: string;
-  Position?: number;
-  ValueMin?: number;
-  ValueMax?: number;
-  StringMin?: string;
-  StringMax?: string;
+  Name: string
+  Type: string
+  Choices?: string[]
+  Value?: number
+  String: string
+  Direction: string
+  Position?: number
+  ValueMin?: number
+  ValueMax?: number
+  StringMin?: string
+  StringMax?: string
 }
 
 export interface IControlGetResult {
-  Name: string;
-  Controls: IControlGet[];
+  Name: string
+  Controls: IControlGet[]
 }
 
 export interface IChange {
-  Component: string;
-  Name: string;
-  String: string;
-  Value: number;
-  Position: number;
-  Choices?: string[];
-  Color?: string;
-  Indeterminate?: boolean;
-  Invisible?: boolean;
-  Disabled?: boolean;
-  Legend?: string;
-  CssClass?: string;
-  Strings?: string[];
+  Component: string
+  Name: string
+  String: string
+  Value: number
+  Position: number
+  Choices?: string[]
+  Color?: string
+  Indeterminate?: boolean
+  Invisible?: boolean
+  Disabled?: boolean
+  Legend?: string
+  CssClass?: string
+  Strings?: string[]
 }
 
 export interface IChangePollResult {
-  Id: string;
-  Changes: IChange[];
+  Id: string
+  Changes: IChange[]
 }
 
 export interface IRequestChanges {
-  ResponseValues: boolean;
-  Name: string;
-  Controls: IControlUpdate[];
+  ResponseValues: boolean
+  Name: string
+  Controls: IControlUpdate[]
 }
 
 export interface IRequestControls {
-  Name: string;
+  Name: string
 }
 
 export interface IRequestPoll {
-  Id: string;
+  Id: string
 }
 
 export interface IEventEmitter {
-  on(event: string, listener: (...args: unknown[]) => void): void;
-  emit(event: string, ...args: unknown[]): void;
-  removeListener(event: string, listener: (...args: unknown[]) => void): void;
-  removeAllListeners(): void;
+  on(event: string, listener: (...args: unknown[]) => void): void
+  emit(event: string, ...args: unknown[]): void
+  removeListener(event: string, listener: (...args: unknown[]) => void): void
+  removeAllListeners(): void
 }
 
 export interface IQrwcEvents {
-  message: (message: IServerMessage) => void;
-  error: (error: unknown) => void;
-  disconnected: (event: string) => void;
-  connected: () => void;
-  webSocketAttached: () => void;
-  startComplete: () => void,
-  controlsUpdated: (updatedComponent: IComponent) => void;
-  controlsReceived: () => void;
-  componentsReceived: (components: Record<string, IComponent>) => void;
-  changeRequestSuccessful: (changeRequest: IChangeRequest) => void;
-  componentChangeGroupCreated: (changeGroupId: string) => void;
+  message: (message: IServerMessage) => void
+  error: (error: unknown) => void
+  disconnected: (event: string) => void
+  connected: () => void
+  webSocketAttached: () => void
+  startComplete: () => void
+  controlsUpdated: (updatedComponent: IComponent) => void
+  controlsReceived: () => void
+  componentsReceived: (components: Record<string, IComponent>) => void
+  changeRequestSuccessful: (changeRequest: IChangeRequest) => void
+  componentChangeGroupCreated: (changeGroupId: string) => void
 }
 
 export interface ISetupQrwcParams {
-  coreIpAddress: string,
-  maxReconnectAttempts?: number;
-  reconnectDelay?: number;
-  componentFilter?: IComponentFilter;
-  pollingInterval?: number;
-  onError?: (qrwc: Qrwc, error: unknown) => void;
-  onDisconnect?: (qrwc: Qrwc, event: string) => void;
-  onStartComplete?: (qrwc: Qrwc) => void;
-  onControlsUpdated?: (qrwc: Qrwc, updatedComponent: IComponent) => void;
+  coreIpAddress: string
+  maxReconnectAttempts?: number
+  reconnectDelay?: number
+  componentFilter?: IComponentFilter
+  pollingInterval?: number
+  onError?: (qrwc: Qrwc, error: unknown) => void
+  onDisconnect?: (qrwc: Qrwc, event: string) => void
+  onStartComplete?: (qrwc: Qrwc) => void
+  onControlsUpdated?: (qrwc: Qrwc, updatedComponent: IComponent) => void
   onComponentsReceived?: (
     qrwc: Qrwc,
     components: Record<string, IComponent>
-  ) => void;
+  ) => void
 }

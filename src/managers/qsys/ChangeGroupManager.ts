@@ -2,7 +2,14 @@ import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods } from '../../constants'
 import { EventManager, PollingManager } from '..'
 import { createJSONRPCMessage } from '../../utils'
-import { IChange, IComponent, IComponentChangeGroup, IServerMessage, IMessageAddComponent, IPollingInterval } from '../../index.interface'
+import {
+  IChange,
+  IComponent,
+  IComponentChangeGroup,
+  IServerMessage,
+  IMessageAddComponent,
+  IPollingInterval
+} from '../../index.interface'
 
 export default class ChangeGroupManager {
   private changeGroupUpdateRequests: string[] = []
@@ -56,16 +63,14 @@ export default class ChangeGroupManager {
     // check if polling service is already initialized
     if (this.pollingManager) {
       // emit error
-      this.eventManager.emit(
-        'error',
-        'Polling service already initialized'
-      )
+      this.eventManager.emit('error', 'Polling service already initialized')
       return
     }
 
     // create polling service
     this.pollingManager = new PollingManager(
-      this.changeGroupId, this.send,
+      this.changeGroupId,
+      this.send,
       this.newPollingRate
     )
   }
@@ -86,12 +91,13 @@ export default class ChangeGroupManager {
       // if message has Changes, handle Changes
       /// use handleChangeGroupUpdate method
       this.handleControlChanges(message?.result?.Changes)
-
     }
   }
 
   // a method recieves components from control manager and grooms them into IComponentChangeGroup
-  public groomComponents(components: Record<string, IComponent>): IComponentChangeGroup[] {
+  public groomComponents(
+    components: Record<string, IComponent>
+  ): IComponentChangeGroup[] {
     // create empty array to hold groomed components
     let groomedComponents: IComponentChangeGroup[] = []
     // iterate through components
@@ -116,9 +122,7 @@ export default class ChangeGroupManager {
   }
 
   // a method for creating change groups
-  public createChangeGroup(
-    components: IComponentChangeGroup[]
-  ): void {
+  public createChangeGroup(components: IComponentChangeGroup[]): void {
     // add components to change group
     this.changeGroupComponents = components
 
@@ -130,13 +134,14 @@ export default class ChangeGroupManager {
   }
 
   // a method for adding components to change groups
-  public addComponentToChangeGroup(
-    component: IComponentChangeGroup
-  ): void {
+  public addComponentToChangeGroup(component: IComponentChangeGroup): void {
     // create request id
     const requestId = uuidv4()
     // add request id to changeGroupUpdateRequests
-    this.changeGroupUpdateRequests = [...this.changeGroupUpdateRequests, requestId]
+    this.changeGroupUpdateRequests = [
+      ...this.changeGroupUpdateRequests,
+      requestId
+    ]
 
     // send addComponentControl request
     this.send(

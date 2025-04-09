@@ -1,4 +1,8 @@
-import { ControlManager, EventManager, ChangeRequestManager } from '../src/managers'
+import {
+  ControlManager,
+  EventManager,
+  ChangeRequestManager
+} from '../src/managers'
 import { ControlDecorator } from '../src/managers/components/ControlDecorator'
 import { IComponent, IControl } from '../src/index.interface'
 
@@ -19,7 +23,11 @@ describe('ControlManager', () => {
 
     mockChangeRequestManager = new ChangeRequestManager(mockEventManager)
 
-    controlManager = new ControlManager(webSocketSend, mockEventManager, mockChangeRequestManager)
+    controlManager = new ControlManager(
+      webSocketSend,
+      mockEventManager,
+      mockChangeRequestManager
+    )
   })
 
   it('should add a new control', () => {
@@ -43,17 +51,25 @@ describe('ControlManager', () => {
     const newControl = new ControlDecorator(mockControl, jest.fn(), jest.fn())
 
     // Use type assertion to access private method
-    const controlManagerWithPrivateMethods = controlManager as unknown as { updateControls: (control: ControlDecorator) => void }
+    const controlManagerWithPrivateMethods = controlManager as unknown as {
+      updateControls: (control: ControlDecorator) => void
+    }
     controlManagerWithPrivateMethods.updateControls(newControl)
 
-    const retrievedControl = controlManager.getControl('TestComponent', 'TestControl')
+    const retrievedControl = controlManager.getControl(
+      'TestComponent',
+      'TestControl'
+    )
     expect(retrievedControl).toBeDefined()
     expect(retrievedControl).toBeInstanceOf(ControlDecorator)
     expect(retrievedControl).toEqual(newControl)
   })
 
   it('should return undefined for a non-existent control', () => {
-    const control = controlManager.getControl('NonExistentComponent', 'NonExistentControl')
+    const control = controlManager.getControl(
+      'NonExistentComponent',
+      'NonExistentControl'
+    )
     expect(control).toBeUndefined()
   })
 })

@@ -10,7 +10,8 @@ describe('WebSocketManager', () => {
 
   eventManager.initializeEmitter()
 
-  beforeEach((done) => { // Use beforeAll with done callback
+  beforeEach((done) => {
+    // Use beforeAll with done callback
     mockServer = new Server('ws://localhost:8080')
     global.WebSocket = WebSocket // Mock global WebSocket with mock-socket WebSocket
 
@@ -21,11 +22,12 @@ describe('WebSocketManager', () => {
     }
   })
 
-  afterEach(() => { // Use afterAll for cleanup
+  afterEach(() => {
+    // Use afterAll for cleanup
     mockServer.stop()
   })
 
-  test('should handle onMessage event', done => {
+  test('should handle onMessage event', (done) => {
     const testMessage = 'test message'
 
     eventManager.on('message', (message) => {
@@ -36,7 +38,7 @@ describe('WebSocketManager', () => {
     mockServer.emit('message', JSON.stringify(testMessage))
   })
 
-  test('should handle error event', done => {
+  test('should handle error event', (done) => {
     eventManager.on(qrwcEvents.error, (error) => {
       expect(error).toBeTruthy()
       done()
@@ -48,8 +50,8 @@ describe('WebSocketManager', () => {
   test('should send data', () => {
     const testData = { action: 'testAction' }
 
-    mockServer.on('connection', socket => {
-      socket.on('message', data => {
+    mockServer.on('connection', (socket) => {
+      socket.on('message', (data) => {
         if (typeof data !== 'string') {
           throw new Error('Data is not a string')
         }
@@ -75,7 +77,7 @@ describe('WebSocketManager', () => {
     expect(readyState).toBe(WebSocket.OPEN)
   })
 
-  test('should handle onClose event', done => {
+  test('should handle onClose event', (done) => {
     eventManager.on(qrwcEvents.disconnected, (event) => {
       expect(event).toBeTruthy()
       done()
@@ -84,7 +86,7 @@ describe('WebSocketManager', () => {
     mockSocket.close()
   })
 
-  test('should close the WebSocket connection', done => {
+  test('should close the WebSocket connection', (done) => {
     eventManager.on(qrwcEvents.disconnected, (event) => {
       expect(event).toBeTruthy()
       done()

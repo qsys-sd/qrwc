@@ -38,7 +38,10 @@ export default class WebSocketManager {
     if (this.socket !== null && this.isOpen()) {
       this.socket.send(JSON.stringify(data))
     } else {
-      this.eventManager.emit('error', 'WebSocket is not open or not initialized.')
+      this.eventManager.emit(
+        'error',
+        'WebSocket is not open or not initialized.'
+      )
     }
   }
 
@@ -58,10 +61,12 @@ export default class WebSocketManager {
 
       this.socket.close(code, reason)
     } else {
-      this.eventManager.emit('error', 'WebSocket is not open or not initialized.')
+      this.eventManager.emit(
+        'error',
+        'WebSocket is not open or not initialized.'
+      )
     }
   }
-
 
   // a method to clean up the websocket
   public cleanUp(): void {

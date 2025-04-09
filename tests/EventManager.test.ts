@@ -3,7 +3,7 @@ import { EventManager } from '../src/managers'
 describe('EventManager', () => {
   let eventManager: EventManager
 
-  beforeEach( async () => {
+  beforeEach(async () => {
     eventManager = new EventManager()
     await eventManager.initializeEmitter()
   })

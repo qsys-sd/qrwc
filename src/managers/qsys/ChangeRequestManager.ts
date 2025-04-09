@@ -1,12 +1,16 @@
-import { IChange, IChangeRequest, IServerMessage, IMessageChangeResult, IOnChangeRequest } from '../../index.interface'
+import {
+  IChange,
+  IChangeRequest,
+  IServerMessage,
+  IMessageChangeResult,
+  IOnChangeRequest
+} from '../../index.interface'
 import { EventManager } from '..'
 
 export default class ChangeRequestManager {
   private changeRequestIds: IChangeRequest[] = []
 
-  constructor(
-    private eventManager: EventManager
-  ) {
+  constructor(private eventManager: EventManager) {
     this.eventManager.on('message', (message: IServerMessage) => {
       this.parseMessage(message)
     })
@@ -28,7 +32,11 @@ export default class ChangeRequestManager {
   }
 
   // a method to create a request it takes in a component name and request id and a callback function
-  public createChangeRequest(componentName: string, requestId: string, onChangeRequest: IOnChangeRequest): void {
+  public createChangeRequest(
+    componentName: string,
+    requestId: string,
+    onChangeRequest: IOnChangeRequest
+  ): void {
     // construct change request object
     const changeRequest = {
       id: requestId,
@@ -46,7 +54,10 @@ export default class ChangeRequestManager {
   }
 
   // a method for handling change requests
-  private handleChangeRequest(message: IMessageChangeResult, changeRequest: IChangeRequest): void {
+  private handleChangeRequest(
+    message: IMessageChangeResult,
+    changeRequest: IChangeRequest
+  ): void {
     // check if change request is successful
     if (message.result) {
       // check if result is an array
@@ -63,7 +74,6 @@ export default class ChangeRequestManager {
 
       // emit change request successful event
       this.emitSuccessfulChangeRequest(changeRequest)
-
     } else {
       // if change request is not successful, emit failed change request
       this.emitFailedChangeRequest(changeRequest)

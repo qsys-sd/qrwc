@@ -17,13 +17,19 @@ export class ControlDecorator implements IControl {
   private control: IControl
 
   // Private property to hold the function to update the control
-  private setComponent: (componentName: string, controlToUpdate: IControlUpdate) => void
+  private setComponent: (
+    componentName: string,
+    controlToUpdate: IControlUpdate
+  ) => void
 
   // Private property to hold the function to handle events
   private emit: <
     T extends keyof IQrwcEvents,
     U extends Parameters<IQrwcEvents[T]>
-  >(event: T, ...args: U) => void
+  >(
+    event: T,
+    ...args: U
+  ) => void
 
   /**
    * ControlDecorator constructor
@@ -164,9 +170,14 @@ export class ControlDecorator implements IControl {
    * console.log(valueMin);
    * // Output: The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
    */
-  public getMetaProperty(propertyName: string): string | number | boolean | string[] | undefined {
+  public getMetaProperty(
+    propertyName: string
+  ): string | number | boolean | string[] | undefined {
     if (!Object.prototype.hasOwnProperty.call(this.control, propertyName)) {
-      this.emit('error', `Property ${propertyName} does not exist on the control: ${this.control.Name}`)
+      this.emit(
+        'error',
+        `Property ${propertyName} does not exist on the control: ${this.control.Name}`
+      )
       return
     }
     return this.control[propertyName as keyof IControl]

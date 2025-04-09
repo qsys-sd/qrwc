@@ -1,11 +1,11 @@
 import { Qrwc } from '../src/managers/qrwc/Qrwc'
 import { EventManager, ChangeRequestManager } from '../src/managers'
-import { Server, WebSocket} from 'mock-socket'
+import { Server, WebSocket } from 'mock-socket'
 
 describe('Qrwc', () => {
   let qrwc: Qrwc
 
-  beforeEach(()=> {
+  beforeEach(() => {
     qrwc = new Qrwc()
   })
 

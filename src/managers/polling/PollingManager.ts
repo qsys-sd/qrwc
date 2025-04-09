@@ -1,7 +1,11 @@
-import { qrcMethods, QrwcPollReset, QrwcMinPollInterval, QrwcDefaultPollInterval } from '../../constants'
+import {
+  qrcMethods,
+  QrwcPollReset,
+  QrwcMinPollInterval,
+  QrwcDefaultPollInterval
+} from '../../constants'
 import { IPollingInterval } from '../../index.interface'
 import { createJSONRPCMessage } from '../../utils'
-
 
 export default class PollingManager {
   private pollInterval: number = QrwcDefaultPollInterval
@@ -9,12 +13,11 @@ export default class PollingManager {
   private socketPollId: number = 1
   public changeGroupId: string
 
-
   constructor(
     changeGroupId: string,
     private send: (data: object) => void,
     private newPollingInterval?: IPollingInterval
-  ){
+  ) {
     this.changeGroupId = changeGroupId
 
     this.pollInterval = this.newPollingInterval
@@ -28,7 +31,7 @@ export default class PollingManager {
   // setter for polling interval
   set interval(interval: number) {
     // set interval if above Minimum interval
-    if(interval >= QrwcMinPollInterval) this.pollInterval = interval
+    if (interval >= QrwcMinPollInterval) this.pollInterval = interval
   }
 
   // check if given polling interval is valid

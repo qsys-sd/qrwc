@@ -9,7 +9,10 @@ export default class ComponentManager {
   private getComponentsId: string = ''
 
   constructor(
-    private onMessage: (event: string, listener: (message: IServerMessage) => void) => void,
+    private onMessage: (
+      event: string,
+      listener: (message: IServerMessage) => void
+    ) => void,
     private emit: (event: string, ...args: unknown[]) => void,
     private websocketSend: (message: JSONRPCMessage) => void,
     private componentFilter?: (component: IComponent) => boolean
@@ -54,11 +57,14 @@ export default class ComponentManager {
   }
 
   private setComponentList(components: IComponent[]): void {
-    this.componentList = components.reduce((acc: { [key: string]: IComponent }, component: IComponent) => {
-      const { Name } = component
-      acc[Name] = component
-      return acc
-    }, {})
+    this.componentList = components.reduce(
+      (acc: { [key: string]: IComponent }, component: IComponent) => {
+        const { Name } = component
+        acc[Name] = component
+        return acc
+      },
+      {}
+    )
   }
 
   // // a method for handling getComponents response

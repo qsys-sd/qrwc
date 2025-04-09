@@ -1,8 +1,20 @@
 import { v4 as uuidv4 } from 'uuid'
 import { qrcMethods } from '../../constants'
 import { createJSONRPCMessage, JSONRPCMessage } from '../../utils'
-import { IControlGet, IControlGetResult, IServerMessage, IComponentFilter, IPollingInterval, IComponent } from '../../index.interface'
-import { ControlManager, EventManager, ChangeGroupManager, ComponentManager } from '..'
+import {
+  IControlGet,
+  IControlGetResult,
+  IServerMessage,
+  IComponentFilter,
+  IPollingInterval,
+  IComponent
+} from '../../index.interface'
+import {
+  ControlManager,
+  EventManager,
+  ChangeGroupManager,
+  ComponentManager
+} from '..'
 
 export default class StartManager {
   private getControlIds: string[] = []
@@ -26,9 +38,12 @@ export default class StartManager {
       this.parseMessage(message)
     })
 
-    this.eventManager.on('componentsReceived', (components: Record<string, IComponent>) => {
-      this.getControls(components)
-    })
+    this.eventManager.on(
+      'componentsReceived',
+      (components: Record<string, IComponent>) => {
+        this.getControls(components)
+      }
+    )
 
     this.eventManager.on('controlsReceived', () => {
       this.createStartChangeGroup()
@@ -39,7 +54,10 @@ export default class StartManager {
       'componentChangeGroupCreated',
       (changeGroupId: string) => {
         // check if change group id matches startChangeGroupId
-        if (changeGroupId === this.startChangeGroupId && this.changeGroupManager) {
+        if (
+          changeGroupId === this.startChangeGroupId &&
+          this.changeGroupManager
+        ) {
           // create start change group polling service
           this.createStartChangePollingManager()
         }
@@ -51,7 +69,10 @@ export default class StartManager {
   private parseMessage(message: IServerMessage): void {
     // check for getControls response
     if (this.getControlIds.includes(message?.id)) {
-      this.handleControlGetResponse(message.result as IControlGetResult, message.id)
+      this.handleControlGetResponse(
+        message.result as IControlGetResult,
+        message.id
+      )
     }
   }
 
@@ -92,7 +113,10 @@ export default class StartManager {
 
       result.Controls.forEach((control: IControlGet) => {
         // decorate control
-        const decoratedControl = this.controlManager.decorateControl({...control, Component: result.Name})
+        const decoratedControl = this.controlManager.decorateControl({
+          ...control,
+          Component: result.Name
+        })
         // set control
         this.controlManager.updateControls(decoratedControl)
       })
@@ -122,7 +146,9 @@ export default class StartManager {
     )
 
     // groom components for change group
-    const groomedComponents = this.changeGroupManager.groomComponents(this.controlManager.components)
+    const groomedComponents = this.changeGroupManager.groomComponents(
+      this.controlManager.components
+    )
 
     // create change group
     this.changeGroupManager.createChangeGroup(groomedComponents)
