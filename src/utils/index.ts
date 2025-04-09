@@ -6,7 +6,7 @@ interface IJsonRpcMessage {
   'Component.GetComponents': 'test';
   'Component.GetControls': IRequestControls;
   'Component.Set': IRequestChanges;
-  "ChangeGroup.Poll": IRequestPoll;
+  'ChangeGroup.Poll': IRequestPoll;
   'ChangeGroup.AddComponentControl': IComponentChangeGroup
 }
 
@@ -15,11 +15,11 @@ export const createJSONRPCMessage = <T extends keyof IJsonRpcMessage, U extends 
   params: U,
   id: string | number
 ) => ({
-  jsonrpc: "2.0",
-  method,
-  params,
-  id,
-} as const);
+    jsonrpc: '2.0',
+    method,
+    params,
+    id
+  } as const)
 
 export function isValidControlChange(control: IChange): control is IChange {
   return control &&

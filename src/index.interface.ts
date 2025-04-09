@@ -1,4 +1,5 @@
 import type { ControlDecorator } from './managers/components/ControlDecorator'
+import type { Qrwc } from './managers/qrwc/Qrwc'
 
 export interface IControl {
   Name: string
@@ -179,4 +180,20 @@ export interface IQrwcEvents {
   componentsReceived: (components: Record<string, IComponent>) => void;
   changeRequestSuccessful: (changeRequest: IChangeRequest) => void;
   componentChangeGroupCreated: (changeGroupId: string) => void;
+}
+
+export interface ISetupQrwcParams {
+  coreIpAddress: string,
+  maxReconnectAttempts?: number;
+  reconnectDelay?: number;
+  componentFilter?: IComponentFilter;
+  pollingInterval?: number;
+  onError?: (qrwc: Qrwc, error: unknown) => void;
+  onDisconnect?: (qrwc: Qrwc, event: string) => void;
+  onStartComplete?: (qrwc: Qrwc) => void;
+  onControlsUpdated?: (qrwc: Qrwc, updatedComponent: IComponent) => void;
+  onComponentsReceived?: (
+    qrwc: Qrwc,
+    components: Record<string, IComponent>
+  ) => void;
 }

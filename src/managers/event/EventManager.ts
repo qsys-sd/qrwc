@@ -22,14 +22,14 @@ export default class EventManager {
     event: T,
     listener: U
   ): void {
-    this.emitter.on(event, listener);
+    this.emitter.on(event, listener)
   }
 
   public emit<
     T extends keyof IQrwcEvents,
     U extends Parameters<IQrwcEvents[T]>
   >(event: T, ...args: U): void {
-    this.emitter.emit(event, ...args);
+    this.emitter.emit(event, ...args)
   }
 
   public removeListener(event: string, listener: (...args: unknown[]) => void): void {

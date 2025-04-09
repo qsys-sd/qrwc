@@ -20,9 +20,10 @@ export class Qrwc {
     [key: string]: ChangeGroupManager
   } = {}
   changeRequestManager: ChangeRequestManager
+  readonly initialized: Promise<void>
 
   constructor() {
-    this.initialize()
+    this.initialized = this.initialize()
   }
 
   private initialize = async () => {

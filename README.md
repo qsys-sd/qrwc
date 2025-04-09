@@ -12,8 +12,34 @@ npm install @q-sys/qrwc
 ```
 
 #### Getting started
+For Node environments, the callback-style startup requires Node v22.4.0+. For older versions of Node, refer to the second example.
+```typescript
+import { setupQrwc } from "q-sys/qrwc"
+
+const { closeQrwc } = setupQrwc({
+   coreIpAddress: "{Core IP Address}",
+   onStartComplete: (qrwc) => {
+      setComponents(qrwc.components)
+      setInitialized(true)
+   },
+   onControlsUpdated: (qrwc, updatedComponent) => {
+      console.log("controlsUpdated", updatedComponent)
+      // console.log("controlsUpdated", qrwc.components) // another option
+
+      // This is when your application should update
+   }
+})
+
+// when finished, close QRWC's websocket connection
+closeQrwc()
+
+```
+
+If desired, you can also manage the websocket connection yourself:
+
 ```typescript
 import { Qrwc, type IComponent } from "@q-sys/qrwc"
+// const { Qrwc } = require('@q-sys/qrwc'); // for BE/node environments
 
 const qrwc = new Qrwc()
 
@@ -31,12 +57,15 @@ qrwc.on("controlsUpdated", (updatedComponent: IComponent) => {
   console.log("controlsUpdated", updatedComponent)
   // console.log("controlsUpdated", qrwc.components) // another option
 
-  // This is when you application should update
+  // This is when your application should update
 })
+
+// when finished, close QRWC's websocket connection
+socket.close()
 ```
 
 #### Start options
-`qrwc.start()` can optionally take an object. That contains options
+`setupQrwc()` accepts an object with options. `qrwc.start()` can optionally take an object. That contains options
 - componentFilter
   - Allows users to set a filter, enabling a specific change group to be created upon start
   - IComponentFilter must be a call back that returns a boolean, it will recieve a sinle instance of a component
@@ -54,8 +83,23 @@ interface IComponentFilter {
   (component: IComponent): boolean
 }
 ```
-
 ##### example
+```typescript
+setupQrwc({
+   coreIpAddress: "{Core IP Address}",
+   componentFilter: (component)=>component.Name === "Gain",
+   pollingInterval: 34 // roughly 30 times a second
+   onStartComplete: (qrwc) => {
+      setComponents(qrwc.components)
+      setInitialized(true)
+   },
+   onControlsUpdated: (qrwc, updatedComponent) => {
+      console.log("controlsUpdated", updatedComponent)
+   }
+})
+```
+
+##### websocket example
 ```typescript
 function componentFilter(component: IComponent){
   return component.Name === "Gain"
@@ -81,6 +125,21 @@ If no options are provided for specific values...
 - pollingInterval - A polling rate will be set of 350, or roughly 3 times a second
 
 #### Attempting reconnects
+* setupQrwc will attempt to reconnect if you supply it with a `maxReconnectAttempts` startup option:
+```typescript
+setupQrwc({
+   coreIpAddress: "{Core IP Address}",
+   maxReconnectAttempts: 2, // will attempt to reconnect twice before giving up
+   onStartComplete: (qrwc) => {
+      setComponents(qrwc.components)
+      setInitialized(true)
+   },
+   onControlsUpdated: (qrwc, updatedComponent) => {
+      console.log("controlsUpdated", updatedComponent)
+   }
+})
+```
+#### Attempting reconnects (websockets)
 * Qrwc has an automated clean up that is triggered by the "disconnected" event.'
   * This cleans up all listeners attached to the instance / intervals / classes
 * This also means that you should be creating a new WebSocket & instance of Qrwc to attempt a reconnect, along with the listeners
@@ -219,7 +278,7 @@ boolControl.Bool = true;
 ```typescript
 qrwc.on("controlsUpdated", (updatedComponent: IComponent) => {
   console.log("controlsUpdated", updatedComponent)
-  // This is when you application should update
+  // This is when your application should update
 })
 ```
 - `disconnected`: emitted when QRWC has lost its connection and indicates that a new websocket and instance of Qrwc should be created.

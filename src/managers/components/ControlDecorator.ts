@@ -23,7 +23,7 @@ export class ControlDecorator implements IControl {
   private emit: <
     T extends keyof IQrwcEvents,
     U extends Parameters<IQrwcEvents[T]>
-  >(event: T, ...args: U) => void;
+  >(event: T, ...args: U) => void
 
   /**
    * ControlDecorator constructor
@@ -42,9 +42,9 @@ export class ControlDecorator implements IControl {
       ...args: U
     ) => void
   ) {
-    this.control = control;
-    this.setComponent = setComponent;
-    this.emit = emit;
+    this.control = control
+    this.setComponent = setComponent
+    this.emit = emit
   }
 
   /**
