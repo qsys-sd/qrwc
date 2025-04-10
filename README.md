@@ -24,13 +24,12 @@ import { setupQrwc } from 'q-sys/qrwc'
 const { closeQrwc } = setupQrwc({
   coreIpAddress: '{Core IP Address}',
   onStartComplete: (qrwc) => {
-    setComponents(qrwc.components)
-    setInitialized(true)
+    // qrwc.components (Record<string, IComponent>) should be available now
+    // do any initialization logic here
   },
   onControlsUpdated: (qrwc, updatedComponent) => {
     console.log('controlsUpdated', updatedComponent)
     // console.log("controlsUpdated", qrwc.components) // another option
-
     // This is when your application should update
   }
 })
@@ -53,14 +52,13 @@ socket.onopen = async () => {
   await qrwc.attachWebSocket(socket)
   await qrwc.start()
 
-  setComponents(qrwc.components) // Record<string, IComponent>
-  setInitialized(true)
+  // qrwc.components (Record<string, IComponent>) should be available now
+  // do any initialization logic here
 }
 
 qrwc.on('controlsUpdated', (updatedComponent: IComponent) => {
   console.log('controlsUpdated', updatedComponent)
   // console.log("controlsUpdated", qrwc.components) // another option
-
   // This is when your application should update
 })
 
@@ -99,8 +97,8 @@ setupQrwc({
    componentFilter: (component)=>component.Name === "Gain",
    pollingInterval: 34 // roughly 30 times a second
    onStartComplete: (qrwc) => {
-      setComponents(qrwc.components)
-      setInitialized(true)
+    // qrwc.components (Record<string, IComponent>) should be available now
+    // do any initialization logic here
    },
    onControlsUpdated: (qrwc, updatedComponent) => {
       console.log("controlsUpdated", updatedComponent)
@@ -145,8 +143,8 @@ setupQrwc({
   coreIpAddress: '{Core IP Address}',
   maxReconnectAttempts: 2, // will attempt to reconnect twice before giving up
   onStartComplete: (qrwc) => {
-    setComponents(qrwc.components)
-    setInitialized(true)
+    // qrwc.components (Record<string, IComponent>) should be available now
+    // do any initialization logic here
   },
   onControlsUpdated: (qrwc, updatedComponent) => {
     console.log('controlsUpdated', updatedComponent)

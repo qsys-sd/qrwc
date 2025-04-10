@@ -28,17 +28,11 @@ export class Qrwc {
     [key: string]: ChangeGroupManager
   } = {}
   changeRequestManager: ChangeRequestManager
-  readonly initialized: Promise<void>
 
   constructor() {
-    this.initialized = this.initialize()
-  }
-
-  private initialize = async () => {
     // main dependencies
     // create EventManager instance
     this.eventManager = new EventManager()
-    await this.eventManager.initializeEmitter()
     // create ChangeRequestManager instance
     this.changeRequestManager = new ChangeRequestManager(this.eventManager)
 

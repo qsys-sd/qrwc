@@ -36,6 +36,9 @@
   "repository": {
     "type": "git"
   },
+  "browser": {
+    "./dist/managers/event/EventManager.js": "./dist/managers/event/EventManager.browser.js"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.3",
     "@types/uuid": "^9.0.2",

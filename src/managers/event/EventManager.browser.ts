@@ -1,22 +1,11 @@
 import { IEventEmitter, IQrwcEvents } from '../../index.interface'
 import FrontendEventEmitter from './FrontendEvents'
-import { EventEmitter } from 'events'
-
-const isInBrowser =
-  typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
 export default class EventManager {
   private emitter: IEventEmitter
 
   constructor() {
-    if (isInBrowser) {
-      // In a browser environment, use the FrontendEventEmitter (fallback for when browser hint didn't work)
-      this.emitter = new FrontendEventEmitter()
-    } else {
-      // In a Node.js environment, dynamically import the 'events' module
-      // Create an instance of EventEmitter
-      this.emitter = new EventEmitter() as IEventEmitter
-    }
+    this.emitter = new FrontendEventEmitter()
   }
 
   public on<T extends keyof IQrwcEvents, U extends IQrwcEvents[T]>(

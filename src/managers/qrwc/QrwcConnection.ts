@@ -21,7 +21,6 @@ export const setupQrwc = ({
     socket = new WebSocket(`ws://${coreIpAddress}/qrc-public-api/v0`)
 
     const qrwc = new Qrwc()
-    await qrwc.initialized // needed in node envs because of a dynamic import
 
     if (onError) {
       qrwc.on('error', (error: unknown) => onError(qrwc, error))
