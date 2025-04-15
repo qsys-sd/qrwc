@@ -40,6 +40,10 @@ export class Qrwc {
       // initate clean up
       this.qrwcCleanUp()
     })
+
+    this.eventManager.on('error', () => {
+      // do nothing b/c node treats no error listener as an unhandled error
+    })
   }
 
   // a getter method for components
