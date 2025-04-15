@@ -17,8 +17,8 @@
     "test:node": "npm run lint && jest --config jest.node.config.js",
     "test:frontend": "npm run lint && jest --config jest.jsdom.config.js",
     "test": "npm run lint && npm run test:node && npm run test:frontend",
-    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
-    "fix": "eslint --fix 'src/**/*.ts' 'tests/**/*.ts' && prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "fix": "eslint --fix \"src/**/*.ts\" \"tests/**/*.ts\" && prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "prepare": "husky install"
   },
   "husky": {
