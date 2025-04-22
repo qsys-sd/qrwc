@@ -4,7 +4,7 @@
   "description": "Interface software for Q-SYS controls.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "license": "proprietary",
+  "license": "MIT",
   "files": [
     "dist",
     "README.md"
