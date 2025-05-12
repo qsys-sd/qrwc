@@ -1,12 +1,12 @@
-import { IEventEmitter, IQrwcEvents } from '../../index.interface'
+import type { IEventEmitter } from '../index.interface'
 import FrontendEventEmitter from './FrontendEvents'
-import { EventEmitter } from 'events'
+import { EventEmitter as BackendEventEmitter } from 'events'
 
 const isInBrowser =
   typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
-export default class EventManager {
-  private emitter: IEventEmitter
+export class EventEmitter<T> implements IEventEmitter<T> {
+  private emitter: IEventEmitter<T>
 
   constructor() {
     if (isInBrowser) {
@@ -15,32 +15,27 @@ export default class EventManager {
     } else {
       // In a Node.js environment, dynamically import the 'events' module
       // Create an instance of EventEmitter
-      this.emitter = new EventEmitter() as IEventEmitter
+      this.emitter = new BackendEventEmitter() as IEventEmitter<T>
     }
   }
 
-  public on<T extends keyof IQrwcEvents, U extends IQrwcEvents[T]>(
-    event: T,
-    listener: U
-  ): void {
+  public on<U extends keyof T>(event: U, listener: T[U]): void {
     this.emitter.on(event, listener)
   }
 
-  public emit<
-    T extends keyof IQrwcEvents,
-    U extends Parameters<IQrwcEvents[T]>
-  >(event: T, ...args: U): void {
+  public emit<U extends keyof T>(
+    event: U,
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
+    ...args: T[U] extends (...args: any[]) => void ? Parameters<T[U]> : never
+  ): void {
     this.emitter.emit(event, ...args)
   }
 
-  public removeListener(
-    event: string,
-    listener: (...args: unknown[]) => void
-  ): void {
+  public removeListener<U extends keyof T>(event: U, listener: T[U]): void {
     this.emitter.removeListener(event, listener)
   }
 
-  public removeAllEventListeners(): void {
+  public removeAllListeners(): void {
     this.emitter.removeAllListeners()
   }
 }

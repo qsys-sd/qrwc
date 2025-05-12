@@ -124,7 +124,7 @@
 
 ### Who do I talk to?
 
-- Devin Kapla (Devin.Kapla@qsc.com)
+- Caroline Gingles (caroline.gingles@qsc.com)
 
 ### Some considerations
 

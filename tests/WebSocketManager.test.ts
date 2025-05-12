@@ -1,97 +1,93 @@
-import { WebSocketManager, EventManager } from '../src/managers'
+import { WebSocketManager } from '../src/entities/WebSocketManager'
 import { WebSocket, Server } from 'mock-socket'
-import { qrwcEvents } from '../src/constants'
-
+import {
+  IChangeGroupPollResult,
+  IChangeGroupPollRequest,
+  IRpcRequest
+} from '../src/index.interface'
 describe('WebSocketManager', () => {
   let mockServer: Server
   let wsManager: WebSocketManager
-  const eventManager = new EventManager()
   let mockSocket: WebSocket
 
-  eventManager.initializeEmitter()
-
-  beforeEach((done) => {
-    // Use beforeAll with done callback
+  beforeEach(async () => {
     mockServer = new Server('ws://localhost:8080')
     global.WebSocket = WebSocket // Mock global WebSocket with mock-socket WebSocket
 
-    mockSocket = new WebSocket('ws://localhost:8080')
-    mockSocket.onopen = () => {
-      wsManager = new WebSocketManager(mockSocket, eventManager)
-      done() // Call done when the connection is open
-    }
+    // Create a promise that resolves when the connection is open
+    const connectionPromise = new Promise<void>((resolve) => {
+      mockSocket = new WebSocket('ws://localhost:8080')
+      mockSocket.onopen = () => {
+        wsManager = new WebSocketManager(mockSocket)
+        resolve()
+      }
+    })
+
+    // Wait for the connection to be established
+    await connectionPromise
   })
 
   afterEach(() => {
-    // Use afterAll for cleanup
     mockServer.stop()
   })
 
-  test('should handle onMessage event', (done) => {
-    const testMessage = 'test message'
+  test('should correctly identify RPC responses', async () => {
+    const testServer = new Server('ws://localhost:8081')
 
-    eventManager.on('message', (message) => {
-      expect(message).toEqual(testMessage)
-      done()
+    // Create and connect the socket
+    const connectionPromise = new Promise<WebSocketManager>((resolve) => {
+      const testSocket = new WebSocket('ws://localhost:8081')
+      testSocket.onopen = () => {
+        resolve(new WebSocketManager(testSocket))
+      }
     })
 
-    mockServer.emit('message', JSON.stringify(testMessage))
-  })
-
-  test('should handle error event', (done) => {
-    eventManager.on(qrwcEvents.error, (error) => {
-      expect(error).toBeTruthy()
-      done()
-    })
-
-    mockServer.simulate('error')
-  })
-
-  test('should send data', () => {
-    const testData = { action: 'testAction' }
-
-    mockServer.on('connection', (socket) => {
-      socket.on('message', (data) => {
-        if (typeof data !== 'string') {
-          throw new Error('Data is not a string')
+    // Set up the server to respond to messages
+    testServer.on('connection', (socket) => {
+      socket.on('message', (message) => {
+        const body = JSON.parse(message as string) as IRpcRequest
+        const result: IChangeGroupPollResult = {
+          ...(body.params as IChangeGroupPollRequest),
+          Changes: []
         }
-        expect(JSON.parse(data)).toEqual(testData)
+        const response = {
+          id: body.id,
+          result
+        }
+        setTimeout(
+          () => socket.send(JSON.stringify(response)),
+          Math.random() * 100 // randomize response order
+        )
       })
     })
 
-    wsManager.send(testData)
-  })
+    const testWsManager = await connectionPromise
 
-  // Example test for isOpen method
-  test('isOpen should return true when WebSocket is open', () => {
-    // Mock the getReadyState method to return WebSocket.OPEN
-    if (wsManager) {
-      wsManager.getReadyState = jest.fn().mockReturnValue(WebSocket.OPEN)
+    // Create multiple RPC calls
+    const rpcs: Promise<IChangeGroupPollResult>[] = []
+    const TESTS = 100
+    for (let i = 0; i < TESTS; i++) {
+      rpcs.push(testWsManager.sendRpc('ChangeGroup.Poll', { Id: `${i}` }))
     }
 
-    expect(wsManager.getReadyState()).toBe(WebSocket.OPEN)
+    // Wait for all responses
+    const responses = await Promise.all(rpcs)
+
+    // Verify responses
+    for (let i = 0; i < TESTS; i++) {
+      expect(responses[i].Id).toEqual(`${i}`)
+    }
+
+    // Clean up
+    testWsManager.close()
+    testServer.stop()
   })
 
-  test('getReadyState should return the current readyState of the WebSocket', () => {
-    const readyState = wsManager.getReadyState()
-    expect(readyState).toBe(WebSocket.OPEN)
-  })
-
-  test('should handle onClose event', (done) => {
-    eventManager.on(qrwcEvents.disconnected, (event) => {
-      expect(event).toBeTruthy()
-      done()
-    })
-
-    mockSocket.close()
-  })
-
-  test('should close the WebSocket connection', (done) => {
-    eventManager.on(qrwcEvents.disconnected, (event) => {
-      expect(event).toBeTruthy()
-      done()
-    })
-
+  test('should close the WebSocket connection', async () => {
+    jest.spyOn(mockSocket, 'close')
+    // Close the connection
     wsManager.close()
+
+    expect(mockSocket.close).toHaveBeenCalled()
   })
 })

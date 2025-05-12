@@ -1,7 +1,7 @@
-import FrontendEventEmitter from '../src/managers/event/FrontendEvents'
+import FrontendEventEmitter from '../src/event/FrontendEvents'
 
 describe('FrontendEventEmitter', () => {
-  let frontendEventEmitter: FrontendEventEmitter
+  let frontendEventEmitter: FrontendEventEmitter<any>
 
   beforeEach(() => {
     frontendEventEmitter = new FrontendEventEmitter()

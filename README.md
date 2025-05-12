@@ -1,6 +1,6 @@
 # Q-SYS Remote WebSocket Control
 
-## QRWC is a NPM library for controlling 3rd party software while interacting with Qsys design controls
+## QRWC is a NPM library for interacting with Qsys design controls from a Node or browser app using websockets
 
 ### What is this repository for?
 
@@ -16,112 +16,58 @@ npm install @q-sys/qrwc
 
 #### Getting started
 
-For Node environments, the callback-style startup requires Node v22.4.0+. For older versions of Node, refer to the second example.
-
 ```typescript
-import { setupQrwc } from 'q-sys/qrwc'
+// This is in Typescript, but for Javascript you can just strip the types out
 
-const { closeQrwc } = setupQrwc({
-  coreIpAddress: '{Core IP Address}',
-  onStartComplete: (qrwc) => {
-    // qrwc.components (Record<string, IComponent>) should be available now
-    // do any initialization logic here
-  },
-  onControlsUpdated: (qrwc, updatedComponent) => {
-    console.log('controlsUpdated', updatedComponent)
-    // console.log("controlsUpdated", qrwc.components) // another option
-    // This is when your application should update
-  }
-})
-
-// when finished, close QRWC's websocket connection
-closeQrwc()
-```
-
-If desired, you can also manage the websocket connection yourself:
-
-```typescript
-import { Qrwc, type IComponent } from '@q-sys/qrwc'
-// const { Qrwc } = require('@q-sys/qrwc'); // for BE/node environments
-
-const qrwc = new Qrwc()
+import { Qrwc } from '@q-sys/qrwc'
 
 const socket = new WebSocket('ws://{IP}/qrc-public-api/v0')
 
-socket.onopen = async () => {
-  await qrwc.attachWebSocket(socket)
-  await qrwc.start()
-
-  // qrwc.components (Record<string, IComponent>) should be available now
-  // do any initialization logic here
-}
-
-qrwc.on('controlsUpdated', (updatedComponent: IComponent) => {
-  console.log('controlsUpdated', updatedComponent)
-  // console.log("controlsUpdated", qrwc.components) // another option
-  // This is when your application should update
+// Create a new Qrwc instance with the open socket
+const qrwc = await Qrwc.createQrwc<{
+  Gain: 'gain' | 'mute' // tell typescript there is a 'Gain' component with both 'gain' and 'mute' controls
+}>({
+  socket,
+  pollingInterval: 350 // Optional: polling interval in milliseconds (default: 350)
 })
 
-// when finished, close QRWC's websocket connection
-socket.close()
+// note that QRWC will only have access to components that have been marked as scriptable
+
+// grab the EventEmitter for the control you care about
+const gain0 = qrwc.components.Gain.controls.gain // Control
+
+// controls not in the generic parameter will need some type narrowing
+const gain1 = qrwc.components.Gain_1?.controls.gain // Control | undefined
+
+// Listen for updates to the gain control. Listener parameter is a deconstructed IControlState
+gain0.on('update', ({ Value, Position, String, Bool }) => {
+  console.log(
+    `Control updated with new values: ${Value} ${Position} ${String} ${Bool}`
+  )
+  if (Value > 10) {
+    const updatedState = await gain0.update(10) // returns a promise for the updated state (IControlState)
+  }
+})
+
+// when finished, close QRWC
+qrwc.close()
 ```
 
 #### Start options
 
-`setupQrwc()` accepts an object with options. `qrwc.start()` can optionally take an object. That contains options
+`Qrwc.createQrwc()` accepts an object with options:
 
-- componentFilter
-  - Allows users to set a filter, enabling a specific change group to be created upon start
-  - IComponentFilter must be a call back that returns a boolean, it will recieve a sinle instance of a component
-
-IStartOptions
+- `socket`: Required WebSocket instance connected to a Q-SYS Core
+- `pollingInterval`: Optional interval in milliseconds for polling control changes (minimum: 34, default: 350)
+- `componentFilter` : Optional filter function callback to allow for connecting to a subset of components in a design
+- `timeout`: Optional timeout in milliseconds for websocket messages (default 5000 ms)
 
 ```typescript
 interface IStartOptions {
-  componentFilter?: IComponentFilter
-  pollingInterval?: IPollingInterval
-}
-
-type IPollingInterval = number // must be equal to or greater than 34
-
-interface IComponentFilter {
-  (component: IComponent): boolean
-}
-```
-
-##### example
-
-```typescript
-setupQrwc({
-   coreIpAddress: "{Core IP Address}",
-   componentFilter: (component)=>component.Name === "Gain",
-   pollingInterval: 34 // roughly 30 times a second
-   onStartComplete: (qrwc) => {
-    // qrwc.components (Record<string, IComponent>) should be available now
-    // do any initialization logic here
-   },
-   onControlsUpdated: (qrwc, updatedComponent) => {
-      console.log("controlsUpdated", updatedComponent)
-   }
-})
-```
-
-##### websocket example
-
-```typescript
-function componentFilter(component: IComponent) {
-  return component.Name === 'Gain'
-}
-
-const options: IStartOptions = {
-  componentFilter,
-  pollingInterval: 34 // roughly 30 times a second
-}
-
-socket.onopen = async () => {
-  //...
-  await qrwc.start(options)
-  //...
+  socket: IWebSocket
+  pollingInterval?: number
+  componentFilter?: (componentState: IComponentState) => boolean
+  timeout?: number
 }
 ```
 
@@ -129,117 +75,74 @@ Note: If no options object is provided or if values are not present in the objec
 
 #### Default Settings
 
-If no options are provided for specific values...
+If no options are provided for specific values:
 
-- componentFilter - All scriptable components and their nested controls will be made into one change group
 - pollingInterval - A polling rate will be set of 350, or roughly 3 times a second
+- componentFilter - All scriptable components in the design will be fetched from the core
+- timeout - The timeout will be set to 5000ms
 
-#### Attempting reconnects
+#### Connection handling
 
-- setupQrwc will attempt to reconnect if you supply it with a `maxReconnectAttempts` startup option:
-
-```typescript
-setupQrwc({
-  coreIpAddress: '{Core IP Address}',
-  maxReconnectAttempts: 2, // will attempt to reconnect twice before giving up
-  onStartComplete: (qrwc) => {
-    // qrwc.components (Record<string, IComponent>) should be available now
-    // do any initialization logic here
-  },
-  onControlsUpdated: (qrwc, updatedComponent) => {
-    console.log('controlsUpdated', updatedComponent)
-  }
-})
-```
-
-#### Attempting reconnects (websockets)
-
-- Qrwc has an automated clean up that is triggered by the "disconnected" event.'
-  - This cleans up all listeners attached to the instance / intervals / classes
-- This also means that you should be creating a new WebSocket & instance of Qrwc to attempt a reconnect, along with the listeners
+- Qrwc provides a `disconnected` event that is triggered when the WebSocket connection is closed
+- This cleans up all listeners attached to the instance / intervals / classes
+- You should create a new WebSocket & instance of Qrwc to reconnect after disconnection
 
 ```typescript
-// continued from above example
-qrwc.on('disconnected', (event: string) => {
-  // console.log("disconnected", event)
-  // attempt reconnect strategy
+qrwc.on('disconnected', (reason: string) => {
+  console.log('Disconnected:', reason)
+  // implement your reconnect strategy here
 })
 ```
 
 #### Getting to controls
 
-- After the event listener for "startComplete" and subsequently after that "controlsUpdated", you can access all updated components/controls via `Qrwc.components`
-- `Qrwc.components` is formatted as dictionary using component names as key names. Controls is also formatted as a dictionary within `component.Controls` with control names as key names.
+- After Qrwc has been initialized with `createQrwc()`, you can access all components/controls via `qrwc.components`
+- `qrwc.components` is formatted as a dictionary using component names as key names. Controls are also formatted as a dictionary within `component.controls` with control names as key names.
 
 ```JSON
 {
-   "Text_Box": {
-      "ID": "Text_Box",
-      "Name": "Text_Box",
-      "Type": "custom_controls",
-      "Properties": [
-         {
-            "Name":"type_1",
-            "Value":"13",
-            "PrettyName":"Type"
-         },
-         // continued ...
-      ],
-      "Controls": {
-         "text.1": {
-            "control": {
-               "Name": "text.1",
-               "Type": "Text",
-               "String": "textin",
-               "Direction": "Read/Write",
-               "Component": "Text_Box",
-               "Value": 0,
-               "Position": 0,
-               "Choices": [],
-               "Color": "",
-               "Indeterminate": false,
-               "Invisible": false,
-               "Disabled": false,
-               "Legend": "",
-               "CssClass": ""
+   "Text_Box": { // stable ref to the Component event emitter
+     "name": "Text_Box",
+      // `state` is a readonly grab-bag for misc properties
+      // a property will likely be inside `state` even if it's not in the typescript type
+      "state": {
+        "ID": "Text_Box",
+        "Name": "Text_Box",
+        "Type": "custom_controls",
+        "Properties": [
+           {
+              "Name":"type_1",
+              "Value":"13",
+              "PrettyName":"Type"
+           },
+           // continued ...
+        ],
+        "ControlSource": 2
+      }
+      "controls": {
+        "text.1": { // stable ref to the Control event emitter
+            "name": "text.1",
+            "component": <object ref back to "Text_Box">,
+            // state on the control functions similarly to state on the component
+            // it gets a new readonly object with a new ref every update, so it can support functional patterns
+            "state": {
+              "Name": "text.1",
+              "Type": "Text",
+              "String": "textin",
+              "Direction": "Read/Write",
+              "Component": "Text_Box",
+              "Value": 0,
+              "Position": 0,
+              "Choices": [],
+              "Color": "",
+              "Indeterminate": false,
+              "Invisible": false,
+              "Disabled": false,
+              "Legend": "",
+              "CssClass": ""
             }
          }
       },
-      "ControlSource": 2
-   },
-   "LED": {
-      "ID": "LED",
-      "Name": "LED",
-      "Type": "custom_controls",
-      "Properties": [
-         {
-            "Name": "type_1",
-            "Value": "15",
-            "PrettyName": "Type"
-         },
-         // continued ...
-      ],
-      "Controls": {
-         "led.1": {
-            "control": {
-               "Name": "led.1",
-               "Type": "Boolean",
-               "Value": 0,
-               "String": "false",
-               "Position": 0,
-               "Direction": "Read/Write",
-               "Component": "LED",
-               "Choices": [],
-               "Color": "",
-               "Indeterminate": false,
-               "Invisible": false,
-               "Disabled": false,
-               "Legend": "",
-               "CssClass": ""
-            }
-         }
-      },
-      "ControlSource": 2
    }
 }
 ```
@@ -251,102 +154,85 @@ qrwc.on('disconnected', (event: string) => {
 - Accessing a control object
 
 ```typescript
-const { mute } = Qrwc.components.Gain.Controls
+const { mute /* Control */ } = qrwc.components.Gain.controls
 
-console.log('Mute: ', mute.Value)
-// logs: Mute: true
+mute.on('update', (state: IControlState) => {
+  console.log('Mute: ', state.Value)
+})
+
+const newState: IControlState = await mute.update(true) // update param can be string, number, or boolean
 ```
 
 - Accessing a control object with a complex name
 
 ```typescript
-const control = Qrwc.components.Text_Box.Controls['text.1']
-
-console.log('Text: ', control.String)
-// logs: Text: Some string
+const text1: Control = qrwc.components.Text_Box.controls['text.1']
 ```
 
 ### Updating the core:
 
-To update the control on the core, just directly assign a value to the `Value`, `String`, `Position`, or `Bool` properties of the control:
+To update a control on the core, use the control's update method:
 
 ```typescript
-stringControl.String = 'Hello world'
+const { String: newString /* 'Hello world' */ } =
+  await control.update('Hello world') // for string values
 
-numberControl.Value = 20
+const { Position: newPosition /* 20 */ } = await control.update(20) // for numeric values
+const { Bool: newBool /* true */ } = await control.update(true) // for boolean values
 
-boolControl.Bool = true
+const newState /* IControlState w/ updated value */ = await control.update(15)
 ```
 
-## Properties
+## Control State Properties
+
+The control state object provides the following properties:
 
 - `Name`: The name of the control.
 - `Component`: The name of the component.
-- `Value`: The value of the control. Can be a string, number, boolean, or undefined.
+- `Value`: The value of the control. Can be a string, number, or undefined.
 - `String`: The string of the control. Can be a string or undefined.
 - `Position`: The position of the control. Can be a number or undefined.
 - `Bool`: A boolean representation of the control's position. Returns `true` if the position is 0.5 or greater, `false` otherwise. If the control's type is not 'Boolean', it emits an error event and returns undefined.
 - `Type`: The type of the control. Can be a string or undefined.
 
-## Methods
+This is not an exhaustive list. A control property is likely inside `state` even if it is not represented in the typescript type.
 
-- `getProperties()`: Returns a deep copy of all the properties of the control.
-- `getMetaProperty(propertyName: string)`: Gets a property from the control that is not available via default getters. If the property does not exist, an error event is emitted and the function execution ends.
+## Layered Event Listeners
 
-## Qrwc Events
-
-- `controlsUpdated`: emitted when a control has been updated by the core:
+This example shows how to work with different types of controls, listen for changes at different levels, and manage component/control interactions:
 
 ```typescript
-qrwc.on('controlsUpdated', (updatedComponent: IComponent) => {
-  console.log('controlsUpdated', updatedComponent)
-  // This is when your application should update
-})
+  // --------- Setting up event listeners at different levels ---------
+
+  // 1. Global level event listener (already set up in previous example)
+  // This catches all control updates across all components
+  qrwc.on('update', (component, control, state) => {
+    console.log(`[Global] ${component.name}.${control.name} updated:`, state)
+  })
+
+  // 2. Component level event listeners
+  // These catch all control updates for a specific component
+  if (qrwc.components.Gain) {
+    qrwc.components.Gain.on('update', (control, state) => {
+      console.log(`[Component] Gain control ${control.name} changed:`, state)
+    })
+  }
+
+  // 3. Control level event listeners (recommended)
+  // Most specific, only catches updates for a single control
+  if (qrwc.components.Text_Box?.controls['text.1']) {
+    const textControl = qrwc.components.Text_Box.controls['text.1']
+
+    textControl.on('update', (state) => {
+      console.log(`[Control] Text updated to: ${state.String}`)
+    })
+  }
+}
 ```
 
-- `disconnected`: emitted when QRWC has lost its connection and indicates that a new websocket and instance of Qrwc should be created.
+## Examples
 
-```typescript
-qrwc.on('disconnected', (event: string) => {
-  // attempt reconnect strategy
-})
-```
-
-- `error`: Emitted when there is a type mismatch for a property or when a property does not exist on the control.
-
-```typescript
-qrwc.on('error', (error) => {
-  console.error('Qrwc error: ', error)
-})
-```
-
-## Example
-
-```typescript
-const controlObject = Qrwc.components.Text_Box['text.1']
-
-console.log(controlObject.Name) // 'text.1'
-console.log(controlObject.Component) // 'Text_Box'
-console.log(controlObject.Value) // 0
-console.log(controlObject.String) // ''
-console.log(controlObject.Position) // 0
-console.log(controlObject.Bool) // undefined - emits error because not a boolean type control
-console.log(controlObject.Type) // 'Text'
-
-// Use ... no default string
-console.log(controlObject.String) // ''
-
-controlObject.String = 'New Control String' // update string
-// Use of newly updated string
-console.log(controlObject.String) // 'New Control String'
-
-// Examples of other methods
-const properties = controlObject.getProperties()
-console.log(properties) // { Name: 'text.1', Component: 'Text_Box', Value: 0, String: 'New Control String', Position: 0, Type: 'Text', ...} plus all other properties not exposed via getters
-
-const valueMin = controlObject.getMetaProperty('ValueMin')
-console.log(valueMin) // The minimum value of the control, or undefined if the 'ValueMin' property does not exist.
-```
+### placeholder for links to examples folder
 
 ### Documentation for Developers
 
