@@ -1,7 +1,7 @@
 import type { IEventEmitter } from '../index.interface'
 import FrontendEventEmitter from './FrontendEvents'
 
-export default class EventEmitter<T> implements IEventEmitter<T> {
+export class EventEmitter<T> implements IEventEmitter<T> {
   private emitter: IEventEmitter<T>
 
   constructor() {
