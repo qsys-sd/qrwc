@@ -1,4 +1,5 @@
 import { EventEmitter } from '../src/event/EventEmitter'
+import { jest } from '@jest/globals'
 
 describe('EventManager', () => {
   let eventEmitter: EventEmitter<any>

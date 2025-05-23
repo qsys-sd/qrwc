@@ -1,8 +1,8 @@
-import type { IStartOptions, IQrwcEvents } from '../index.interface'
-import { ChangeGroup } from './ChangeGroup'
-import { Component } from './Component'
-import { EventEmitter } from '../event/EventEmitter'
-import { WebSocketManager } from './WebSocketManager'
+import type { IStartOptions, IQrwcEvents } from '../index.interface.js'
+import { ChangeGroup } from './ChangeGroup.js'
+import { Component } from './Component.js'
+import { EventEmitter } from '../event/EventEmitter.js'
+import { WebSocketManager } from './WebSocketManager.js'
 
 /**
  * Main entry point for the QRWC library

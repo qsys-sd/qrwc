@@ -1,6 +1,6 @@
 import type { WebSocket as WsWebSocket } from 'ws'
-import type { Control } from './entities/Control'
-import type { Component } from './entities/Component'
+import type { Control } from './entities/Control.js'
+import type { Component } from './entities/Component.js'
 
 /**
  * QRC RPC types

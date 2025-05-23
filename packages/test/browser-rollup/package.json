@@ -1,0 +1,23 @@
+{
+  "name": "browser-rollup",
+  "private": "true",
+  "description": "Uses JSDOM to test QRWC cjs artifacts bundled by rollup.",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start-server": "cd ../../qrc-mock && npm run start -- 3101",
+    "start": "node test.mjs",
+    "test": "start-server-and-test start-server 3101 start",
+    "build": "rm -rf node_modules && npm i && rm -rf dist && rollup -c && cp index.html dist/index.html"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "jsdom": "~26.1.0",
+    "rollup": "^4.41.0",
+    "start-server-and-test": "^2.0.12",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@q-sys/qrwc": "file:../../../"
+  }
+}

@@ -5,6 +5,8 @@ import {
   IChangeGroupPollRequest,
   IRpcRequest
 } from '../src/index.interface'
+import { jest } from '@jest/globals'
+
 describe('WebSocketManager', () => {
   let mockServer: Server
   let wsManager: WebSocketManager

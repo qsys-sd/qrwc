@@ -1,0 +1,21 @@
+{
+  "name": "browser-webpack",
+  "private": "true",
+  "description": "Uses JSDOM to test QRWC cjs artifacts bundled by webpack.",
+  "main": "src/index.ts",
+  "scripts": {
+    "start-server": "cd ../../qrc-mock && npm run start -- 3102",
+    "start": "node test.mjs",
+    "test": "start-server-and-test start-server 3102 start",
+    "build": "rm -rf node_modules && npm i && rm -rf dist && webpack && cp index.html dist/index.html"
+  },
+  "devDependencies": {
+    "jsdom": "~26.1.0",
+    "start-server-and-test": "^2.0.12",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.9"
+  },
+  "dependencies": {
+    "@q-sys/qrwc": "file:../../../"
+  }
+}

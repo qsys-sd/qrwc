@@ -1,4 +1,5 @@
-import FrontendEventEmitter from '../src/event/FrontendEvents'
+import { EventEmitterPolyfill as FrontendEventEmitter } from '../src/event/EventPolyfill'
+import { jest } from '@jest/globals'
 
 describe('FrontendEventEmitter', () => {
   let frontendEventEmitter: FrontendEventEmitter<any>

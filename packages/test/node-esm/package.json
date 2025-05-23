@@ -1,0 +1,23 @@
+{
+  "name": "node-esm",
+  "version": "1.0.0",
+  "private": "true",
+  "description": "Tests QRWC node-esm artifacts.",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start-server": "cd ../../qrc-mock && npm run start -- 3104",
+    "start": "node ./dist/index.js",
+    "test": "start-server-and-test start-server 3104 start",
+    "build": "rm -rf node_modules && npm i && rm -rf dist && tsc"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "start-server-and-test": "^2.0.12",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@q-sys/qrwc": "file:../../../",
+    "ws": "^8.18.2"
+  }
+}

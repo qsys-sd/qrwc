@@ -3,6 +3,7 @@ import { WebSocketManager } from '../src/entities/WebSocketManager'
 import { ChangeGroup } from '../src/entities/ChangeGroup'
 import { Component } from '../src/entities/Component'
 import { IControlState } from '../src/index.interface'
+import { jest } from '@jest/globals'
 
 describe('Control', () => {
   let mockWebSocketManager: WebSocketManager
@@ -119,12 +120,21 @@ describe('Control', () => {
         Name: 'testControl',
         String: newValue,
         Value: 0,
-        Position: 0
+        Position: 0,
+        Properties: [],
+        ID: '',
+        Type: '',
+        Controls: null,
+        ControlSource: 1
       }
     ]
 
     // Mock successful RPC response
-    ;(mockWebSocketManager.sendRpc as jest.Mock).mockResolvedValue(responseData)
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(responseData)
 
     const result = await control.update(newValue)
 
@@ -149,8 +159,13 @@ describe('Control', () => {
 
   it('should handle updating with boolean values (converting to numbers)', async () => {
     // Mock successful RPC response
-    ;(mockWebSocketManager.sendRpc as jest.Mock).mockResolvedValue([
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue([
       {
+        Component: 'TestComponent',
         Name: 'testControl',
         Value: 1,
         String: 'true',
@@ -191,7 +206,11 @@ describe('Control', () => {
     jest.spyOn(control, 'emit')
 
     const error = new Error('RPC Error')
-    ;(mockWebSocketManager.sendRpc as jest.Mock).mockRejectedValue(error)
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockRejectedValue(error)
 
     await expect(control.update('New Value')).resolves.not.toThrowError()
 

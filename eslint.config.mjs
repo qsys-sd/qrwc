@@ -52,7 +52,7 @@ export default [
     }
   },
   {
-    ignores: ['dist/', 'node_modules/', '/examples']
+    ignores: ['**/dist/', '**/node_modules/', '/examples']
   },
   {
     languageOptions: {

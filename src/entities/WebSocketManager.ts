@@ -4,9 +4,9 @@ import type {
   IWebSocket,
   IJsonRpcMessageTypeMap,
   IWebSocketManagerEvents
-} from '../index.interface'
+} from '../index.interface.js'
 import { v4 as uuidv4 } from 'uuid'
-import { EventEmitter } from '../event/EventEmitter'
+import { EventEmitter } from '../event/EventEmitter.js'
 
 /**
  * Manages WebSocket communication with the Q-Sys core

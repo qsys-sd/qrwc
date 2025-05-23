@@ -1,7 +1,10 @@
-import type { IControlChange } from '../index.interface'
-import type { Control } from './Control'
-import type { WebSocketManager } from './WebSocketManager'
-import { QrwcMinPollInterval, QrwcDefaultPollInterval } from '../constants'
+import type { IControlChange } from '../index.interface.js'
+import type { Control } from './Control.js'
+import type { WebSocketManager } from './WebSocketManager.js'
+import {
+  QrwcMinPollInterval,
+  QrwcDefaultPollInterval
+} from '../constants/index.js'
 import { v4 as uuidv4 } from 'uuid'
 
 /**

@@ -4,6 +4,7 @@ import {
   IComponentGetComponentsResult,
   IStartOptions
 } from '../src/index.interface'
+import { jest } from '@jest/globals'
 
 describe('Qrwc', () => {
   let mockServer: Server
@@ -230,7 +231,7 @@ describe('Qrwc', () => {
     qrwc = await Qrwc.createQrwc(options)
 
     // Set up a mock error listener
-    const errorListener = jest.fn()
+    const errorListener = jest.fn<(event: Error) => void>()
     qrwc.on('error', errorListener)
 
     // Simulate an error in the WebSocketManager

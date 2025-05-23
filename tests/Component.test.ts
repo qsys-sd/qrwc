@@ -7,6 +7,7 @@ import {
   IComponentState,
   IComponentGetControlsResult
 } from '../src/index.interface'
+import { jest } from '@jest/globals'
 
 describe('Component', () => {
   let mockWebSocketManager: WebSocketManager
@@ -70,9 +71,11 @@ describe('Component', () => {
     }
 
     // Set default mock response
-    ;(mockWebSocketManager.sendRpc as jest.Mock).mockResolvedValue(
-      mockControlsResponse
-    )
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(mockControlsResponse)
   })
 
   it('should create a component instance with correct initial state', async () => {
@@ -139,9 +142,11 @@ describe('Component', () => {
 
   it('should handle RPC errors when fetching controls', async () => {
     // Mock RPC error
-    ;(mockWebSocketManager.sendRpc as jest.Mock).mockRejectedValueOnce(
-      'RPC Error'
-    )
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockRejectedValueOnce('RPC Error')
 
     // suppress console.error in test
     jest.spyOn(console, 'error').mockImplementationOnce(() => {})
@@ -190,9 +195,11 @@ describe('Component', () => {
     }
 
     // Set mock response to return empty controls
-    ;(mockWebSocketManager.sendRpc as jest.Mock).mockResolvedValueOnce(
-      emptyControlsResponse
-    )
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValueOnce(emptyControlsResponse)
 
     // Create component with empty controls
     const component = await Component.createComponent(

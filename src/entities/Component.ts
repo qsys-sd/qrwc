@@ -1,9 +1,9 @@
-import type { IComponentEvents, IComponentState } from '../index.interface'
-import type { ChangeGroup } from './ChangeGroup'
-import type { Qrwc } from './Qrwc'
-import type { WebSocketManager } from './WebSocketManager'
-import { Control } from './Control'
-import { EventEmitter } from '../event/EventEmitter'
+import type { IComponentEvents, IComponentState } from '../index.interface.js'
+import type { ChangeGroup } from './ChangeGroup.js'
+import type { Qrwc } from './Qrwc.js'
+import type { WebSocketManager } from './WebSocketManager.js'
+import { Control } from './Control.js'
+import { EventEmitter } from '../event/EventEmitter.js'
 
 /**
  * Represents a component in the Q-Sys system with its associated controls

@@ -1,8 +1,8 @@
-import type { IControlState, IControlEvents } from '../index.interface'
-import type { ChangeGroup } from './ChangeGroup'
-import type { Component } from './Component'
-import type { WebSocketManager } from './WebSocketManager'
-import { EventEmitter } from '../event/EventEmitter'
+import type { IControlState, IControlEvents } from '../index.interface.js'
+import type { ChangeGroup } from './ChangeGroup.js'
+import type { Component } from './Component.js'
+import type { WebSocketManager } from './WebSocketManager.js'
+import { EventEmitter } from '../event/EventEmitter.js'
 
 /**
  * Represents a Q-Sys control element that can be interacted with

@@ -2,9 +2,28 @@
   "name": "@q-sys/qrwc",
   "version": "0.4.0-beta",
   "description": "A websocket-based interface for Q-SYS controls.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "license": "MIT",
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "node": "./dist/esm-node/index.js",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "node": "./dist/cjs-node/index.js",
+        "default": "./dist/cjs/index.js"
+      },
+      "types": {
+        "default": "./dist/esm/index.d.ts"
+      },
+      "default": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "README.md",
@@ -14,10 +33,25 @@
     "node": ">=16.18.1"
   },
   "scripts": {
-    "build": "npm run lint && tsc",
-    "test:node": "npm run lint && jest --config jest.node.config.js",
-    "test:frontend": "npm run lint && jest --config jest.jsdom.config.js",
-    "test": "npm run lint && npm run test:node && npm run test:frontend",
+    "build": "rm -rf dist/ && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && npm run post-build",
+    "post-build": "node scripts/post-build.js",
+    "test:node": "npm run lint && node --experimental-vm-modules node_modules/.bin/jest --config jest.node.config.js",
+    "test:frontend": "npm run lint && node --experimental-vm-modules node_modules/.bin/jest --config jest.jsdom.config.js",
+    "build:qrc-mock": "cd packages/qrc-mock && npm run build",
+    "build:tests": "npm run build:qrc-mock && npm run build:tests:browser-rollup && npm run build:tests:browser-webpack && npm run build:tests:node-esm && npm run build:tests:node-cjs",
+    "build:tests:browser-rollup": "cd packages/test/browser-rollup && npm run build",
+    "build:tests:browser-webpack": "cd packages/test/browser-webpack && npm run build",
+    "build:tests:node-esm": "cd packages/test/node-esm && npm run build",
+    "build:tests:node-cjs": "cd packages/test/node-cjs && npm run build",
+    "test:targets": "npm run test:browser-rollup && npm run test:browser-webpack && npm run test:node-esm && npm run test:node-cjs",
+    "test:browser-rollup": "cd packages/test/browser-rollup && npm run test",
+    "test:browser-webpack": "cd packages/test/browser-webpack && npm run test",
+    "test:node-esm": "cd packages/test/node-esm && npm run test",
+    "test:node-cjs": "cd packages/test/node-cjs && npm run test",
+    "test:src": "npm run lint && npm run test:node && npm run test:frontend",
+    "test:all": "npm run test:src && npm run test:targets",
+    "test": "npm run test:all",
+    "pretest": "npm run build:tests",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "fix": "eslint --fix \"src/**/*.ts\" \"tests/**/*.ts\" && prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
   },
@@ -29,9 +63,6 @@
   },
   "repository": {
     "type": "git"
-  },
-  "browser": {
-    "./dist/event/EventEmitter.js": "./dist/event/EventEmitter.browser.js"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
@@ -47,20 +78,10 @@
     "lint-staged": "^15.5.2",
     "mock-socket": "^9.3.1",
     "prettier": "^3.5.3",
-    "ts-jest": "^29.3.2"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "roots": [
-      "./"
-    ],
-    "testMatch": [
-      "**/*.test.ts"
-    ]
+    "ts-jest": "^29.3.2",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "typescript": "^5.8.3",
     "uuid": "^11.1.0"
   }
 }

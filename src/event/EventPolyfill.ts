@@ -1,6 +1,6 @@
-import type { IEventEmitter } from '../index.interface'
+import type { IEventEmitter } from '../index.interface.js'
 
-class FrontendEventEmitter<T> implements IEventEmitter<T> {
+export class EventEmitterPolyfill<T> implements IEventEmitter<T> {
   private eventTarget: EventTarget
   /* eslint-disable no-undef */
   private listeners: Map<T[keyof T], EventListenerOrEventListenerObject>
@@ -44,5 +44,3 @@ class FrontendEventEmitter<T> implements IEventEmitter<T> {
     this.listeners.clear()
   }
 }
-
-export default FrontendEventEmitter
