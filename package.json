@@ -1,6 +1,6 @@
 {
   "name": "@q-sys/qrwc",
-  "version": "0.4.0-beta",
+  "version": "0.4.1-beta",
   "description": "A websocket-based interface for Q-SYS controls.",
   "license": "MIT",
   "type": "module",
@@ -62,7 +62,8 @@
     ]
   },
   "repository": {
-    "type": "git"
+    "type": "git",
+    "url": "https://github.com/qsys-sd/qrwc.git"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

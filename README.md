@@ -1,6 +1,6 @@
 # Q-SYS Remote WebSocket Control
 
-## QRWC is a NPM library for interacting with Qsys design controls from a Node or browser app using websockets
+## QRWC is a NPM library for interacting with Q-SYS design controls from a Node or browser app using websockets
 
 ### What is this repository for?
 
@@ -229,10 +229,6 @@ This example shows how to work with different types of controls, listen for chan
   }
 }
 ```
-
-## Examples
-
-### placeholder for links to examples folder
 
 ### Documentation for Developers
 
