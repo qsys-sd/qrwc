@@ -230,6 +230,11 @@ This example shows how to work with different types of controls, listen for chan
 }
 ```
 
+### Examples
+
+- [QRWC React Example](./examples/qrwc-react-example/)
+- [QRWC Node Example](./examples/qrwc-node-example/)
+
 ### Documentation for Developers
 
 For more information on developing and contributing to this library, please refer to the [Developer Guide](README-Developers.md).
