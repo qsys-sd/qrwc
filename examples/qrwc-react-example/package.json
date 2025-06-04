@@ -8,13 +8,15 @@
     "@mui/icons-material": "^5.14.16",
     "@mui/material": "^5.14.16",
     "@q-sys/qrwc": "0.4.1-beta",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.17",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
     "typescript": "4.9.5"
   },
   "scripts": {

@@ -1,23 +1,17 @@
 {
-  "name": "test",
+  "name": "qrwc-node-example",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "main": "src/index.ts",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/qsc-jhndnn/node-test.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/qsc-jhndnn/node-test/issues"
-  },
-  "homepage": "https://github.com/qsc-jhndnn/node-test#readme",
   "dependencies": {
+    "@q-sys/qrwc": "0.4.1-beta",
+    "dotenv": "^16.5.0",
     "uuid": "^11.1.0",
     "ws": "^8.18.1"
   },
