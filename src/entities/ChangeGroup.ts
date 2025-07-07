@@ -27,12 +27,14 @@ export class ChangeGroup {
   public startPolling(): void {
     if (this.intervalRef) return
     this.intervalRef = setInterval(() => this.poll(), this.pollInterval)
+    console.log(`ChangeGroup (${this.id}): polling started`)
   }
 
   public stopPolling(): void {
     if (!this.intervalRef) return
     clearInterval(this.intervalRef)
     this.intervalRef = null
+    console.log(`ChangeGroup (${this.id}): polling stopped`)
   }
 
   public async registerControl(
@@ -93,16 +95,15 @@ export class ChangeGroup {
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`
         console.error(error)
-        this.websocketManager.emit('error', error)
       } else {
         const errorObj = new Error(`${message}\n${error}`)
         console.error(errorObj)
-        this.websocketManager.emit('error', errorObj)
       }
     }
   }
 
-  public cleanUp() {
+  public close() {
+    this.stopPolling()
     this.register = new Map<string, (change: IControlChange) => void>()
   }
 }

@@ -107,9 +107,9 @@ export class Component<
     return this._controls
   }
 
-  public cleanUp() {
-    this.removeAllListeners()
+  public close() {
     const controls: Control[] = Object.values(this._controls)
-    controls.forEach((control) => control.cleanUp())
+    controls.forEach((control) => control.close())
+    this.removeAllListeners()
   }
 }

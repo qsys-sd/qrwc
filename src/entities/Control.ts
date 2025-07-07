@@ -119,7 +119,7 @@ export class Control extends EventEmitter<IControlEvents> {
     return state
   }
 
-  public cleanUp() {
+  public close() {
     this.changeGroup.deregisterControl(this)
     this.removeAllListeners()
   }

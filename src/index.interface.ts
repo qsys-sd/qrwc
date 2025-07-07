@@ -42,6 +42,14 @@ export interface IJsonRpcMessageTypeMap {
   'ChangeGroup.AddComponentControl': (
     arg: IChangeGroupAddComponentControlRequest
   ) => IChangeGroupAddComponentControlResult
+  StatusGet: () => IStatusGetResult
+}
+
+export interface IStatusGetResult {
+  Status: {
+    Code: number
+    String: string
+  }
 }
 
 /**

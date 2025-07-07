@@ -16,50 +16,76 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   // Maps RPC message IDs to their Promise resolvers
   private rpcResolvers = new Map<
     string,
-    (
-      result: ReturnType<IJsonRpcMessageTypeMap[keyof IJsonRpcMessageTypeMap]>
-    ) => void
+    {
+      resolve: (
+        result: ReturnType<IJsonRpcMessageTypeMap[keyof IJsonRpcMessageTypeMap]>
+      ) => void
+      reject: () => void
+      cancel: () => void
+    }
   >()
-  constructor(
+  private constructor(
     private readonly socket: IWebSocket,
     private readonly timeout: number = 5000
   ) {
     super()
 
     // binding websocket methods
+    this.socket.onerror = (event: Event) => {
+      console.log('WebSocketManager: websocket error.')
+      const error = new Error(`Socket error: ${JSON.stringify(event)}`)
+      console.error(error)
+    }
     this.socket.onmessage = (event: MessageEvent) => {
       const message = JSON.parse(event.data) as IRpcResponse
       if (message.id && this.rpcResolvers.has(message.id)) {
-        const resolve = this.rpcResolvers.get(message.id)!
+        const resolve = this.rpcResolvers.get(message.id)!.resolve
         resolve(message.result)
       } else {
         // Only emit message events for unsolicited messages
         this.emit('message', message)
       }
     }
-    this.socket.onerror = (event: Event) => {
-      const error = new Error(`Socket error: ${JSON.stringify(event)}`)
-      console.error(error)
-      this.emit('error', error)
-      this.emit('disconnected', 'Websocket error.')
-    }
     this.socket.onclose = () => {
+      console.log('WebSocketManager: websocket closed.')
       this.emit('disconnected', 'Websocket closed.')
     }
   }
 
-  private isOpen = () => {
-    return this.socket.readyState === this.socket.OPEN
+  /**
+   * Creates the WebSocketManager and waits for the websocket readyState to be OPEN
+   *
+   * @param socket - WebSocket instance
+   * @param timeout - Timeout in milliseconds for websocket messages
+   */
+  public static async createWebSocketManager(
+    socket: IWebSocket,
+    timeout: number = 5000
+  ) {
+    // create the manager b4 waiting for the socket to be open so we can have the error listener!
+    const webSocketManager = new WebSocketManager(socket, timeout)
+
+    // we need to wait for the socket to be opened and ready before we can do anything
+    if (socket.readyState === socket.CONNECTING) {
+      await new Promise<void>((resolve, reject) => {
+        const timeoutRef = setTimeout(
+          () =>
+            reject(
+              'WebSocketManager: socket timed out during connection attempt.'
+            ),
+          timeout
+        )
+        socket.onopen = () => {
+          clearTimeout(timeoutRef)
+          resolve()
+        }
+      })
+    }
+    return webSocketManager
   }
 
   public send = (data: object): void => {
-    if (this.socket !== null && this.isOpen()) {
-      this.socket.send(JSON.stringify(data))
-    } else {
-      const error = new Error('QRWC: WebSocket is not open or not initialized.')
-      console.error(error)
-      this.emit('error', error)
-    }
+    this.socket.send(JSON.stringify(data))
   }
 
   public createJSONRPCMessage = <
@@ -90,19 +116,38 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   ): Promise<ReturnType<IJsonRpcMessageTypeMap[T]>> =>
     new Promise<ReturnType<IJsonRpcMessageTypeMap[T]>>((resolve, reject) => {
       const id = uuidv4()
-      const timeoutRef = setTimeout(() => {
-        reject(`${method} timeout: ${id}`)
-        this.rpcResolvers.delete(id)
-      }, this.timeout)
-      this.rpcResolvers.set(id, (result) => {
-        clearTimeout(timeoutRef)
+
+      const resolveRpc = (
+        result: ReturnType<IJsonRpcMessageTypeMap[keyof IJsonRpcMessageTypeMap]>
+      ) => {
+        clearTimeout(timeout)
         resolve(result as ReturnType<IJsonRpcMessageTypeMap[T]>)
         this.rpcResolvers.delete(id)
+      }
+      const rejectRpc = () => {
+        clearTimeout(timeout)
+        reject(`${method} timeout: ${id}`)
+        this.rpcResolvers.delete(id)
+      }
+      const cancelRpc = () => {
+        clearTimeout(timeout)
+        reject(`${method} cancelled: ${id}`)
+        this.rpcResolvers.delete(id)
+      }
+      this.rpcResolvers.set(id, {
+        resolve: resolveRpc,
+        reject: rejectRpc,
+        cancel: cancelRpc
       })
+
+      const timeout = setTimeout(rejectRpc, this.timeout)
       this.send(this.createJSONRPCMessage(method, params, id))
     })
 
   public close(): void {
+    for (const rpc of this.rpcResolvers.values()) {
+      rpc.cancel()
+    }
     this.rpcResolvers.clear()
     this.removeAllListeners()
     this.socket?.close()

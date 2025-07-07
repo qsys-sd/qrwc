@@ -19,8 +19,8 @@ describe('WebSocketManager', () => {
     // Create a promise that resolves when the connection is open
     const connectionPromise = new Promise<void>((resolve) => {
       mockSocket = new WebSocket('ws://localhost:8080')
-      mockSocket.onopen = () => {
-        wsManager = new WebSocketManager(mockSocket)
+      mockSocket.onopen = async () => {
+        wsManager = await WebSocketManager.createWebSocketManager(mockSocket)
         resolve()
       }
     })
@@ -38,9 +38,10 @@ describe('WebSocketManager', () => {
 
     // Create and connect the socket
     const connectionPromise = new Promise<WebSocketManager>((resolve) => {
-      const testSocket = new WebSocket('ws://localhost:8081')
-      testSocket.onopen = () => {
-        resolve(new WebSocketManager(testSocket))
+      mockSocket = new WebSocket('ws://localhost:8080')
+      mockSocket.onopen = async () => {
+        wsManager = await WebSocketManager.createWebSocketManager(mockSocket)
+        resolve(wsManager)
       }
     })
 
