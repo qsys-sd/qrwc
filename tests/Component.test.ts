@@ -162,7 +162,7 @@ describe('Component', () => {
     ).resolves.not.toThrowError()
   })
 
-  it('should clean up properly when cleanUp is called', async () => {
+  it('should clean up properly when close is called', async () => {
     const component = await Component.createComponent(
       mockWebSocketManager,
       mockChangeGroup,
@@ -171,20 +171,20 @@ describe('Component', () => {
       mockComponentState
     )
 
-    // Mock the cleanUp methods on controls
-    component.controls.control1.cleanUp = jest.fn()
-    component.controls.control2.cleanUp = jest.fn()
+    // Mock the close methods on controls
+    component.controls.control1.close = jest.fn()
+    component.controls.control2.close = jest.fn()
 
     jest.spyOn(component, 'removeAllListeners')
-    jest.spyOn(component.controls.control1, 'cleanUp')
-    jest.spyOn(component.controls.control2, 'cleanUp')
+    jest.spyOn(component.controls.control1, 'close')
+    jest.spyOn(component.controls.control2, 'close')
 
-    component.cleanUp()
+    component.close()
 
     expect(component.removeAllListeners).toHaveBeenCalled()
     // Verify both controls were cleaned up
-    expect(component.controls.control1.cleanUp).toHaveBeenCalled()
-    expect(component.controls.control2.cleanUp).toHaveBeenCalled()
+    expect(component.controls.control1.close).toHaveBeenCalled()
+    expect(component.controls.control2.close).toHaveBeenCalled()
   })
 
   it('should gracefully handle a component with no controls', async () => {
@@ -219,6 +219,6 @@ describe('Component', () => {
     expect(Object.keys(component.controls)).toHaveLength(0)
 
     // Test that cleanUp doesn't throw errors with no controls
-    expect(() => component.cleanUp()).not.toThrow()
+    expect(() => component.close()).not.toThrow()
   })
 })

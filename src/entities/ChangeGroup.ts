@@ -27,14 +27,12 @@ export class ChangeGroup {
   public startPolling(): void {
     if (this.intervalRef) return
     this.intervalRef = setInterval(() => this.poll(), this.pollInterval)
-    console.log(`ChangeGroup (${this.id}): polling started`)
   }
 
   public stopPolling(): void {
     if (!this.intervalRef) return
     clearInterval(this.intervalRef)
     this.intervalRef = null
-    console.log(`ChangeGroup (${this.id}): polling stopped`)
   }
 
   public async registerControl(
@@ -57,7 +55,7 @@ export class ChangeGroup {
       })
     } catch (error) {
       this.register.delete(key)
-      const message = `QRWC: RPC Error: ChangeGroup.AddComponentControl failed to register control ${control.name} in component ${control.component.name}`
+      const message = `QRWC: Failed to register control ${control.name} in component ${control.component.name}.`
       // log error rather than emit b/c client app is still awaiting qrwc factory and can't listen to events
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`

@@ -117,6 +117,24 @@ describe('Qrwc', () => {
             })
           )
         }
+
+        // Handle StatusGet
+        if (data.method === 'StatusGet') {
+          socket.send(
+            JSON.stringify({
+              id: data.id,
+              result: {
+                Platform: 'test core',
+                State: 'Active',
+                DesignName: 'test design',
+                DesignCode: '1234567890',
+                IsRedundant: false,
+                IsEmulator: false,
+                Status: { Code: 0, String: 'OK' }
+              }
+            })
+          )
+        }
       })
     })
 
@@ -273,26 +291,26 @@ describe('Qrwc', () => {
 
     // Set up spies
     jest.spyOn(qrwc['changeGroup'], 'stopPolling')
-    jest.spyOn(qrwc['changeGroup'], 'cleanUp')
+    jest.spyOn(qrwc['changeGroup'], 'close')
     jest.spyOn(qrwc['webSocketManager'], 'close')
     jest.spyOn(qrwc, 'removeAllListeners')
 
-    // Mock component cleanUp methods
+    // Mock component close methods
     const component1 = qrwc.components.TestComponent1!
     const component2 = qrwc.components.TestComponent2!
-    jest.spyOn(component1, 'cleanUp')
-    jest.spyOn(component2, 'cleanUp')
+    jest.spyOn(component1, 'close')
+    jest.spyOn(component2, 'close')
 
     // Call close
     qrwc.close()
 
     // Verify everything was cleaned up
     expect(qrwc['changeGroup'].stopPolling).toHaveBeenCalled()
-    expect(qrwc['changeGroup'].cleanUp).toHaveBeenCalled()
+    expect(qrwc['changeGroup'].close).toHaveBeenCalled()
     expect(qrwc['webSocketManager'].close).toHaveBeenCalled()
     expect(qrwc.removeAllListeners).toHaveBeenCalled()
-    expect(component1.cleanUp).toHaveBeenCalled()
-    expect(component2.cleanUp).toHaveBeenCalled()
+    expect(component1.close).toHaveBeenCalled()
+    expect(component2.close).toHaveBeenCalled()
     expect(Object.keys(qrwc['_components'])).toHaveLength(0)
   })
 
@@ -322,6 +340,24 @@ describe('Qrwc', () => {
               result: {
                 Id: data.params.Id,
                 Changes: []
+              }
+            })
+          )
+        }
+
+        // Handle StatusGet
+        if (data.method === 'StatusGet') {
+          socket.send(
+            JSON.stringify({
+              id: data.id,
+              result: {
+                Platform: 'test core',
+                State: 'Active',
+                DesignName: 'test design',
+                DesignCode: '1234567890',
+                IsRedundant: false,
+                IsEmulator: false,
+                Status: { Code: 0, String: 'OK' }
               }
             })
           )
@@ -361,9 +397,11 @@ describe('Qrwc', () => {
         pollingInterval: 100,
         timeout: 100
       })
-    ).rejects.toThrow('QRWC: Websocket error: Unable to connect to core.')
+    ).rejects.toThrow(
+      'WebSocket failed to connect (error). Check Q-SYS core IP address or wait and retry.'
+    )
 
     // Clean up
     failingSocket.close()
-  }, 200)
+  }, 10000)
 })

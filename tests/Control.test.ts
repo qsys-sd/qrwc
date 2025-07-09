@@ -220,7 +220,7 @@ describe('Control', () => {
   it('should clean up properly when cleanUp is called', () => {
     jest.spyOn(control, 'removeAllListeners')
 
-    control.cleanUp()
+    control.close()
 
     expect(mockChangeGroup.deregisterControl).toHaveBeenCalledWith(control)
     expect(control.removeAllListeners).toHaveBeenCalled()

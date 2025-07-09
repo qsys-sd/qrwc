@@ -141,5 +141,23 @@ server.on('connection', (socket) => {
         })
       )
     }
+
+    // Handle StatusGet
+    if (data.method === 'StatusGet') {
+      socket.send(
+        JSON.stringify({
+          id: data.id,
+          result: {
+            Platform: 'test core',
+            State: 'Active',
+            DesignName: 'test design',
+            DesignCode: '1234567890',
+            IsRedundant: false,
+            IsEmulator: false,
+            Status: { Code: 0, String: 'OK' }
+          }
+        })
+      )
+    }
   })
 })

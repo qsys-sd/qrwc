@@ -32,9 +32,8 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
 
     // binding websocket methods
     this.socket.onerror = (event: Event) => {
-      console.log('WebSocketManager: websocket error.')
-      const error = new Error(`Socket error: ${JSON.stringify(event)}`)
-      console.error(error)
+      const error = new Error(`WebSocket error: ${JSON.stringify(event)}`)
+      this.emit('error', error)
     }
     this.socket.onmessage = (event: MessageEvent) => {
       const message = JSON.parse(event.data) as IRpcResponse
@@ -47,8 +46,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       }
     }
     this.socket.onclose = () => {
-      console.log('WebSocketManager: websocket closed.')
-      this.emit('disconnected', 'Websocket closed.')
+      this.emit('disconnected', 'WebSocket connection closed by Q-SYS core.')
     }
   }
 
@@ -62,25 +60,58 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
     socket: IWebSocket,
     timeout: number = 5000
   ) {
-    // create the manager b4 waiting for the socket to be open so we can have the error listener!
-    const webSocketManager = new WebSocketManager(socket, timeout)
-
     // we need to wait for the socket to be opened and ready before we can do anything
-    if (socket.readyState === socket.CONNECTING) {
+    if (socket.readyState !== socket.OPEN) {
       await new Promise<void>((resolve, reject) => {
         const timeoutRef = setTimeout(
           () =>
             reject(
-              'WebSocketManager: socket timed out during connection attempt.'
+              new Error(
+                'WebSocket failed to connect (timeout). Check Q-SYS core IP address or wait and retry.'
+              )
             ),
           timeout
         )
+        // temporary socket listeners just for startup process
+        socket.onerror = () => {
+          clearTimeout(timeoutRef)
+          reject(
+            new Error(
+              'WebSocket failed to connect (error). Check Q-SYS core IP address or wait and retry.'
+            )
+          )
+        }
+        socket.onclose = () => {
+          clearTimeout(timeoutRef)
+          reject(
+            new Error(
+              'WebSocket failed to connect (connection closed by Q-SYS core). Wait and retry.'
+            )
+          )
+        }
         socket.onopen = () => {
           clearTimeout(timeoutRef)
           resolve()
         }
       })
     }
+
+    const webSocketManager = new WebSocketManager(socket, timeout)
+
+    /*
+      When the core is shutting down or booting up, QRC will open and then
+      immediately close the websocket connection, so we also need to verify
+      QRC is ACTUALLY ready and throw an informative error if it is not. We
+      can do this by making a quick one-off RPC call.
+    */
+    try {
+      const _status = await webSocketManager.sendRpc('StatusGet', undefined)
+    } catch (_error) {
+      throw new Error(
+        'QRC initial status check failed. Q-SYS core might be shutting down or booting up. Wait and retry.'
+      )
+    }
+
     return webSocketManager
   }
 
@@ -144,10 +175,14 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       this.send(this.createJSONRPCMessage(method, params, id))
     })
 
-  public close(): void {
+  private cancelRpcs(): void {
     for (const rpc of this.rpcResolvers.values()) {
       rpc.cancel()
     }
+  }
+
+  public close(): void {
+    this.cancelRpcs()
     this.rpcResolvers.clear()
     this.removeAllListeners()
     this.socket?.close()

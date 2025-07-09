@@ -46,10 +46,13 @@ export interface IJsonRpcMessageTypeMap {
 }
 
 export interface IStatusGetResult {
-  Status: {
-    Code: number
-    String: string
-  }
+  Platform: string
+  State: 'Active' | 'Idle' | 'Standby'
+  DesignName: string
+  DesignCode: string
+  IsRedundant: boolean
+  IsEmulator: boolean
+  Status: { Code: number; String: string }
 }
 
 /**

@@ -58,45 +58,35 @@ export class Qrwc<
     componentFilter,
     timeout = 5000
   }: IStartOptions): Promise<Qrwc<T>> {
-    console.log('createQrwc start')
+    // This will wait for the websocket to be open, run a quick status check, and HACF if anything fails.
     const websocketManager = await WebSocketManager.createWebSocketManager(
       socket,
       timeout
     )
-    console.log('createQrwc: WebSocketManager created.')
-    const changeGroup = new ChangeGroup(websocketManager, pollingInterval)
-    console.log('createQrwc: ChangeGroup created.')
-    const qrwc = new Qrwc<T>(websocketManager, changeGroup)
-    console.log('createQrwc: Qrwc created.')
 
-    // we need different ws listeners during startup so we can handle irregular startup issues
-    const startupWSErrorHandler = (error: Error) => {
-      console.error('QRWC: websocket error during startup')
-      console.error(error)
-    }
-    websocketManager.on('error', startupWSErrorHandler)
-    const startupWSDisconnectHandler = (reason: string) => {
-      const error = new Error(
-        `QRWC: websocket disconnected during startup:\n${reason}`
-      )
-      console.error(error)
+    // note that client apps cannot listen to these emitters until after createQrwc returns
+    websocketManager.on('error', (error) => {
+      qrwc.emit('error', error)
+    })
+
+    websocketManager.on('disconnected', (reason) => {
+      qrwc.emit('disconnected', reason)
       qrwc.close()
-    }
-    websocketManager.on('disconnected', startupWSDisconnectHandler)
-    console.log('createQrwc: startup listeners created.')
+    })
+
+    const changeGroup = new ChangeGroup(websocketManager, pollingInterval)
+
+    const qrwc = new Qrwc<T>(websocketManager, changeGroup)
 
     try {
-      console.log('createQrwc: trying to fetch components...')
       const getComponentsResponse = await websocketManager.sendRpc(
         'Component.GetComponents',
         'test'
       )
-      console.log('createQrwc: component list fetched.')
       const filteredComponents = componentFilter
         ? getComponentsResponse.filter(componentFilter)
         : getComponentsResponse
 
-      console.log('createQrwc: populating components...')
       const components = await Promise.all(
         filteredComponents.map((component) => {
           return Component.createComponent(
@@ -108,7 +98,6 @@ export class Qrwc<
           )
         })
       )
-      console.log('createQrwc: components populated with controls.')
       // Freeze the object so it's readonly in javascript too
       qrwc._components = Object.freeze(
         components.reduce<Record<string, Component>>((acc, component) => {
@@ -121,8 +110,7 @@ export class Qrwc<
     } catch (error) {
       // we should log here instead of emitting b/c this is before the client app
       // has had a chance to listen to qrwc's error event
-      const message =
-        'QRWC: RPC Error: Component.GetComponents failed to fetch components from the core.'
+      const message = 'Failed to fetch components from Q-SYS core.'
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`
         console.error(error)
@@ -133,24 +121,7 @@ export class Qrwc<
         throw errorObj
       }
     }
-    console.log(
-      'createQrwc: replacing startup listeners with primary listeners...'
-    )
-    // replace startup listeners with the real-deal listeners
-    websocketManager.removeListener('error', startupWSErrorHandler)
-    websocketManager.on('error', (error) => {
-      console.log('Qrwc websocketManager error')
-      qrwc.emit('error', error)
-    })
 
-    websocketManager.removeListener('disconnected', startupWSDisconnectHandler)
-    websocketManager.on('disconnected', (reason) => {
-      console.log('Qrwc websocketManager disconnect')
-      qrwc.emit('disconnected', reason)
-      qrwc.close()
-    })
-
-    console.log('createQrwc: done.')
     return qrwc
   }
 
@@ -159,7 +130,6 @@ export class Qrwc<
    * @public
    */
   public close(): void {
-    console.log('Qrwc close()')
     this.changeGroup.close()
     const components = Object.values(this._components)
     components.forEach((component) => {

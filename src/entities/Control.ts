@@ -102,7 +102,7 @@ export class Control extends EventEmitter<IControlEvents> {
 
       this._state = { ...this._state, ...change } as const
     } catch (error) {
-      const message = `QRWC: RPC Error: Component.Set in component ${this.component.name} control ${this.name} for value ${value}`
+      const message = `QRWC: Failed to update component ${this.component.name} control ${this.name} for value ${value}`
       if (error instanceof Error) {
         error.message = message
         this.emit('error', error)

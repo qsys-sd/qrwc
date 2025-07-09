@@ -58,7 +58,7 @@ export class Component<
         })
         return result
       } catch (error) {
-        const message = `QRWC: RPC Error: Component.GetControls failed to fetch controls for component ${name}`
+        const message = `QRWC: Failed to fetch controls for component ${name}`
         // log error rather than emit b/c client app is still awaiting qrwc factory and can't listen to events
         if (error instanceof Error) {
           error.message = message

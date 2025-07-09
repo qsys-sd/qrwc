@@ -16,6 +16,19 @@ describe('WebSocketManager', () => {
     mockServer = new Server('ws://localhost:8080')
     global.WebSocket = WebSocket // Mock global WebSocket with mock-socket WebSocket
 
+    // Set up the server to respond to messages
+    mockServer.on('connection', (socket) => {
+      socket.on('message', (message) => {
+        const body = JSON.parse(message as string) as IRpcRequest
+
+        const response = {
+          id: body.id,
+          result: {}
+        }
+        socket.send(JSON.stringify(response))
+      })
+    })
+
     // Create a promise that resolves when the connection is open
     const connectionPromise = new Promise<void>((resolve) => {
       mockSocket = new WebSocket('ws://localhost:8080')
@@ -38,7 +51,7 @@ describe('WebSocketManager', () => {
 
     // Create and connect the socket
     const connectionPromise = new Promise<WebSocketManager>((resolve) => {
-      mockSocket = new WebSocket('ws://localhost:8080')
+      mockSocket = new WebSocket('ws://localhost:8081')
       mockSocket.onopen = async () => {
         wsManager = await WebSocketManager.createWebSocketManager(mockSocket)
         resolve(wsManager)
