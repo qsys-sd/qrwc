@@ -403,5 +403,5 @@ describe('Qrwc', () => {
 
     // Clean up
     failingSocket.close()
-  }, 10000)
+  }, 200)
 })
