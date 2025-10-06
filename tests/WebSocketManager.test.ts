@@ -7,6 +7,14 @@ import {
 } from '../src/index.interface'
 import { jest } from '@jest/globals'
 
+const emptyLogger = {
+  trace: () => undefined,
+  debug: () => undefined,
+  info: () => undefined,
+  warn: () => undefined,
+  error: () => undefined
+}
+
 describe('WebSocketManager', () => {
   let mockServer: Server
   let wsManager: WebSocketManager
@@ -33,7 +41,10 @@ describe('WebSocketManager', () => {
     const connectionPromise = new Promise<void>((resolve) => {
       mockSocket = new WebSocket('ws://localhost:8080')
       mockSocket.onopen = async () => {
-        wsManager = await WebSocketManager.createWebSocketManager(mockSocket)
+        wsManager = await WebSocketManager.createWebSocketManager(
+          emptyLogger,
+          mockSocket
+        )
         resolve()
       }
     })
@@ -53,7 +64,10 @@ describe('WebSocketManager', () => {
     const connectionPromise = new Promise<WebSocketManager>((resolve) => {
       mockSocket = new WebSocket('ws://localhost:8081')
       mockSocket.onopen = async () => {
-        wsManager = await WebSocketManager.createWebSocketManager(mockSocket)
+        wsManager = await WebSocketManager.createWebSocketManager(
+          emptyLogger,
+          mockSocket
+        )
         resolve(wsManager)
       }
     })

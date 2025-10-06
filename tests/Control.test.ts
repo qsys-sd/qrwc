@@ -5,6 +5,14 @@ import { Component } from '../src/entities/Component'
 import { IControlState } from '../src/index.interface'
 import { jest } from '@jest/globals'
 
+const emptyLogger = {
+  trace: () => undefined,
+  debug: () => undefined,
+  info: () => undefined,
+  warn: () => undefined,
+  error: () => undefined
+}
+
 describe('Control', () => {
   let mockWebSocketManager: WebSocketManager
   let mockChangeGroup: ChangeGroup
@@ -45,6 +53,7 @@ describe('Control', () => {
     }
 
     control = await Control.createControl(
+      emptyLogger,
       mockWebSocketManager,
       mockChangeGroup,
       mockComponent,
@@ -57,6 +66,7 @@ describe('Control', () => {
     // Create control with Value < 0.5
 
     let testControl = await Control.createControl(
+      emptyLogger,
       mockWebSocketManager,
       mockChangeGroup,
       mockComponent,
@@ -66,6 +76,7 @@ describe('Control', () => {
     expect(testControl.state.Bool).toBe(false)
 
     testControl = await Control.createControl(
+      emptyLogger,
       mockWebSocketManager,
       mockChangeGroup,
       mockComponent,
@@ -76,6 +87,7 @@ describe('Control', () => {
 
     // Create control with Value >= 0.5
     testControl = await Control.createControl(
+      emptyLogger,
       mockWebSocketManager,
       mockChangeGroup,
       mockComponent,
@@ -85,6 +97,7 @@ describe('Control', () => {
     expect(testControl.state.Bool).toBe(true)
 
     testControl = await Control.createControl(
+      emptyLogger,
       mockWebSocketManager,
       mockChangeGroup,
       mockComponent,

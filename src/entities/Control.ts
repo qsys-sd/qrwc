@@ -1,4 +1,8 @@
-import type { IControlState, IControlEvents } from '../index.interface.js'
+import type {
+  IControlState,
+  IControlEvents,
+  ILogger
+} from '../index.interface.js'
 import type { ChangeGroup } from './ChangeGroup.js'
 import type { Component } from './Component.js'
 import type { WebSocketManager } from './WebSocketManager.js'
@@ -15,6 +19,7 @@ export class Control extends EventEmitter<IControlEvents> {
    * Creates a new Control instance
    */
   private constructor(
+    private readonly logger: ILogger,
     private readonly websocketManager: WebSocketManager,
     private readonly changeGroup: ChangeGroup,
     readonly component: Component,
@@ -31,9 +36,12 @@ export class Control extends EventEmitter<IControlEvents> {
     this.on('error', (error) => {
       component.emit('error', error)
     })
+
+    logger.debug(`Control ${name} created in component ${component.name}`)
   }
 
   public static async createControl(
+    logger: ILogger,
     websocketManager: WebSocketManager,
     changeGroup: ChangeGroup,
     component: Component,
@@ -41,6 +49,7 @@ export class Control extends EventEmitter<IControlEvents> {
     state: Omit<IControlState, 'Bool'> // Bool is computed so it doesn't need to be provided
   ) {
     const control = new Control(
+      logger,
       websocketManager,
       changeGroup,
       component,
@@ -122,5 +131,8 @@ export class Control extends EventEmitter<IControlEvents> {
   public close() {
     this.changeGroup.deregisterControl(this)
     this.removeAllListeners()
+    this.logger.debug(
+      `Control ${this.name} in component ${this.component.name} closed`
+    )
   }
 }
