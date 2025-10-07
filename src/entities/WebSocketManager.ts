@@ -35,22 +35,23 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
     // binding websocket methods
     this.socket.onerror = (event: Event) => {
       const error = new Error(`WebSocket error: ${JSON.stringify(event)}`)
-      this.logger.error('WebSocket error.', error)
+      this.logger.error(error, 'WebSocket error.')
       this.emit('error', error)
     }
     this.socket.onmessage = (event: MessageEvent) => {
       const message = JSON.parse(event.data) as IRpcResponse
-      this.logger.trace(message)
       if (message.id && this.rpcResolvers.has(message.id)) {
+        this.logger.trace(message, 'RPC RESPONSE')
         const resolve = this.rpcResolvers.get(message.id)!.resolve
         resolve(message.result)
       } else {
+        this.logger.trace(message, 'ONMESSAGE')
         // Only emit message events for unsolicited messages
         this.emit('message', message)
       }
     }
     this.socket.onclose = (event: CloseEvent) => {
-      this.logger.debug('WebSocket disconnected.', event.reason)
+      this.logger.debug(`WebSocket disconnected. ${event.reason}`)
       this.emit('disconnected', 'WebSocket connection closed by Q-SYS core.')
     }
   }
@@ -125,7 +126,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   }
 
   public send = (data: object): void => {
-    this.logger.trace('RPC SEND', data)
+    this.logger.trace(data, 'RPC SEND')
     this.socket.send(JSON.stringify(data))
   }
 
