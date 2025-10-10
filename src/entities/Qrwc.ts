@@ -1,4 +1,9 @@
-import type { IStartOptions, IQrwcEvents, ILogger } from '../index.interface.js'
+import type {
+  IStartOptions,
+  IStatusGetResult,
+  IQrwcEvents,
+  ILogger
+} from '../index.interface.js'
 import { ChangeGroup } from './ChangeGroup.js'
 import { Component } from './Component.js'
 import { EventEmitter } from '../event/EventEmitter.js'
@@ -12,14 +17,20 @@ import { WebSocketManager } from './WebSocketManager.js'
 export class Qrwc<
   T extends Record<string, string> = Record<string, string>
 > extends EventEmitter<IQrwcEvents> {
+  readonly engineStatus: Readonly<IStatusGetResult>
   // temporary value--overwritten in createQrwc
   private _components: Readonly<Record<string, Component>> = Object.freeze({})
   private constructor(
     private readonly logger: ILogger,
     private readonly webSocketManager: WebSocketManager,
-    private readonly changeGroup: ChangeGroup
+    private readonly changeGroup: ChangeGroup,
+    status: IStatusGetResult
   ) {
     super()
+    this.engineStatus = Object.freeze({
+      ...status,
+      Status: Object.freeze(status.Status)
+    })
   }
 
   /**
@@ -78,13 +89,30 @@ export class Qrwc<
 
     const logger = partialLogger as ILogger
 
-    logger.info('Initializing QRWC')
+    logger.info('Initializing QRWC...')
     // This will wait for the websocket to be open, run a quick status check, and HACF if anything fails.
     const websocketManager = await WebSocketManager.createWebSocketManager(
       logger,
       socket,
       timeout
     )
+
+    /*
+      When the core is shutting down or booting up, QRC will open and then
+      immediately close the websocket connection, so we also need to verify
+      QRC is ACTUALLY ready and throw an informative error if it is not. We
+      can do this by making a quick one-off RPC call.
+    */
+    logger.debug('Fetching core status...')
+    let status: IStatusGetResult
+    try {
+      status = await websocketManager.sendRpc('StatusGet', undefined)
+      logger.debug(status)
+    } catch (_error) {
+      throw new Error(
+        'QRC initial status check failed. Q-SYS core might be shutting down or booting up. Wait and retry.'
+      )
+    }
     logger.info('QRC is ready.')
 
     // note that client apps cannot listen to these emitters until after createQrwc returns
@@ -103,9 +131,9 @@ export class Qrwc<
       pollingInterval
     )
 
-    const qrwc = new Qrwc<T>(logger, websocketManager, changeGroup)
+    const qrwc = new Qrwc<T>(logger, websocketManager, changeGroup, status)
 
-    logger.info('Fetching components from QRC.')
+    logger.info('Fetching components from QRC...')
     try {
       const getComponentsResponse = await websocketManager.sendRpc(
         'Component.GetComponents',

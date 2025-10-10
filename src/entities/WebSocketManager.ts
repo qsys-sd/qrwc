@@ -25,6 +25,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       cancel: () => void
     }
   >()
+
   private constructor(
     private readonly logger: ILogger,
     private readonly socket: IWebSocket,
@@ -104,25 +105,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       })
     }
 
-    const webSocketManager = new WebSocketManager(logger, socket, timeout)
-
-    /*
-      When the core is shutting down or booting up, QRC will open and then
-      immediately close the websocket connection, so we also need to verify
-      QRC is ACTUALLY ready and throw an informative error if it is not. We
-      can do this by making a quick one-off RPC call.
-    */
-    logger.info('Fetching core status...')
-    try {
-      const status = await webSocketManager.sendRpc('StatusGet', undefined)
-      logger.debug(status)
-    } catch (_error) {
-      throw new Error(
-        'QRC initial status check failed. Q-SYS core might be shutting down or booting up. Wait and retry.'
-      )
-    }
-
-    return webSocketManager
+    return new WebSocketManager(logger, socket, timeout)
   }
 
   public send = (data: object): void => {

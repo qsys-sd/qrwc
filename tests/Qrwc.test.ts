@@ -460,4 +460,22 @@ describe('Qrwc', () => {
       consoleErrorSpy.mockRestore()
     }
   })
+
+  it('should expose engine status in qrc property', async () => {
+    const options: IStartOptions = {
+      socket: mockSocket,
+      pollingInterval: 100
+    }
+
+    qrwc = await Qrwc.createQrwc(options)
+
+    expect(qrwc.engineStatus?.Platform).toBe('test core')
+    expect(qrwc.engineStatus?.State).toBe('Active')
+    expect(qrwc.engineStatus?.DesignName).toBe('test design')
+    expect(qrwc.engineStatus?.DesignCode).toBe('1234567890')
+    expect(qrwc.engineStatus?.IsRedundant).toBe(false)
+    expect(qrwc.engineStatus?.IsEmulator).toBe(false)
+    expect(qrwc.engineStatus?.Status?.Code).toBe(0)
+    expect(qrwc.engineStatus?.Status?.String).toBe('OK')
+  })
 })
