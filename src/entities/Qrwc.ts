@@ -1,8 +1,8 @@
 import type {
   IStartOptions,
-  IStatusGetResult,
   IQrwcEvents,
-  ILogger
+  ILogger,
+  IStatusGetResult
 } from '../index.interface.js'
 import { ChangeGroup } from './ChangeGroup.js'
 import { Component } from './Component.js'
@@ -71,31 +71,22 @@ export class Qrwc<
     componentFilter,
     timeout = 5000
   }: IStartOptions): Promise<Qrwc<T>> {
-    if (!partialLogger.trace) {
-      partialLogger.trace = () => undefined
-    }
-    if (!partialLogger.debug) {
-      partialLogger.debug = () => undefined
-    }
-    if (!partialLogger.info) {
-      partialLogger.info = () => undefined
-    }
-    if (!partialLogger.warn) {
-      partialLogger.warn = () => undefined
-    }
-    if (!partialLogger.error) {
-      partialLogger.error = () => undefined
+    const logger: ILogger = {
+      trace: partialLogger.trace ?? (() => undefined),
+      debug: partialLogger.debug ?? (() => undefined),
+      info: partialLogger.info ?? (() => undefined),
+      warn: partialLogger.warn ?? (() => undefined),
+      error: partialLogger.error ?? (() => undefined)
     }
 
-    const logger = partialLogger as ILogger
-
-    logger.info('Initializing QRWC...')
+    logger.info('Initializing QRWC')
     // This will wait for the websocket to be open, run a quick status check, and HACF if anything fails.
     const websocketManager = await WebSocketManager.createWebSocketManager(
       logger,
       socket,
       timeout
     )
+    logger.info('QRC is ready.')
 
     /*
       When the core is shutting down or booting up, QRC will open and then

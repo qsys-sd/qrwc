@@ -99,7 +99,6 @@ describe('Component', () => {
     // Check component properties
     expect(component.name).toBe('TestComponent')
     expect(component.state).toEqual(mockComponentState)
-    // expect(component.qrwc).toBe(mockQrwc)
 
     // Check controls were created
     expect(Object.keys(component.controls)).toHaveLength(2)

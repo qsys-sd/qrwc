@@ -185,6 +185,7 @@ export interface IControlChange {
   Legend?: string
   CssClass?: string
   Strings?: string[]
+  Values?: string[]
 }
 
 /**
