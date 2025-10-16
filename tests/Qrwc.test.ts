@@ -404,4 +404,60 @@ describe('Qrwc', () => {
     // Clean up
     failingSocket.close()
   }, 200)
+
+  it('QRWC should log with the dependency injected logger', async () => {
+    // Create a mock logger
+    const mockLogger = {
+      trace: jest.fn(),
+      debug: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn()
+    }
+
+    // Spy on console methods to ensure they're not being used
+    const consoleLogSpy = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => {})
+    const consoleInfoSpy = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => {})
+    const consoleDebugSpy = jest
+      .spyOn(console, 'debug')
+      .mockImplementation(() => {})
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {})
+
+    try {
+      // Create a Qrwc instance with the mock logger
+      const options: IStartOptions = {
+        socket: mockSocket,
+        pollingInterval: 100,
+        logger: mockLogger
+      }
+
+      qrwc = await Qrwc.createQrwc(options)
+
+      // Verify that the logger was called
+      expect(mockLogger.info).toHaveBeenCalled()
+      expect(mockLogger.debug).toHaveBeenCalled()
+      expect(mockLogger.trace).toHaveBeenCalled()
+
+      // Test that the logger is used during cleanup
+      qrwc.close()
+
+      // Verify that console.log and console.info were NOT used
+      expect(consoleLogSpy).not.toHaveBeenCalled()
+      expect(consoleInfoSpy).not.toHaveBeenCalled()
+      expect(consoleDebugSpy).not.toHaveBeenCalled()
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+    } finally {
+      // Restore console methods
+      consoleLogSpy.mockRestore()
+      consoleInfoSpy.mockRestore()
+      consoleDebugSpy.mockRestore()
+      consoleErrorSpy.mockRestore()
+    }
+  })
 })

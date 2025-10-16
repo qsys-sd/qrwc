@@ -1,4 +1,8 @@
-import type { IComponentEvents, IComponentState } from '../index.interface.js'
+import type {
+  IComponentEvents,
+  IComponentState,
+  ILogger
+} from '../index.interface.js'
 import type { ChangeGroup } from './ChangeGroup.js'
 import type { Qrwc } from './Qrwc.js'
 import type { WebSocketManager } from './WebSocketManager.js'
@@ -23,11 +27,13 @@ export class Component<
    * instantiation instead.
    */
   private constructor(
-    readonly qrwc: Qrwc, // The global Qrwc instance
+    private readonly logger: ILogger,
+    private readonly qrwc: Qrwc, // The global Qrwc instance
     readonly name: string,
     readonly state: IComponentState
   ) {
     super()
+    logger.debug(`Component ${name} created.`)
   }
 
   /**
@@ -35,13 +41,14 @@ export class Component<
    * This factory method handles the async initialization process including fetching controls
    */
   public static async createComponent<T extends string = string>(
+    logger: ILogger,
     websocketManager: WebSocketManager, // The global WebSocketManager instance
     changeGroup: ChangeGroup, // The global ChangeGroup instance
     qrwc: Qrwc, // The global Qrwc instance
     name: string,
     state: IComponentState // grab bag for potentially unknown properties
   ): Promise<Component<T>> {
-    const component = new Component(qrwc, name, Object.freeze(state))
+    const component = new Component(logger, qrwc, name, Object.freeze(state))
     // Propagate events downwards. Control -> Component -> Qrwc
     component.on('update', (control, state) => {
       qrwc.emit('update', component, control, state)
@@ -62,9 +69,9 @@ export class Component<
         // log error rather than emit b/c client app is still awaiting qrwc factory and can't listen to events
         if (error instanceof Error) {
           error.message = message
-          console.error(error)
+          logger.error(error)
         } else {
-          console.error(new Error(message))
+          logger.error(new Error(message))
         }
         return {
           Name: name,
@@ -76,6 +83,7 @@ export class Component<
     const controls = await Promise.all(
       getResult.Controls.map((control) =>
         Control.createControl(
+          logger,
           websocketManager,
           changeGroup,
           component,
@@ -111,5 +119,6 @@ export class Component<
     const controls: Control[] = Object.values(this._controls)
     controls.forEach((control) => control.close())
     this.removeAllListeners()
+    this.logger.debug(`Component ${this.name} closed.`)
   }
 }

@@ -1,4 +1,4 @@
-import type { IControlChange } from '../index.interface.js'
+import type { IControlChange, ILogger } from '../index.interface.js'
 import type { Control } from './Control.js'
 import type { WebSocketManager } from './WebSocketManager.js'
 import {
@@ -15,24 +15,27 @@ export class ChangeGroup {
   private intervalRef: ReturnType<typeof setInterval> | null = null
   private readonly id = uuidv4()
   private register = new Map<string, (change: IControlChange) => void>() // Key format is "componentName:controlName"
-  private pollInterval: number
 
   constructor(
-    private websocketManager: WebSocketManager,
-    pollInterval: number = QrwcDefaultPollInterval
+    private readonly logger: ILogger,
+    private readonly websocketManager: WebSocketManager,
+    private readonly pollInterval: number = QrwcDefaultPollInterval
   ) {
     this.pollInterval = Math.max(pollInterval, QrwcMinPollInterval)
+    this.logger.debug(`ChangeGroup ${this.id} created.`)
   }
 
   public startPolling(): void {
     if (this.intervalRef) return
     this.intervalRef = setInterval(() => this.poll(), this.pollInterval)
+    this.logger.info('ChangeGroup polling started.')
   }
 
   public stopPolling(): void {
     if (!this.intervalRef) return
     clearInterval(this.intervalRef)
     this.intervalRef = null
+    this.logger.info('ChangeGroup polling stopped.')
   }
 
   public async registerControl(
@@ -59,9 +62,9 @@ export class ChangeGroup {
       // log error rather than emit b/c client app is still awaiting qrwc factory and can't listen to events
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`
-        console.error(error)
+        this.logger.error(error)
       } else {
-        console.error(new Error(`${message}\n${error}`))
+        this.logger.error(new Error(`${message}\n${error}`))
       }
     }
   }
@@ -92,10 +95,10 @@ export class ChangeGroup {
         'QRWC: RPC Error: ChangeGroup.Poll failed to poll for changes.'
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`
-        console.error(error)
+        this.logger.error(error)
       } else {
         const errorObj = new Error(`${message}\n${error}`)
-        console.error(errorObj)
+        this.logger.error(errorObj)
       }
     }
   }
@@ -103,5 +106,6 @@ export class ChangeGroup {
   public close() {
     this.stopPolling()
     this.register = new Map<string, (change: IControlChange) => void>()
+    this.logger.debug(`ChangeGroup ${this.id} closed.`)
   }
 }

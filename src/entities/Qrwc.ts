@@ -1,4 +1,4 @@
-import type { IStartOptions, IQrwcEvents } from '../index.interface.js'
+import type { IStartOptions, IQrwcEvents, ILogger } from '../index.interface.js'
 import { ChangeGroup } from './ChangeGroup.js'
 import { Component } from './Component.js'
 import { EventEmitter } from '../event/EventEmitter.js'
@@ -15,6 +15,7 @@ export class Qrwc<
   // temporary value--overwritten in createQrwc
   private _components: Readonly<Record<string, Component>> = Object.freeze({})
   private constructor(
+    private readonly logger: ILogger,
     private readonly webSocketManager: WebSocketManager,
     private readonly changeGroup: ChangeGroup
   ) {
@@ -53,16 +54,28 @@ export class Qrwc<
   public static async createQrwc<
     T extends Record<string, string> = Record<string, string>
   >({
+    logger: partialLogger = {},
     socket,
     pollingInterval,
     componentFilter,
     timeout = 5000
   }: IStartOptions): Promise<Qrwc<T>> {
+    const logger: ILogger = {
+      trace: partialLogger.trace ?? (() => undefined),
+      debug: partialLogger.debug ?? (() => undefined),
+      info: partialLogger.info ?? (() => undefined),
+      warn: partialLogger.warn ?? (() => undefined),
+      error: partialLogger.error ?? (() => undefined)
+    }
+
+    logger.info('Initializing QRWC')
     // This will wait for the websocket to be open, run a quick status check, and HACF if anything fails.
     const websocketManager = await WebSocketManager.createWebSocketManager(
+      logger,
       socket,
       timeout
     )
+    logger.info('QRC is ready.')
 
     // note that client apps cannot listen to these emitters until after createQrwc returns
     websocketManager.on('error', (error) => {
@@ -74,10 +87,15 @@ export class Qrwc<
       qrwc.close()
     })
 
-    const changeGroup = new ChangeGroup(websocketManager, pollingInterval)
+    const changeGroup = new ChangeGroup(
+      logger,
+      websocketManager,
+      pollingInterval
+    )
 
-    const qrwc = new Qrwc<T>(websocketManager, changeGroup)
+    const qrwc = new Qrwc<T>(logger, websocketManager, changeGroup)
 
+    logger.info('Fetching components from QRC.')
     try {
       const getComponentsResponse = await websocketManager.sendRpc(
         'Component.GetComponents',
@@ -90,6 +108,7 @@ export class Qrwc<
       const components = await Promise.all(
         filteredComponents.map((component) => {
           return Component.createComponent(
+            logger,
             websocketManager,
             changeGroup,
             qrwc,
@@ -113,15 +132,16 @@ export class Qrwc<
       const message = 'Failed to fetch components from Q-SYS core.'
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`
-        console.error(error)
+        logger.error(error)
         throw error
       } else {
         const errorObj = new Error(`${message}\n${error}`)
-        console.error(errorObj)
+        logger.error(errorObj)
         throw errorObj
       }
     }
 
+    logger.info('QRWC is ready.')
     return qrwc
   }
 
@@ -138,5 +158,6 @@ export class Qrwc<
     this._components = {}
     this.webSocketManager.close()
     this.removeAllListeners()
+    this.logger.debug('Qrwc closed.')
   }
 }

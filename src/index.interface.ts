@@ -249,4 +249,10 @@ export interface IStartOptions {
   pollingInterval?: number
   componentFilter?: (componentState: IComponentState) => boolean
   timeout?: number
+  logger?: Partial<ILogger>
 }
+
+export type ILogger = Pick<
+  typeof console,
+  'trace' | 'debug' | 'info' | 'warn' | 'error'
+>

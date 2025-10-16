@@ -3,7 +3,8 @@ import type {
   IRpcRequest,
   IWebSocket,
   IJsonRpcMessageTypeMap,
-  IWebSocketManagerEvents
+  IWebSocketManagerEvents,
+  ILogger
 } from '../index.interface.js'
 import { v4 as uuidv4 } from 'uuid'
 import { EventEmitter } from '../event/EventEmitter.js'
@@ -25,6 +26,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
     }
   >()
   private constructor(
+    private readonly logger: ILogger,
     private readonly socket: IWebSocket,
     private readonly timeout: number = 5000
   ) {
@@ -33,19 +35,23 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
     // binding websocket methods
     this.socket.onerror = (event: Event) => {
       const error = new Error(`WebSocket error: ${JSON.stringify(event)}`)
+      this.logger.error(error, 'WebSocket error.')
       this.emit('error', error)
     }
     this.socket.onmessage = (event: MessageEvent) => {
       const message = JSON.parse(event.data) as IRpcResponse
       if (message.id && this.rpcResolvers.has(message.id)) {
+        this.logger.trace(message, 'RPC RESPONSE')
         const resolve = this.rpcResolvers.get(message.id)!.resolve
         resolve(message.result)
       } else {
+        this.logger.trace(message, 'ONMESSAGE')
         // Only emit message events for unsolicited messages
         this.emit('message', message)
       }
     }
-    this.socket.onclose = () => {
+    this.socket.onclose = (event: CloseEvent) => {
+      this.logger.debug(`WebSocket disconnected. ${event.reason}`)
       this.emit('disconnected', 'WebSocket connection closed by Q-SYS core.')
     }
   }
@@ -57,10 +63,12 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
    * @param timeout - Timeout in milliseconds for websocket messages
    */
   public static async createWebSocketManager(
+    logger: ILogger,
     socket: IWebSocket,
     timeout: number = 5000
   ) {
     // we need to wait for the socket to be opened and ready before we can do anything
+    logger.info('Connecting to QRC...')
     if (socket.readyState !== socket.OPEN) {
       await new Promise<void>((resolve, reject) => {
         const timeoutRef = setTimeout(
@@ -96,7 +104,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       })
     }
 
-    const webSocketManager = new WebSocketManager(socket, timeout)
+    const webSocketManager = new WebSocketManager(logger, socket, timeout)
 
     /*
       When the core is shutting down or booting up, QRC will open and then
@@ -104,8 +112,10 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       QRC is ACTUALLY ready and throw an informative error if it is not. We
       can do this by making a quick one-off RPC call.
     */
+    logger.info('Fetching core status...')
     try {
-      const _status = await webSocketManager.sendRpc('StatusGet', undefined)
+      const status = await webSocketManager.sendRpc('StatusGet', undefined)
+      logger.debug(status)
     } catch (_error) {
       throw new Error(
         'QRC initial status check failed. Q-SYS core might be shutting down or booting up. Wait and retry.'
@@ -116,6 +126,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   }
 
   public send = (data: object): void => {
+    this.logger.trace(data, 'RPC SEND')
     this.socket.send(JSON.stringify(data))
   }
 
@@ -186,5 +197,6 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
     this.rpcResolvers.clear()
     this.removeAllListeners()
     this.socket?.close()
+    this.logger.debug('WebSocketManager closed.')
   }
 }
