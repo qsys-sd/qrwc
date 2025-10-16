@@ -1,22 +1,22 @@
-import "./App.css";
-import React from "react";
-import GainSlider from "./components/GainSlider";
-import GainMute from "./components/GainMute";
-import TextBox from "./components/TextBox"
-import { Box, Stack, Typography } from "@mui/material";
-import { useQrwc } from "./context/QrwcContext";
+import './App.css'
+import React from 'react'
+import GainSlider from './components/GainSlider'
+import GainMute from './components/GainMute'
+import TextBox from './components/TextBox'
+import { Box, Stack, Typography } from '@mui/material'
+import { useQrwc } from './context/QrwcContext'
 
 function App() {
-  const { initialized } = useQrwc();
+  const { initialized } = useQrwc()
 
   if (!initialized) {
-    return <div>Initializing...</div>;
+    return <div>Initializing...</div>
   }
 
   return (
     <div className="App">
-      <Box sx={{ width: "100%", margin: "auto" }}>
-        <Typography variant="h2" sx={{ color: "primary.main" }}>
+      <Box sx={{ width: '100%', margin: 'auto' }}>
+        <Typography variant="h2" sx={{ color: 'primary.main' }}>
           QRWC REACT/MUI DEMO
         </Typography>
       </Box>
@@ -34,7 +34,7 @@ function App() {
         </Stack>
       </Stack>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

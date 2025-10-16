@@ -1,27 +1,27 @@
 // basic volume GainMute using mui
-import React, { useEffect, useState } from "react";
-import { Stack, Switch, FormControlLabel, Typography } from "@mui/material";
-import { useQrwc } from "../context/QrwcContext";
-import { IControlState } from "@q-sys/qrwc";
+import React, { useEffect, useState } from 'react'
+import { Stack, Switch, FormControlLabel, Typography } from '@mui/material'
+import { useQrwc } from '../context/QrwcContext'
+import { IControlState } from '@q-sys/qrwc'
 
 function GainMute() {
-  const { mute } = useQrwc();
-  const [muted, setMuted] = useState(false);
+  const { mute } = useQrwc()
+  const [muted, setMuted] = useState(false)
 
   useEffect(() => {
     const listener = (state: IControlState) => {
-      setMuted(state.Bool);
-    };
-    mute?.on("update", listener);
+      setMuted(state.Bool)
+    }
+    mute?.on('update', listener)
 
     return () => {
-      mute?.removeListener("update", listener);
-    };
-  }, [mute]);
+      mute?.removeListener('update', listener)
+    }
+  }, [mute])
 
   // check if control exists
   if (!mute) {
-    return null;
+    return null
   }
 
   return (
@@ -32,8 +32,8 @@ function GainMute() {
           <Switch
             checked={muted}
             onChange={(event) => {
-              setMuted(event.target.checked);
-              mute?.update(event.target.checked);
+              setMuted(event.target.checked)
+              mute?.update(event.target.checked)
             }}
           />
           <Typography>On</Typography>
@@ -42,7 +42,7 @@ function GainMute() {
       label="Mute"
       labelPlacement="top"
     />
-  );
+  )
 }
 
-export default GainMute;
+export default GainMute
