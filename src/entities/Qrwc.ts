@@ -71,16 +71,31 @@ export class Qrwc<
     componentFilter,
     timeout = 5000
   }: IStartOptions): Promise<Qrwc<T>> {
-    const logger: ILogger = {
-      trace: partialLogger.trace ?? (() => undefined),
-      debug: partialLogger.debug ?? (() => undefined),
-      info: partialLogger.info ?? (() => undefined),
-      warn: partialLogger.warn ?? (() => undefined),
-      error: partialLogger.error ?? (() => undefined)
+    /*
+      Populate the default log functions on the original logger object, because
+        the logger object is supplied by the user, and we don't know if the log
+        functions are class methods which could rely on `this` pointing to the
+        right scope. (e.g. pino)
+    */
+    if (!partialLogger.trace) {
+      partialLogger.trace = () => undefined
     }
+    if (!partialLogger.debug) {
+      partialLogger.debug = () => undefined
+    }
+    if (!partialLogger.info) {
+      partialLogger.info = () => undefined
+    }
+    if (!partialLogger.warn) {
+      partialLogger.warn = () => undefined
+    }
+    if (!partialLogger.error) {
+      partialLogger.error = () => undefined
+    }
+    const logger = partialLogger as ILogger
 
     logger.info('Initializing QRWC')
-    // This will wait for the websocket to be open, run a quick status check, and HACF if anything fails.
+    // This will wait for the websocket to be open and HACF if anything fails.
     const websocketManager = await WebSocketManager.createWebSocketManager(
       logger,
       socket,
