@@ -162,10 +162,9 @@ export type IChangeGroupPollResponse = IRpcResponseBody<IChangeGroupPollResult>
 export interface IComponentSetRequest {
   ResponseValues: boolean
   Name: string
-  Controls: {
+  Controls: ({
     Name: string
-    Value: string | number | boolean
-  }[]
+  } & IControlUpdate)[]
 }
 
 export type IComponentSetResponse = IRpcResponseBody<IControlChange[]>
@@ -185,7 +184,16 @@ export interface IControlChange {
   Legend?: string
   CssClass?: string
   Strings?: string[]
-  Values?: string[]
+  Values?: number[]
+}
+
+export interface IControlUpdate {
+  String?: string
+  Value?: string | number
+  Position?: number
+  Strings?: string[]
+  Values?: number[]
+  Bool?: boolean
 }
 
 /**

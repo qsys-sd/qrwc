@@ -1,7 +1,8 @@
 import type {
   IControlState,
   IControlEvents,
-  ILogger
+  ILogger,
+  IControlUpdate
 } from '../index.interface.js'
 import type { ChangeGroup } from './ChangeGroup.js'
 import type { Component } from './Component.js'
@@ -87,14 +88,18 @@ export class Control extends EventEmitter<IControlEvents> {
    * @returns {Promise<IControlState>} The updated state.
    */
   public async update(
-    value: string | number | boolean
+    value: string | number | boolean | IControlUpdate
   ): Promise<IControlState> {
-    if (
-      typeof value !== 'string' &&
-      typeof value !== 'boolean' &&
-      typeof value !== 'number'
-    ) {
-      value = 0
+    const data: IControlUpdate =
+      typeof value === 'string' || typeof value === 'number'
+        ? { Value: value }
+        : typeof value === 'boolean'
+          ? { Bool: value }
+          : value
+
+    // Bool is computed so if it's present we need to translate it back to Value
+    if (data.Bool !== undefined) {
+      data.Value = data.Value !== undefined ? data.Value : +data.Bool // Convert true to 1 and false to 0
     }
 
     try {
@@ -104,8 +109,8 @@ export class Control extends EventEmitter<IControlEvents> {
         Controls: [
           {
             Name: this.name,
-            Value: typeof value === 'boolean' ? +value : value
-          } // Convert true to 1 and false to 0
+            ...data
+          }
         ]
       })
 
