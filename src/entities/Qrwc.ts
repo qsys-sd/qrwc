@@ -169,7 +169,11 @@ export class Qrwc<
         }, {})
       )
 
-      changeGroup.startPolling()
+      if (components.length > 0) {
+        changeGroup.startPolling()
+      } else {
+        logger.info('No components found.')
+      }
     } catch (error) {
       // we should log here instead of emitting b/c this is before the client app
       // has had a chance to listen to qrwc's error event
