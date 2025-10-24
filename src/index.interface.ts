@@ -185,6 +185,7 @@ export interface IControlChange {
   CssClass?: string
   Strings?: string[]
   Values?: number[]
+  Positions?: number[]
 }
 
 export interface IControlUpdate {
@@ -193,6 +194,7 @@ export interface IControlUpdate {
   Position?: number
   Strings?: string[]
   Values?: number[]
+  Positions?: number[]
   Bool?: boolean
 }
 

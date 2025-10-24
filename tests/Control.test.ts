@@ -126,7 +126,7 @@ describe('Control', () => {
     expect(mockComponent.emit).toHaveBeenCalledWith('error', mockError)
   })
 
-  it('should update control state via the update method', async () => {
+  it('update method with a primitive should use Component.Set RPC with Value', async () => {
     const newValue = 'Updated String'
     const responseData = [
       {
@@ -167,6 +167,275 @@ describe('Control', () => {
     expect(result).toEqual({
       ...control.state,
       String: newValue
+    })
+  })
+
+  it('update method with an object containing Value should use Component.Set RPC with Value', async () => {
+    const newValue = 'Updated String'
+    const responseData = [
+      {
+        Name: 'testControl',
+        String: newValue,
+        Value: 0,
+        Position: 0,
+        Properties: [],
+        ID: '',
+        Type: '',
+        Controls: null,
+        ControlSource: 1
+      }
+    ]
+
+    // Mock successful RPC response
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(responseData)
+
+    const result = await control.update({ Value: newValue })
+
+    // Check RPC was called correctly
+    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+      ResponseValues: true,
+      Name: 'TestComponent',
+      Controls: [
+        {
+          Name: 'testControl',
+          Value: newValue
+        }
+      ]
+    })
+
+    // Check state was updated
+    expect(result).toEqual({
+      ...control.state,
+      String: newValue
+    })
+  })
+
+  it('update method with an object containing String should use Component.Set RPC with String', async () => {
+    const newValue = 'Updated String'
+    const responseData = [
+      {
+        Name: 'testControl',
+        String: newValue,
+        Value: 0,
+        Position: 0,
+        Properties: [],
+        ID: '',
+        Type: '',
+        Controls: null,
+        ControlSource: 1
+      }
+    ]
+
+    // Mock successful RPC response
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(responseData)
+
+    const result = await control.update({ String: newValue })
+
+    // Check RPC was called correctly
+    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+      ResponseValues: true,
+      Name: 'TestComponent',
+      Controls: [
+        {
+          Name: 'testControl',
+          String: newValue
+        }
+      ]
+    })
+
+    // Check state was updated
+    expect(result).toEqual({
+      ...control.state,
+      String: newValue
+    })
+  })
+
+  it('update method with an object containing Position should use Component.Set RPC with Position', async () => {
+    const newPosition = 0.5
+    const responseData = [
+      {
+        Name: 'testControl',
+        String: '0.5',
+        Value: 0.5,
+        Position: 0.5,
+        Properties: [],
+        ID: '',
+        Type: '',
+        Controls: null,
+        ControlSource: 1
+      }
+    ]
+
+    // Mock successful RPC response
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(responseData)
+
+    const result = await control.update({ Position: newPosition })
+
+    // Check RPC was called correctly
+    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+      ResponseValues: true,
+      Name: 'TestComponent',
+      Controls: [
+        {
+          Name: 'testControl',
+          Position: newPosition
+        }
+      ]
+    })
+
+    expect(result).toEqual({
+      ...control.state,
+      Position: newPosition
+    })
+  })
+
+  // this doesn't actually work in QRC yet because bug
+  it('update method with an object containing Values should use Component.Set RPC with Values', async () => {
+    const newValues = [0.1, 0.2]
+    const responseData = [
+      {
+        Name: 'testControl',
+        String: '0.1',
+        Value: 0.1,
+        Position: 0.1,
+        Values: [0.1, 0.2],
+        Properties: [],
+        ID: '',
+        Type: '',
+        Controls: null,
+        ControlSource: 1
+      }
+    ]
+
+    // Mock successful RPC response
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(responseData)
+
+    const result = await control.update({ Values: newValues })
+
+    // Check RPC was called correctly
+    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+      ResponseValues: true,
+      Name: 'TestComponent',
+      Controls: [
+        {
+          Name: 'testControl',
+          Values: newValues
+        }
+      ]
+    })
+
+    // Check state was updated
+    expect(result).toEqual({
+      ...control.state,
+      Values: newValues
+    })
+  })
+
+  // this doesn't actually work in QRC yet because bug
+  it('update method with an object containing Positions should use Component.Set RPC with Positions', async () => {
+    const newPositions = [0.1, 0.2]
+    const responseData = [
+      {
+        Name: 'testControl',
+        String: '0.1',
+        Value: 0.1,
+        Position: 0.1,
+        Positions: [0.1, 0.2],
+        Properties: [],
+        ID: '',
+        Type: '',
+        Controls: null,
+        ControlSource: 1
+      }
+    ]
+
+    // Mock successful RPC response
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(responseData)
+
+    const result = await control.update({ Positions: newPositions })
+
+    // Check RPC was called correctly
+    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+      ResponseValues: true,
+      Name: 'TestComponent',
+      Controls: [
+        {
+          Name: 'testControl',
+          Positions: newPositions
+        }
+      ]
+    })
+
+    // Check state was updated
+    expect(result).toEqual({
+      ...control.state,
+      Positions: newPositions
+    })
+  })
+
+  // this doesn't actually work in QRC yet because bug
+  it('update method with an object containing Strings should use Component.Set RPC with Strings', async () => {
+    const newStrings = ['foo', 'bar']
+    const responseData = [
+      {
+        Name: 'testControl',
+        String: 'foo',
+        Value: 0,
+        Position: 0,
+        Strings: ['foo', 'bar'],
+        Properties: [],
+        ID: '',
+        Type: '',
+        Controls: null,
+        ControlSource: 1
+      }
+    ]
+
+    // Mock successful RPC response
+    ;(
+      mockWebSocketManager.sendRpc as jest.Mock<
+        typeof mockWebSocketManager.sendRpc
+      >
+    ).mockResolvedValue(responseData)
+
+    const result = await control.update({ Strings: newStrings })
+
+    // Check RPC was called correctly
+    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+      ResponseValues: true,
+      Name: 'TestComponent',
+      Controls: [
+        {
+          Name: 'testControl',
+          Strings: newStrings
+        }
+      ]
+    })
+
+    // Check state was updated
+    expect(result).toEqual({
+      ...control.state,
+      Strings: newStrings
     })
   })
 
