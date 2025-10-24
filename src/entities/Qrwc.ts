@@ -31,6 +31,9 @@ export class Qrwc<
       ...status,
       Status: Object.freeze(status.Status)
     })
+    this.on('error', (event) => {
+      logger.error(event)
+    })
   }
 
   /**

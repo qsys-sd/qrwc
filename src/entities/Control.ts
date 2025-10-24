@@ -95,7 +95,7 @@ export class Control extends EventEmitter<IControlEvents> {
         ? { Value: value }
         : typeof value === 'boolean'
           ? { Bool: value }
-          : value
+          : { ...value }
 
     // Bool is computed so if it's present we need to translate it back to Value
     if (data.Bool !== undefined) {
