@@ -4,7 +4,8 @@ import type {
   IWebSocket,
   IJsonRpcMessageTypeMap,
   IWebSocketManagerEvents,
-  ILogger
+  ILogger,
+  IRpcError
 } from '../index.interface.js'
 import { v4 as uuidv4 } from 'uuid'
 import { EventEmitter } from '../event/EventEmitter.js'
@@ -15,14 +16,14 @@ import { EventEmitter } from '../event/EventEmitter.js'
  */
 export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   // Maps RPC message IDs to their Promise resolvers
-  private rpcResolvers = new Map<
+  private pendingRpcs = new Map<
     string,
     {
       resolve: (
         result: ReturnType<IJsonRpcMessageTypeMap[keyof IJsonRpcMessageTypeMap]>
       ) => void
-      reject: () => void
-      cancel: () => void
+      reject: (error: IRpcError) => void
+      cancel: (reason?: unknown) => void
     }
   >()
 
@@ -39,12 +40,19 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       this.logger.error(error, 'WebSocket error.')
       this.emit('error', error)
     }
+
     this.socket.onmessage = (event: MessageEvent) => {
-      const message = JSON.parse(event.data) as IRpcResponse
-      if (message.id && this.rpcResolvers.has(message.id)) {
+      const message = JSON.parse(event.data) as IRpcResponse | IRpcError
+      if (message.id && this.pendingRpcs.has(message.id)) {
         this.logger.trace(message, 'RPC RESPONSE')
-        const resolve = this.rpcResolvers.get(message.id)!.resolve
-        resolve(message.result)
+        if (isIRpcError(message)) {
+          const reject = this.pendingRpcs.get(message.id)!.reject
+          reject(message)
+        }
+        if (isIRpcResponse(message)) {
+          const resolve = this.pendingRpcs.get(message.id)!.resolve
+          resolve(message.result)
+        }
       } else {
         this.logger.trace(message, 'ONMESSAGE')
         // Only emit message events for unsolicited messages
@@ -141,45 +149,64 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   ): Promise<ReturnType<IJsonRpcMessageTypeMap[T]>> =>
     new Promise<ReturnType<IJsonRpcMessageTypeMap[T]>>((resolve, reject) => {
       const id = uuidv4()
+      const request = this.createJSONRPCMessage(method, params, id)
 
       const resolveRpc = (
         result: ReturnType<IJsonRpcMessageTypeMap[keyof IJsonRpcMessageTypeMap]>
       ) => {
         clearTimeout(timeout)
         resolve(result as ReturnType<IJsonRpcMessageTypeMap[T]>)
-        this.rpcResolvers.delete(id)
+        this.pendingRpcs.delete(id)
       }
-      const rejectRpc = () => {
+      const rejectRpc = (error: IRpcError) => {
         clearTimeout(timeout)
-        reject(`${method} timeout: ${id}`)
-        this.rpcResolvers.delete(id)
+        reject(
+          `RPC Error (${method}, ${id}):\n${JSON.stringify(error.error, null, 2)}`
+        )
+        this.pendingRpcs.delete(id)
       }
-      const cancelRpc = () => {
+      const cancelRpc = (reason?: unknown) => {
         clearTimeout(timeout)
-        reject(`${method} cancelled: ${id}`)
-        this.rpcResolvers.delete(id)
+        reject(`RPC cancelled (${method}, ${id})\n${reason}`)
+        this.pendingRpcs.delete(id)
       }
-      this.rpcResolvers.set(id, {
+      this.pendingRpcs.set(id, {
         resolve: resolveRpc,
         reject: rejectRpc,
         cancel: cancelRpc
       })
 
-      const timeout = setTimeout(rejectRpc, this.timeout)
-      this.send(this.createJSONRPCMessage(method, params, id))
+      const timeoutRpc = () => {
+        reject(`RPC timed out (${method}, ${id})`)
+        this.pendingRpcs.delete(id)
+      }
+      const timeout = setTimeout(timeoutRpc, this.timeout)
+      this.send(request)
     })
 
   private cancelRpcs(): void {
-    for (const rpc of this.rpcResolvers.values()) {
+    for (const rpc of this.pendingRpcs.values()) {
       rpc.cancel()
     }
   }
 
   public close(): void {
     this.cancelRpcs()
-    this.rpcResolvers.clear()
+    this.pendingRpcs.clear()
     this.removeAllListeners()
     this.socket?.close()
     this.logger.debug('WebSocketManager closed.')
   }
+}
+
+const isIRpcError = (
+  response: IRpcResponse | IRpcError
+): response is IRpcError => {
+  return !!(response as IRpcError).error
+}
+
+const isIRpcResponse = (
+  response: IRpcResponse | IRpcError
+): response is IRpcResponse => {
+  return !!(response as IRpcResponse).result
 }

@@ -6,16 +6,26 @@ import type { Component } from './entities/Component.js'
  * QRC RPC types
  */
 
+interface IRpcMeta {
+  jsonrpc: '2.0'
+  id: string
+}
+
 // Generic QRC response
-export interface IRpcResponseBody<T> extends Partial<IRpcRequest> {
+interface IRpcResponseBody<T> extends IRpcMeta {
   result: T
 }
 
-export interface IRpcRequest {
-  jsonrpc: '2.0'
+export interface IRpcError extends IRpcMeta {
+  error: {
+    code: number
+    message: string
+  }
+}
+
+export interface IRpcRequest extends IRpcMeta {
   method: string
   params: IRpcRequestParams
-  id: string
 }
 
 // nonspecific QRC req params
@@ -233,7 +243,7 @@ export interface IQrwcEvents {
 }
 
 export interface IWebSocketManagerEvents {
-  message: (message: IRpcResponse) => void
+  message: (message: unknown) => void
   error: (error: Error) => void
   disconnected: (reason: string) => void
 }
