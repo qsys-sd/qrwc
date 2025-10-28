@@ -4,8 +4,9 @@ import { ChangeGroup } from '../src/entities/ChangeGroup'
 import { Qrwc } from '../src/entities/Qrwc'
 import { Control } from '../src/entities/Control'
 import {
-  IComponentState,
-  IComponentGetControlsResult
+  IComponentGetComponentsResult,
+  IComponentGetControlsResult,
+  IComponentState
 } from '../src/index.interface'
 import { jest } from '@jest/globals'
 
@@ -21,8 +22,9 @@ describe('Component', () => {
   let mockWebSocketManager: WebSocketManager
   let mockChangeGroup: ChangeGroup
   let mockQrwc: Qrwc
-  let mockComponentState: IComponentState
+  let mockComponentResponse: IComponentGetComponentsResult
   let mockControlsResponse: IComponentGetControlsResult
+  let mockComponentState: IComponentState
 
   beforeEach(() => {
     // Mock dependencies
@@ -46,12 +48,40 @@ describe('Component', () => {
       removeAllListeners: jest.fn()
     } as unknown as Qrwc
 
-    mockComponentState = {
+    mockComponentResponse = {
       ID: 'component-1',
       Name: 'TestComponent',
       Type: 'custom_controls',
       Properties: [{ Name: 'type_1', Value: '15', PrettyName: 'Type' }],
       Controls: null,
+      ControlSource: 2
+    }
+
+    mockComponentState = {
+      ID: 'component-1',
+      Name: 'TestComponent',
+      Type: 'custom_controls',
+      Properties: [{ Name: 'type_1', Value: '15', PrettyName: 'Type' }],
+      Controls: [
+        {
+          Name: 'control1',
+          Type: 'Text',
+          String: 'Test Value 1',
+          Direction: 'Read/Write',
+          Position: 0,
+          Value: 0,
+          Bool: false
+        },
+        {
+          Name: 'control2',
+          Type: 'Text',
+          String: 'Test Value 2',
+          Direction: 'Read/Write',
+          Position: 0,
+          Value: 0,
+          Bool: false
+        }
+      ],
       ControlSource: 2
     }
 
@@ -93,7 +123,7 @@ describe('Component', () => {
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
-      mockComponentState
+      mockComponentResponse
     )
 
     // Check component properties
@@ -103,9 +133,9 @@ describe('Component', () => {
     // Check controls were created
     expect(Object.keys(component.controls)).toHaveLength(2)
     expect(component.controls.control1).toBeDefined()
-    expect(component.controls.control1.name).toBe('control1')
+    expect(component.controls.control1!.name).toBe('control1')
     expect(component.controls.control2).toBeDefined()
-    expect(component.controls.control2.name).toBe('control2')
+    expect(component.controls.control2!.name).toBe('control2')
   })
 
   it('should propagate control update events to the qrwc instance', async () => {
@@ -115,7 +145,7 @@ describe('Component', () => {
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
-      mockComponentState
+      mockComponentResponse
     )
     const mockControl = {} as Control
     const mockState = {
@@ -143,7 +173,7 @@ describe('Component', () => {
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
-      mockComponentState
+      mockComponentResponse
     )
     const mockError = new Error('Test error')
     component.emit('error', mockError)
@@ -165,7 +195,7 @@ describe('Component', () => {
         mockChangeGroup,
         mockQrwc,
         'TestComponent',
-        mockComponentState
+        mockComponentResponse
       )
     ).resolves.not.toThrowError()
   })
@@ -177,23 +207,23 @@ describe('Component', () => {
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
-      mockComponentState
+      mockComponentResponse
     )
 
     // Mock the close methods on controls
-    component.controls.control1.close = jest.fn()
-    component.controls.control2.close = jest.fn()
+    component.controls.control1!.close = jest.fn()
+    component.controls.control2!.close = jest.fn()
 
     jest.spyOn(component, 'removeAllListeners')
-    jest.spyOn(component.controls.control1, 'close')
-    jest.spyOn(component.controls.control2, 'close')
+    jest.spyOn(component.controls.control1!, 'close')
+    jest.spyOn(component.controls.control2!, 'close')
 
     component.close()
 
     expect(component.removeAllListeners).toHaveBeenCalled()
     // Verify both controls were cleaned up
-    expect(component.controls.control1.close).toHaveBeenCalled()
-    expect(component.controls.control2.close).toHaveBeenCalled()
+    expect(component.controls.control1!.close).toHaveBeenCalled()
+    expect(component.controls.control2!.close).toHaveBeenCalled()
   })
 
   it('should gracefully handle a component with no controls', async () => {
@@ -217,7 +247,7 @@ describe('Component', () => {
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
-      mockComponentState
+      mockComponentResponse
     )
 
     // Verify component was created successfully

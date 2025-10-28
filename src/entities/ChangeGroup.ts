@@ -25,10 +25,11 @@ export class ChangeGroup {
     this.logger.debug(`ChangeGroup ${this.id} created.`)
   }
 
-  public startPolling(): void {
+  public async startPolling(): Promise<void> {
     if (this.intervalRef) return
     this.intervalRef = setInterval(() => this.poll(), this.pollInterval)
     this.logger.info('ChangeGroup polling started.')
+    return this.poll()
   }
 
   public stopPolling(): void {

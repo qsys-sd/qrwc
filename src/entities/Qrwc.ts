@@ -42,7 +42,11 @@ export class Qrwc<
    * @public
    */
   get components(): Readonly<
-    { [U in keyof T]: Component<T[U]> } & Record<string, Component | undefined>
+    {
+      [U in keyof T]: string extends U
+        ? Component<T[U]> | undefined
+        : Component<T[U]>
+    } & Record<string, Component | undefined>
   > {
     return this._components as Readonly<
       { [U in keyof T]: Component<T[U]> } & Record<
@@ -173,7 +177,7 @@ export class Qrwc<
       )
 
       if (components.length > 0) {
-        changeGroup.startPolling()
+        await changeGroup.startPolling()
       } else {
         logger.info('No components found.')
       }

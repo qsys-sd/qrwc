@@ -173,10 +173,10 @@ describe('Qrwc', () => {
     expect(qrwc.components.TestComponent2?.controls.control2).toBeDefined()
 
     // Verify control properties
-    expect(qrwc.components.TestComponent1?.controls.control1.name).toBe(
+    expect(qrwc.components.TestComponent1?.controls.control1!.name).toBe(
       'control1'
     )
-    expect(qrwc.components.TestComponent2?.controls.control2.name).toBe(
+    expect(qrwc.components.TestComponent2?.controls.control2!.name).toBe(
       'control2'
     )
   })

@@ -71,7 +71,7 @@ export interface IStatusGetResult {
 
 // Component returned by Component.GetComponents RPC
 export interface IComponentGetComponentsResult {
-  Properties: IComponentGetComponentsProperty[]
+  Properties: Readonly<IComponentGetComponentsProperty[]>
   ID: string
   Name: string
   Type: string
@@ -84,7 +84,7 @@ export interface IComponentGetComponentsProperty {
   PrettyName: string
 }
 
-export type IComponentGetComponentsRequest = 'test'
+export type IComponentGetComponentsRequest = 'test' // i don't know if this was a mistake but i do know that it works
 
 export type IComponentGetComponentsResponse = IRpcResponseBody<
   IComponentGetComponentsResult[]
@@ -254,7 +254,11 @@ export interface IWebSocketManagerEvents {
  */
 
 // defines state property for a Component object
-export type IComponentState = Readonly<IComponentGetComponentsResult>
+export type IComponentState = Readonly<
+  Omit<IComponentGetComponentsResult, 'Controls'> & {
+    Controls: Readonly<IControlState[]>
+  }
+>
 
 // defines state property on a Control object
 export type IControlState = Readonly<
@@ -268,7 +272,7 @@ export type IWebSocket = WebSocket | WsWebSocket
 export interface IStartOptions {
   socket: IWebSocket
   pollingInterval?: number
-  componentFilter?: (componentState: IComponentState) => boolean
+  componentFilter?: (componentState: IComponentGetComponentsResult) => boolean
   timeout?: number
   logger?: Partial<ILogger>
 }

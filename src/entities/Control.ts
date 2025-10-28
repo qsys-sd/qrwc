@@ -68,7 +68,7 @@ export class Control extends EventEmitter<IControlEvents> {
   }
 
   /**
-   * Gets the current state of the control
+   * The current state of the control
    * Includes a transient Bool property based on Q-SYS convention
    *
    * @returns {IControlState} The frozen (immutable) current state

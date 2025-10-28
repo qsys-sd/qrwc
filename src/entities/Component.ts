@@ -1,5 +1,6 @@
 import type {
   IComponentEvents,
+  IComponentGetComponentsResult,
   IComponentState,
   ILogger
 } from '../index.interface.js'
@@ -17,9 +18,7 @@ export class Component<
   T extends string = string
 > extends EventEmitter<IComponentEvents> {
   // temporary value--overwritten in createComponent
-  private _controls: Readonly<Record<T, Control>> = {} as Readonly<
-    Record<T, Control>
-  >
+  private _controls: Readonly<Record<string, Control>> = {}
 
   /**
    * This constructor is private because this object has an asynchronous
@@ -28,9 +27,9 @@ export class Component<
    */
   private constructor(
     private readonly logger: ILogger,
-    private readonly qrwc: Qrwc, // The global Qrwc instance
+    readonly qrwc: Qrwc, // The global Qrwc instance
     readonly name: string,
-    readonly state: IComponentState
+    readonly _state: Readonly<IComponentGetComponentsResult>
   ) {
     super()
     logger.debug(`Component ${name} created.`)
@@ -46,9 +45,9 @@ export class Component<
     changeGroup: ChangeGroup, // The global ChangeGroup instance
     qrwc: Qrwc, // The global Qrwc instance
     name: string,
-    state: IComponentState // grab bag for potentially unknown properties
+    state: IComponentGetComponentsResult
   ): Promise<Component<T>> {
-    const component = new Component(logger, qrwc, name, Object.freeze(state))
+    const component = new Component<T>(logger, qrwc, name, Object.freeze(state))
     // Propagate events downwards. Control -> Component -> Qrwc
     component.on('update', (control, state) => {
       qrwc.emit('update', component, control, state)
@@ -110,9 +109,25 @@ export class Component<
    * @public
    */
   get controls(): Readonly<
-    Record<T, Control> & Record<string, Control | undefined>
+    string extends T
+      ? Record<T, Control | undefined>
+      : Record<T, Control> & Record<string, Control | undefined>
   > {
     return this._controls
+  }
+
+  /**
+   * Cached copy of everything QRWC has received for this component.
+   *
+   * @returns {IComponentState} The frozen (immutable) current state
+   */
+  get state(): IComponentState {
+    return Object.freeze({
+      ...this._state,
+      Controls: Object.freeze(
+        Object.values(this._controls).map((control) => control.state)
+      )
+    })
   }
 
   public close() {
