@@ -108,8 +108,8 @@ export class Control extends EventEmitter<IControlEvents> {
         Name: this.component.name,
         Controls: [
           {
-            Name: this.name,
-            ...data
+            ...data,
+            Name: this.name // needs to come after ...data in case data has a 'Name' prop
           }
         ]
       })
