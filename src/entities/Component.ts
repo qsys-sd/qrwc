@@ -27,9 +27,9 @@ export class Component<
    */
   private constructor(
     private readonly logger: ILogger,
+    private readonly _state: Readonly<IComponentGetComponentsResult>,
     readonly qrwc: Qrwc, // The global Qrwc instance
-    readonly name: string,
-    readonly _state: Readonly<IComponentGetComponentsResult>
+    readonly name: string
   ) {
     super()
     logger.debug(`Component ${name} created.`)
@@ -47,7 +47,7 @@ export class Component<
     name: string,
     state: IComponentGetComponentsResult
   ): Promise<Component<T>> {
-    const component = new Component<T>(logger, qrwc, name, Object.freeze(state))
+    const component = new Component<T>(logger, Object.freeze(state), qrwc, name)
     // Propagate events downwards. Control -> Component -> Qrwc
     component.on('update', (control, state) => {
       qrwc.emit('update', component, control, state)

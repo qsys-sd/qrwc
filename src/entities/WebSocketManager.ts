@@ -77,7 +77,6 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
     timeout: number = 5000
   ) {
     // we need to wait for the socket to be opened and ready before we can do anything
-    logger.info('Connecting to QRC...')
     if (socket.readyState !== socket.OPEN) {
       await new Promise<void>((resolve, reject) => {
         const timeoutRef = setTimeout(

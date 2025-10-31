@@ -101,14 +101,15 @@ export class Qrwc<
     }
     const logger = partialLogger as ILogger
 
+    const startTime = Date.now()
     logger.info('Initializing QRWC')
     // This will wait for the websocket to be open and HACF if anything fails.
+    logger.debug('Connecting to QRC...')
     const websocketManager = await WebSocketManager.createWebSocketManager(
       logger,
       socket,
       timeout
     )
-    logger.info('QRC is ready.')
 
     /*
       When the core is shutting down or booting up, QRC will open and then
@@ -116,17 +117,19 @@ export class Qrwc<
       QRC is ACTUALLY ready and throw an informative error if it is not. We
       can do this by making a quick one-off RPC call.
     */
-    logger.debug('Fetching core status...')
     let status: IStatusGetResult
     try {
       status = await websocketManager.sendRpc('StatusGet', undefined)
-      logger.debug(status)
     } catch (_error) {
       throw new Error(
         'QRC initial status check failed. Q-SYS core might be shutting down or booting up. Wait and retry.'
       )
     }
-    logger.info('QRC is ready.')
+    logger.debug('QRC is ready.')
+
+    logger.info(
+      `QRWC connected to ${status.Platform} running ${status.DesignName}`
+    )
 
     // note that client apps cannot listen to these emitters until after createQrwc returns
     websocketManager.on('error', (error) => {
@@ -146,7 +149,7 @@ export class Qrwc<
 
     const qrwc = new Qrwc<T>(logger, websocketManager, changeGroup, status)
 
-    logger.info('Fetching components from QRC...')
+    logger.debug('Fetching components from QRC...')
     try {
       const getComponentsResponse = await websocketManager.sendRpc(
         'Component.GetComponents',
@@ -196,7 +199,8 @@ export class Qrwc<
       }
     }
 
-    logger.info('QRWC is ready.')
+    const finishTime = Date.now()
+    logger.info(`QRWC is ready. (${finishTime - startTime}ms)`)
     return qrwc
   }
 

@@ -28,7 +28,7 @@ export class ChangeGroup {
   public async startPolling(): Promise<void> {
     if (this.intervalRef) return
     this.intervalRef = setInterval(() => this.poll(), this.pollInterval)
-    this.logger.info('ChangeGroup polling started.')
+    this.logger.debug('ChangeGroup polling started.')
     return this.poll()
   }
 
@@ -36,7 +36,7 @@ export class ChangeGroup {
     if (!this.intervalRef) return
     clearInterval(this.intervalRef)
     this.intervalRef = null
-    this.logger.info('ChangeGroup polling stopped.')
+    this.logger.debug('ChangeGroup polling stopped.')
   }
 
   public async registerControl(
