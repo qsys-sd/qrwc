@@ -61,6 +61,7 @@ qrwc.close()
 - `pollingInterval`: Optional interval in milliseconds for polling control changes (minimum: 34, default: 350)
 - `componentFilter` : Optional filter function callback to allow for connecting to a subset of components in a design
 - `timeout`: Optional timeout in milliseconds for websocket messages (default 5000 ms)
+- `logger`: Optional logger object with `error`, `warn`, `info`, `debug`, and `trace` functions. Should work with common loggers such as [`pino`](https://github.com/pinojs/pino) and JavaScript's built-in `console` logger.
 
 ```typescript
 interface IStartOptions {
@@ -68,6 +69,7 @@ interface IStartOptions {
   pollingInterval?: number
   componentFilter?: (componentState: IComponentState) => boolean
   timeout?: number
+  logger?: Partial<ILogger>
 }
 ```
 
@@ -80,12 +82,15 @@ If no options are provided for specific values:
 - pollingInterval - A polling rate will be set of 350, or roughly 3 times a second
 - componentFilter - All scriptable components in the design will be fetched from the core
 - timeout - The timeout will be set to 5000ms
+- logger - QRWC will not log anything
 
 #### Connection handling
 
-- Qrwc provides a `disconnected` event that is triggered when the WebSocket connection is closed
-- This cleans up all listeners attached to the instance / intervals / classes
-- You should create a new WebSocket & instance of Qrwc to reconnect after disconnection
+Qrwc provides a `disconnected` event that is triggered when the WebSocket connection is closed.
+
+Qrwc automatically cleans up all listeners attached to the instance / intervals / classes when the `disconnected` event fires.
+
+You should create a new WebSocket & instance of Qrwc to reconnect after disconnection.
 
 ```typescript
 qrwc.on('disconnected', (reason: string) => {
@@ -147,11 +152,9 @@ qrwc.on('disconnected', (reason: string) => {
 }
 ```
 
-- See below for control object API
-
 #### Interacting with the control object
 
-- Accessing a control object
+Accessing a control object:
 
 ```typescript
 const { mute /* Control */ } = qrwc.components.Gain.controls
@@ -163,10 +166,31 @@ mute.on('update', (state: IControlState) => {
 const newState: IControlState = await mute.update(true) // update param can be string, number, or boolean
 ```
 
-- Accessing a control object with a complex name
+Accessing a control object with a complex name:
 
 ```typescript
 const text1: Control = qrwc.components.Text_Box.controls['text.1']
+```
+
+### Reading the engine status
+
+When QRWC starts up, it requests the engine status from the core, which includes the design name, the type of core it is running on, and some other info. You can grab this using the `engineStatus` property on the root object returned by `Qrwc.createQrwc`:
+
+```typescript
+const qrwc = await Qrwc.createQrwc({
+  socket
+})
+
+const status = qrwc.engineStatus
+/*{
+  Platform: 'Core 8 Flex',
+  State: 'Active',
+  DesignName: 'QRWC_Basic_File',
+  DesignCode: 'JFtMjsiUg05G',
+  IsRedundant: false,
+  IsEmulator: false,
+  Status: { Code: 0, String: 'OK' }
+}*/
 ```
 
 ### Updating the core:
@@ -174,13 +198,27 @@ const text1: Control = qrwc.components.Text_Box.controls['text.1']
 To update a control on the core, use the control's update method:
 
 ```typescript
-const { String: newString /* 'Hello world' */ } =
-  await control.update('Hello world') // for string values
+// The parameter can be either a primitive or an object
+await control.update({ Value: 20 })
+await control.update({ Position: 0.5 })
 
-const { Position: newPosition /* 20 */ } = await control.update(20) // for numeric values
-const { Bool: newBool /* true */ } = await control.update(true) // for boolean values
+// primitives use Value
+await control.update(20) // equivalent to { Value: 20 }
 
-const newState /* IControlState w/ updated value */ = await control.update(15)
+await control.update({ String: 'Hello world' })
+await control.update('Hello world') // equivalent to { Value: 'Hello world' }
+
+// Bools are coerced to 1 or 0
+await control.update({ Bool: true }) // equivalent to { Value: 1 }
+await control.update(false) // equivalent to { Value: 0 }
+
+// The promise resolves to the new IControlState
+const newState = await control.update(15) // newState.Value === 15
+
+// you can also directly pass in an IControlState object if you want
+control0.on('update', (state) => {
+  control1.update(state)
+})
 ```
 
 ## Control State Properties
@@ -230,11 +268,59 @@ This example shows how to work with different types of controls, listen for chan
 }
 ```
 
-### Examples
+## Using the logger
+
+QRWC has a startup option for a dependency-injected logger with various log levels, which can be helpful for debugging or if it is running in a cloud environment where logs need to conform to specific format. It has been tested with [`pino`](https://github.com/pinojs/pino) and JavaScript's built-in `console` logger, but it should work with any object that has the same shape/duck type.
+
+### Logging with [`pino`](https://github.com/pinojs/pino) and [`pino-pretty`](https://github.com/pinojs/pino-pretty):
+
+```typescript
+import { Qrwc } from '@q-sys/qrwc'
+import { pino } from 'pino'
+import pretty from 'pino-pretty'
+
+const qrwc = await Qrwc.createQrwc({
+  socket,
+  pollingInterval: 1000,
+  logger: pino({ level: 'info' }, pretty({ colorize: true }))
+})
+```
+
+### Logging with [`console`](https://developer.mozilla.org/en-US/docs/Web/API/console):
+
+```typescript
+import { Qrwc } from '@q-sys/qrwc'
+
+const qrwc = await Qrwc.createQrwc({
+  socket,
+  pollingInterval: 1000,
+  logger: console // this logs everything, since console doesn't have a log level threshold
+})
+```
+
+#### Muting verbose log levels with [`console`](https://developer.mozilla.org/en-US/docs/Web/API/console):
+
+```typescript
+import { Qrwc } from '@q-sys/qrwc'
+
+const qrwc = await Qrwc.createQrwc({
+  socket,
+  pollingInterval: 1000,
+  logger: {
+    error: console.error,
+    warn: console.warn,
+    info: console.info,
+    debug: console.debug
+    // trace: console.trace -- Remove a function and you won't get logs from that level
+  }
+})
+```
+
+## Examples
 
 - [QRWC React Example](./examples/qrwc-react-example/)
 - [QRWC Node Example](./examples/qrwc-node-example/)
 
-### Documentation for Developers
+## Documentation for Developers
 
 For more information on developing and contributing to this library, please refer to the [Developer Guide](README-Developers.md).
