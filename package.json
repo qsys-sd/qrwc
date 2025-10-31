@@ -1,6 +1,6 @@
 {
   "name": "@q-sys/qrwc",
-  "version": "0.4.1-beta",
+  "version": "0.5.0-beta",
   "description": "A websocket-based interface for Q-SYS controls.",
   "license": "MIT",
   "type": "module",
