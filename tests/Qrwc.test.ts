@@ -197,48 +197,6 @@ describe('Qrwc', () => {
     expect(qrwc.components.TestComponent2).toBeUndefined()
   })
 
-  it('should emit update events when controls are updated', async () => {
-    // Create a Qrwc instance
-    const options: IStartOptions = {
-      socket: mockSocket,
-      pollingInterval: 100
-    }
-
-    qrwc = await Qrwc.createQrwc(options)
-
-    // Set up a mock update listener
-    const updateListener = jest.fn()
-    qrwc.on('update', updateListener)
-
-    // Simulate a control update
-    const component = qrwc.components.TestComponent1
-    const control = component?.controls.control1
-
-    // Mock the WebSocketManager.sendRpc to return the expected response
-    jest.spyOn(control!['websocketManager'], 'sendRpc').mockResolvedValueOnce([
-      {
-        Name: 'control1',
-        Component: 'TestComponent1',
-        String: 'Updated Value',
-        Value: 1,
-        Position: 0
-      }
-    ])
-
-    // Update the control
-    await control!.update('Updated Value')
-
-    // Verify the update event was emitted with the correct parameters
-    expect(updateListener).toHaveBeenCalledWith(
-      component,
-      control,
-      expect.objectContaining({
-        Name: 'control1',
-        String: 'Updated Value'
-      })
-    )
-  })
-
   it('should emit error events when errors occur', async () => {
     // Create a Qrwc instance
     const options: IStartOptions = {

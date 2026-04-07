@@ -75,7 +75,7 @@ export class ChangeGroup {
     this.register.delete(key)
   }
 
-  private async poll() {
+  public async poll() {
     try {
       const pollResult = await this.websocketManager.sendRpc(
         'ChangeGroup.Poll',

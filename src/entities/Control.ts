@@ -125,12 +125,11 @@ export class Control extends EventEmitter<IControlEvents> {
       }
     }
 
-    /**
-     * Emit an update event with the new state
-     */
-    const state = this.state
-    this.emit('update', state)
-    return state
+    // poll early because we know something just changed and we want the update event
+    // (emitting update outside ChangeGroup.Poll will cause a double emit from the next poll)
+    await this.changeGroup.poll()
+
+    return this.state
   }
 
   public close() {

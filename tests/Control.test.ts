@@ -32,7 +32,8 @@ describe('Control', () => {
 
     mockChangeGroup = {
       registerControl: jest.fn(),
-      deregisterControl: jest.fn()
+      deregisterControl: jest.fn(),
+      poll: jest.fn()
     } as unknown as ChangeGroup
 
     mockComponent = {
