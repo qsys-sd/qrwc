@@ -74,6 +74,7 @@ export class Qrwc<
   >({
     logger: partialLogger = {},
     socket,
+    apiKey,
     pollingInterval,
     componentFilter,
     timeout = 5000
@@ -111,6 +112,16 @@ export class Qrwc<
       timeout
     )
 
+    try {
+      await websocketManager.sendRpc('ApiKeyAuth', {
+        apiKey
+      })
+    } catch (_error) {
+      const error = new Error('QRC Authentication failed.')
+      logger.error(error.message)
+      throw error
+    }
+
     /*
       When the core is shutting down or booting up, QRC will open and then
       immediately close the websocket connection, so we also need to verify
@@ -121,9 +132,11 @@ export class Qrwc<
     try {
       status = await websocketManager.sendRpc('StatusGet', undefined)
     } catch (_error) {
-      throw new Error(
+      const error = new Error(
         'QRC initial status check failed. Q-SYS core might be shutting down or booting up. Wait and retry.'
       )
+      logger.error(error.message)
+      throw error
     }
     logger.debug('QRC is ready.')
 
@@ -190,11 +203,11 @@ export class Qrwc<
       const message = 'Failed to fetch components from Q-SYS core.'
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`
-        logger.error(error)
+        logger.error(error.message)
         throw error
       } else {
         const errorObj = new Error(`${message}\n${error}`)
-        logger.error(errorObj)
+        logger.error(errorObj.message)
         throw errorObj
       }
     }
