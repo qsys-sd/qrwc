@@ -109,18 +109,9 @@ export class Qrwc<
     const websocketManager = await WebSocketManager.createWebSocketManager(
       logger,
       socket,
+      apiKey,
       timeout
     )
-
-    try {
-      await websocketManager.sendRpc('ApiKeyAuth', {
-        apiKey
-      })
-    } catch (_error) {
-      const error = new Error('QRC Authentication failed.')
-      logger.error(error.message)
-      throw error
-    }
 
     /*
       When the core is shutting down or booting up, QRC will open and then

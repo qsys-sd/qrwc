@@ -30,6 +30,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   private constructor(
     private readonly logger: ILogger,
     private readonly socket: IWebSocket,
+    private readonly apiKey: string,
     private readonly timeout: number = 5000
   ) {
     super()
@@ -74,6 +75,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
   public static async createWebSocketManager(
     logger: ILogger,
     socket: IWebSocket,
+    apiKey: string,
     timeout: number = 5000
   ) {
     // we need to wait for the socket to be opened and ready before we can do anything
@@ -112,11 +114,12 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
       })
     }
 
-    return new WebSocketManager(logger, socket, timeout)
+    return new WebSocketManager(logger, socket, apiKey, timeout)
   }
 
   public send = (data: object): void => {
-    this.logger.trace(data, 'RPC SEND')
+    const { apiKey: _, ...loggable } = data as Record<string, unknown>
+    this.logger.trace(loggable, 'RPC SEND')
     this.socket.send(JSON.stringify(data))
   }
 
@@ -129,6 +132,7 @@ export class WebSocketManager extends EventEmitter<IWebSocketManagerEvents> {
     id: string
   ): IRpcRequest => {
     return {
+      apiKey: this.apiKey,
       jsonrpc: '2.0',
       method,
       params,

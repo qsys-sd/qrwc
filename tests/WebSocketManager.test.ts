@@ -43,7 +43,8 @@ describe('WebSocketManager', () => {
       mockSocket.onopen = async () => {
         wsManager = await WebSocketManager.createWebSocketManager(
           emptyLogger,
-          mockSocket
+          mockSocket,
+          'test-api-key'
         )
         resolve()
       }
@@ -66,7 +67,8 @@ describe('WebSocketManager', () => {
       mockSocket.onopen = async () => {
         wsManager = await WebSocketManager.createWebSocketManager(
           emptyLogger,
-          mockSocket
+          mockSocket,
+          'test-api-key'
         )
         resolve(wsManager)
       }

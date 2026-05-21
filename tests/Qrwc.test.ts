@@ -154,6 +154,7 @@ describe('Qrwc', () => {
     // Create a new Qrwc instance with our mock socket
     const options: IStartOptions = {
       socket: mockSocket,
+      apiKey: 'test-api-key',
       pollingInterval: 100
     }
 
@@ -185,6 +186,7 @@ describe('Qrwc', () => {
     // Create Qrwc with a filter that only includes TestComponent1
     const options: IStartOptions = {
       socket: mockSocket,
+      apiKey: 'test-api-key',
       pollingInterval: 100,
       componentFilter: (component) => component.Name === 'TestComponent1'
     }
@@ -201,6 +203,7 @@ describe('Qrwc', () => {
     // Create a Qrwc instance
     const options: IStartOptions = {
       socket: mockSocket,
+      apiKey: 'test-api-key',
       pollingInterval: 100
     }
 
@@ -222,6 +225,7 @@ describe('Qrwc', () => {
     // Create a Qrwc instance
     const options: IStartOptions = {
       socket: mockSocket,
+      apiKey: 'test-api-key',
       pollingInterval: 100
     }
 
@@ -242,6 +246,7 @@ describe('Qrwc', () => {
     // Create a Qrwc instance
     const options: IStartOptions = {
       socket: mockSocket,
+      apiKey: 'test-api-key',
       pollingInterval: 100
     }
 
@@ -330,6 +335,7 @@ describe('Qrwc', () => {
       // Create Qrwc instance with the empty socket
       const emptyQrwc = await Qrwc.createQrwc({
         socket: emptySocket,
+        apiKey: 'test-api-key',
         pollingInterval: 100
       })
 
@@ -352,6 +358,7 @@ describe('Qrwc', () => {
     await expect(
       Qrwc.createQrwc({
         socket: failingSocket,
+        apiKey: 'test-api-key',
         pollingInterval: 100,
         timeout: 100
       })
@@ -391,6 +398,7 @@ describe('Qrwc', () => {
       // Create a Qrwc instance with the mock logger
       const options: IStartOptions = {
         socket: mockSocket,
+        apiKey: 'test-api-key',
         pollingInterval: 100,
         logger: mockLogger
       }
@@ -422,6 +430,7 @@ describe('Qrwc', () => {
   it('should expose engine status in qrc property', async () => {
     const options: IStartOptions = {
       socket: mockSocket,
+      apiKey: 'test-api-key',
       pollingInterval: 100
     }
 

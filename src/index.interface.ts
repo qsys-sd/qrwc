@@ -24,6 +24,7 @@ export interface IRpcError extends IRpcMeta {
 }
 
 export interface IRpcRequest extends IRpcMeta {
+  apiKey: string
   method: string
   params: IRpcRequestParams
 }
@@ -41,7 +42,6 @@ export type IRpcResponse = IRpcResponseBody<
 // helps add strict typing to createJSONRPCMessage
 // { <RPC method key>: (arg: <RPC arg type>) => <RPC return type> }
 export interface IJsonRpcMessageTypeMap {
-  ApiKeyAuth: (arg: ApiKeyAuthRequest) => ApiKeyAuthResult
   'Component.GetComponents': (
     arg: IComponentGetComponentsRequest
   ) => IComponentGetComponentsResult[]
@@ -54,14 +54,6 @@ export interface IJsonRpcMessageTypeMap {
     arg: IChangeGroupAddComponentControlRequest
   ) => IChangeGroupAddComponentControlResult
   StatusGet: () => IStatusGetResult
-}
-
-export interface ApiKeyAuthRequest {
-  apiKey: string
-}
-
-export interface ApiKeyAuthResult {
-  authenticated: boolean
 }
 
 export interface IStatusGetResult {

@@ -3,7 +3,7 @@ import { WebSocket } from 'ws'
 
 const test = async () => {
   const socket = new WebSocket('ws://localhost:3103')
-  const qrwc = await Qrwc.createQrwc({ socket })
+  const qrwc = await Qrwc.createQrwc({ socket, apiKey: 'test' })
   if (
     qrwc.components.TestComponent1 &&
     qrwc.components.TestComponent1.name !== 'TestComponent1'
