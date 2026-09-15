@@ -2,7 +2,10 @@ import type {
   IStartOptions,
   IQrwcEvents,
   ILogger,
-  IStatusGetResult
+  IStatusGetResult,
+  IQrwcExpandedGenericParameter,
+  IQrwcSimpleGenericParameter,
+  INormalizedQrwcParameter
 } from '../index.interface.js'
 import { ChangeGroup } from './ChangeGroup.js'
 import { Component } from './Component.js'
@@ -15,15 +18,16 @@ import { WebSocketManager } from './WebSocketManager.js'
  * @extends EventEmitter<IQrwcEvents>
  */
 export class Qrwc<
-  T extends Record<string, string> = Record<string, string>
-> extends EventEmitter<IQrwcEvents> {
+  T extends IQrwcExpandedGenericParameter = IQrwcExpandedGenericParameter
+> extends EventEmitter<IQrwcEvents<T>> {
   readonly engineStatus: Readonly<IStatusGetResult>
   // temporary value--overwritten in createQrwc
-  private _components: Readonly<Record<string, Component>> = Object.freeze({})
+  private _components: Readonly<Record<string, Component<T, string>>> =
+    Object.freeze({})
   private constructor(
     private readonly logger: ILogger,
     private readonly webSocketManager: WebSocketManager,
-    private readonly changeGroup: ChangeGroup,
+    private readonly changeGroup: ChangeGroup<T>,
     status: IStatusGetResult
   ) {
     super()
@@ -41,19 +45,14 @@ export class Qrwc<
    * @returns {Readonly<Record<string, Component>>} A read-only record of components, keyed by component name
    * @public
    */
-  get components(): Readonly<
-    {
-      [U in keyof T]: string extends U
-        ? Component<T[U]> | undefined
-        : Component<T[U]>
-    } & Record<string, Component | undefined>
-  > {
-    return this._components as Readonly<
-      { [U in keyof T]: Component<T[U]> } & Record<
-        string,
-        Component | undefined
-      >
-    >
+  get components(): Readonly<{
+    [U in keyof T['components']]: string extends U
+      ? Component<T, U> | undefined
+      : Component<T, U>
+  }> {
+    return this._components as Readonly<{
+      [U in keyof T['components']]: Component<T, U>
+    }>
   }
 
   /**
@@ -70,7 +69,9 @@ export class Qrwc<
    * @static
    */
   public static async createQrwc<
-    T extends Record<string, string> = Record<string, string>
+    T extends
+      | IQrwcExpandedGenericParameter
+      | IQrwcSimpleGenericParameter = IQrwcExpandedGenericParameter
   >({
     logger: partialLogger = {},
     socket,
@@ -78,7 +79,7 @@ export class Qrwc<
     pollingInterval,
     componentFilter,
     timeout = 5000
-  }: IStartOptions): Promise<Qrwc<T>> {
+  }: IStartOptions): Promise<Qrwc<INormalizedQrwcParameter<T>>> {
     /*
       Populate the default log functions on the original logger object, because
         the logger object is supplied by the user, and we don't know if the log
@@ -145,13 +146,18 @@ export class Qrwc<
       qrwc.close()
     })
 
-    const changeGroup = new ChangeGroup(
+    const changeGroup = new ChangeGroup<INormalizedQrwcParameter<T>>(
       logger,
       websocketManager,
       pollingInterval
     )
 
-    const qrwc = new Qrwc<T>(logger, websocketManager, changeGroup, status)
+    const qrwc = new Qrwc<INormalizedQrwcParameter<T>>(
+      logger,
+      websocketManager,
+      changeGroup,
+      status
+    )
 
     logger.debug('Fetching components from QRC...')
     try {
@@ -177,7 +183,9 @@ export class Qrwc<
       )
       // Freeze the object so it's readonly in javascript too
       qrwc._components = Object.freeze(
-        components.reduce<Record<string, Component>>((acc, component) => {
+        components.reduce<
+          Record<string, Component<INormalizedQrwcParameter<T>, string>>
+        >((acc, component) => {
           acc[component.name] = component
           return acc
         }, {})

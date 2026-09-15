@@ -115,7 +115,7 @@ export interface IComponentGetControlsControl {
   Type: string
   Choices?: string[]
   Value?: number
-  String: string
+  String?: string
   Direction: string
   Position?: number
   ValueMin?: number
@@ -227,18 +227,41 @@ export interface IEventEmitter<T> {
   removeAllListeners(): void
 }
 
-export interface IComponentEvents {
-  update: (control: Control, state: IControlState) => void
+export interface IComponentEvents<
+  T extends IQrwcExpandedGenericParameter,
+  U extends keyof T['components']
+> {
+  update: (
+    control: Control<T, U, keyof T['components'][U]['controls']>,
+    state: Control<T, U, keyof T['components'][U]['controls']>['state']
+  ) => void
   error: (error: Error) => void
 }
 
-export interface IControlEvents {
-  update: (state: IControlState) => void
+export interface IControlEvents<
+  T extends IQrwcExpandedGenericParameter,
+  U extends keyof T['components'],
+  V extends
+    keyof T['components'][U]['controls'] = keyof T['components'][U]['controls']
+> {
+  update: (state: Control<T, U, V>['state']) => void
   error: (error: Error) => void
 }
 
-export interface IQrwcEvents {
-  update: (component: Component, control: Control, state: IControlState) => void
+export interface IQrwcEvents<T extends IQrwcExpandedGenericParameter> {
+  update: (
+    component: Component<T, keyof T['components']>,
+    control: Control<
+      T,
+      keyof T['components'],
+      keyof T['components'][keyof T['components']]['controls']
+    >,
+    state: Control<
+      T,
+      keyof T['components'],
+      keyof T['components'][keyof T['components']]['controls']
+    >['state']
+  ) => void
   error: (event: Error) => void
   disconnected: (reason: string) => void
 }
@@ -254,16 +277,26 @@ export interface IWebSocketManagerEvents {
  * Not sure where to put these :)
  */
 
+// Forces the editor to display a mapped/utility type (e.g. Pick<...>) as its
+// resolved property shape on hover instead of the alias name.
+export type Prettify<T> = { [K in keyof T]: T[K] } & {}
+
 // defines state property for a Component object
-export type IComponentState = Readonly<
+export type IComponentState<
+  T extends
+    IComponentGenericParameter['controls'] = IComponentGenericParameter['controls']
+> = Readonly<
   Omit<IComponentGetComponentsResult, 'Controls'> & {
-    Controls: Readonly<IControlState[]>
+    Controls: Readonly<T[keyof T]['state'][]>
   }
 >
 
 // defines state property on a Control object
 export type IControlState = Readonly<
-  IComponentGetControlsControl & Partial<IControlChange> & { Bool: boolean }
+  IComponentGetControlsControl &
+    Partial<IControlChange> & {
+      Bool: boolean
+    }
 >
 
 // Unifies ws WebSocket type (node) and the browser built-in WebSocket type
@@ -283,3 +316,58 @@ export type ILogger = Pick<
   typeof console,
   'trace' | 'debug' | 'info' | 'warn' | 'error'
 >
+
+export interface IControlGenericParameter {
+  state: IControlState
+}
+
+export interface IComponentGenericParameter {
+  controls: Record<string, IControlGenericParameter>
+}
+
+export interface IQrwcExpandedGenericParameter {
+  components: Record<string, IComponentGenericParameter>
+}
+
+/**
+ * The simplified generic parameter format: a map of component name to a union
+ * of that component's control names.
+ * e.g. { Gain: 'gain' | 'mute', Gain_1: 'gain' }
+ */
+export type IQrwcSimpleGenericParameter = Record<string, string>
+
+/**
+ * Converts the simplified {@link IQrwcSimpleGenericParameter} format into the detailed
+ * {@link IQrwcExpandedGenericParameter} format, giving every control the generic
+ * IControlState.
+ */
+export type ISimpleToExpanded<T extends IQrwcSimpleGenericParameter> = {
+  components: {
+    [ComponentName in keyof T]: {
+      controls: {
+        [ControlName in Extract<T[ComponentName], string>]: {
+          state: IControlState
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Accepts either the detailed {@link IQrwcExpandedGenericParameter} format or the
+ * simplified {@link IQrwcSimpleGenericParameter} format, and resolves to the detailed
+ * format used internally. The detailed format is checked first because it is
+ * the more specific of the two shapes.
+ */
+export type INormalizedQrwcParameter<T> =
+  T extends IQrwcExpandedGenericParameter
+    ? T
+    : T extends IQrwcSimpleGenericParameter
+      ? ISimpleToExpanded<T>
+      : never
+
+export type ReadOnlyControl<
+  T extends IQrwcExpandedGenericParameter,
+  U extends keyof T['components'],
+  V extends keyof T['components'][U]['controls']
+> = Omit<Control<T, U, V>, 'update'>

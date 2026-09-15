@@ -1,4 +1,8 @@
-import type { IControlChange, ILogger } from '../index.interface.js'
+import type {
+  IControlChange,
+  ILogger,
+  IQrwcExpandedGenericParameter
+} from '../index.interface.js'
 import type { Control } from './Control.js'
 import type { WebSocketManager } from './WebSocketManager.js'
 import {
@@ -11,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid'
  * Manages a group of Q-Sys components that are monitored for changes. Does not currently support Named Controls
  * Handles polling QRC for control state changes and notifies registered Control callbacks
  */
-export class ChangeGroup {
+export class ChangeGroup<T extends IQrwcExpandedGenericParameter> {
   private intervalRef: ReturnType<typeof setInterval> | null = null
   private readonly id = uuidv4()
   private register = new Map<string, (change: IControlChange) => void>() // Key format is "componentName:controlName"
@@ -40,7 +44,11 @@ export class ChangeGroup {
   }
 
   public async registerControl(
-    control: Control,
+    control: Control<
+      T,
+      keyof T['components'],
+      keyof T['components'][keyof T['components']]['controls']
+    >,
     onUpdate: (change: IControlChange) => void
   ): Promise<void> {
     const key = `${control.component.name}:${control.name}`
@@ -70,7 +78,13 @@ export class ChangeGroup {
     }
   }
 
-  public deregisterControl(control: Control) {
+  public deregisterControl(
+    control: Control<
+      T,
+      keyof T['components'],
+      keyof T['components'][keyof T['components']]['controls']
+    >
+  ) {
     const key = `${control.component.name}:${control.name}`
     this.register.delete(key)
   }

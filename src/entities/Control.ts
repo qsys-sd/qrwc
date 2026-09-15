@@ -2,7 +2,9 @@ import type {
   IControlState,
   IControlEvents,
   ILogger,
-  IControlUpdate
+  IControlUpdate,
+  IQrwcExpandedGenericParameter,
+  Prettify
 } from '../index.interface.js'
 import type { ChangeGroup } from './ChangeGroup.js'
 import type { Component } from './Component.js'
@@ -13,7 +15,11 @@ import { EventEmitter } from '../event/EventEmitter.js'
  * Represents a Q-Sys control element that can be interacted with
  * @extends EventEmitter<IControlEvents>
  */
-export class Control extends EventEmitter<IControlEvents> {
+export class Control<
+  T extends IQrwcExpandedGenericParameter,
+  U extends keyof T['components'],
+  V extends keyof T['components'][U]['controls']
+> extends EventEmitter<IControlEvents<T, U, V>> {
   private _state: Omit<IControlState, 'Bool'>
 
   /**
@@ -22,9 +28,9 @@ export class Control extends EventEmitter<IControlEvents> {
   private constructor(
     private readonly logger: ILogger,
     private readonly websocketManager: WebSocketManager,
-    private readonly changeGroup: ChangeGroup,
-    readonly component: Component,
-    readonly name: string,
+    private readonly changeGroup: ChangeGroup<T>,
+    readonly component: Component<T, U>,
+    readonly name: V & string,
     state: Omit<IControlState, 'Bool'> // Bool is computed so it doesn't need to be provided
   ) {
     super()
@@ -41,15 +47,19 @@ export class Control extends EventEmitter<IControlEvents> {
     logger.debug(`Control ${name} created in component ${component.name}`)
   }
 
-  public static async createControl(
+  public static async createControl<
+    T extends IQrwcExpandedGenericParameter,
+    U extends keyof T['components'],
+    V extends keyof T['components'][U]['controls']
+  >(
     logger: ILogger,
     websocketManager: WebSocketManager,
-    changeGroup: ChangeGroup,
-    component: Component,
-    name: string,
+    changeGroup: ChangeGroup<T>,
+    component: Component<T, U>,
+    name: V & string,
     state: Omit<IControlState, 'Bool'> // Bool is computed so it doesn't need to be provided
   ) {
-    const control = new Control(
+    const control = new Control<T, U, V>(
       logger,
       websocketManager,
       changeGroup,
@@ -73,7 +83,7 @@ export class Control extends EventEmitter<IControlEvents> {
    *
    * @returns {IControlState} The frozen (immutable) current state
    */
-  get state(): IControlState {
+  get state(): Readonly<T['components'][U]['controls'][V]['state']> {
     // Bool is transient, as it does not exist on QRC controls.
     // Checking for 0.5 or greater to determine truthfulness is Q-SYS convention
     return Object.freeze({
@@ -88,8 +98,18 @@ export class Control extends EventEmitter<IControlEvents> {
    * @returns {Promise<IControlState>} The updated state.
    */
   public async update(
-    value: string | number | boolean | IControlUpdate
-  ): Promise<IControlState> {
+    value:
+      | string
+      | number
+      | boolean
+      | Prettify<
+          Pick<
+            IControlUpdate,
+            keyof IControlUpdate &
+              keyof T['components'][U]['controls'][V]['state']
+          >
+        >
+  ): Promise<T['components'][U]['controls'][V]['state']> {
     const data: IControlUpdate =
       typeof value === 'string' || typeof value === 'number'
         ? { Value: value }

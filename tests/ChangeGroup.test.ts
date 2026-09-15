@@ -2,6 +2,7 @@ import { ChangeGroup } from '../src/entities/ChangeGroup'
 import { WebSocketManager } from '../src/entities/WebSocketManager'
 import { Control } from '../src/entities/Control'
 import { jest } from '@jest/globals'
+import { IQrwcExpandedGenericParameter } from '../src/index.interface'
 
 const emptyLogger = {
   trace: () => undefined,
@@ -13,7 +14,7 @@ const emptyLogger = {
 
 describe('ChangeGroup', () => {
   let mockWebSocketManager: WebSocketManager
-  let changeGroup: ChangeGroup
+  let changeGroup: ChangeGroup<IQrwcExpandedGenericParameter>
 
   beforeEach(() => {
     mockWebSocketManager = {
@@ -37,7 +38,7 @@ describe('ChangeGroup', () => {
     const mockControl = {
       name: 'gain',
       component: { name: 'MyComponent' }
-    } as unknown as Control
+    } as unknown as Control<IQrwcExpandedGenericParameter, string, string>
 
     const callback = jest.fn()
     await changeGroup.registerControl(mockControl, callback)
@@ -57,7 +58,7 @@ describe('ChangeGroup', () => {
     const mockControl = {
       name: 'gain',
       component: { name: 'MyComponent' }
-    } as unknown as Control
+    } as unknown as Control<IQrwcExpandedGenericParameter, string, string>
 
     const callback = jest.fn()
     await changeGroup.registerControl(mockControl, callback)

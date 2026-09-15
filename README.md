@@ -25,7 +25,8 @@ const socket = new WebSocket('ws://{IP}/qrc-public-api/v0')
 
 // Create a new Qrwc instance with the open socket
 const qrwc = await Qrwc.createQrwc<{
-  Gain: 'gain' | 'mute' // tell typescript there is a 'Gain' component with both 'gain' and 'mute' controls
+  Gain_0: 'gain' | 'mute' // tell typescript there is a 'Gain_0' component with both 'gain' and 'mute' controls
+  Gain_1: 'gain' // ...and a 'Gain_1' component with a 'gain' control
 }>({
   socket,
   pollingInterval: 350 // Optional: polling interval in milliseconds (default: 350)
@@ -35,9 +36,11 @@ const qrwc = await Qrwc.createQrwc<{
 
 // grab the EventEmitter for the control you care about
 const gain0 = qrwc.components.Gain.controls.gain // Control
+const gain1 = qrwc.components.Gain_1.controls.gain // Control
 
-// controls not in the generic parameter will need some type narrowing
-const gain1 = qrwc.components.Gain_1?.controls.gain // Control | undefined
+// only names declared in the generic parameter are accessible;
+// e.g. `qrwc.components.Gain_2` would be a compile error
+// (omit the generic parameter to access any component as `Component | undefined`)
 
 // Listen for updates to the gain control. Listener parameter is a deconstructed IControlState
 gain0.on('update', ({ Value, Position, String, Bool }) => {
@@ -52,6 +55,69 @@ gain0.on('update', ({ Value, Position, String, Bool }) => {
 // when finished, close QRWC
 qrwc.close()
 ```
+
+#### Typing your design
+
+The generic type parameter on `createQrwc<T>()` describes your design so components, controls, and control state are type-checked at the call site. It accepts **either** of two shapes, and the right one is detected automatically.
+
+**Simple map** — component name → a union of its control names. Quick to author by hand:
+
+```typescript
+const qrwc = await Qrwc.createQrwc<{
+  Gain_0: 'gain' | 'mute'
+  Gain_1: 'gain'
+}>({ socket })
+
+qrwc.components.Gain.controls.mute // Control
+qrwc.components.Gain.controls.gain.state // IControlState
+```
+
+Every control's `state` is the generic `IControlState`, and every control is read/write (has `update()`).
+
+**Expanded schema** — the full design: each component's controls and each control's `state` shape (including its `Direction`). This gives precise, per-control types:
+
+```typescript
+type MyDesign = {
+  components: {
+    Gain: {
+      controls: {
+        gain: {
+          state: {
+            Name: 'gain'
+            Type: 'Float'
+            Value: number
+            Direction: 'Read/Write'
+            // ...remaining state fields
+          }
+        }
+      }
+    }
+    Status: {
+      controls: {
+        signal_present: {
+          state: {
+            Name: 'signal_present'
+            Direction: 'Read Only'
+            // ...
+          }
+        }
+      }
+    }
+  }
+}
+
+const qrwc = await Qrwc.createQrwc<MyDesign>({ socket })
+
+qrwc.components.Gain.controls.gain.state.Value // number (not number | undefined)
+await qrwc.components.Gain.controls.gain.update(0.5) // ok — Read/Write
+await qrwc.components.Status.controls.signal_present.update(1) // ❌ Read Only — no update()
+```
+
+With the expanded schema, `state`, `update()`, and `update` event payloads are typed per control, and controls whose `Direction` is `'Read Only'` have no `update()` method in their TypeScript type.
+
+**No generic parameter** — omit it entirely and components/controls become open records: any name is allowed, each typed as `Component`/`Control | undefined` with the generic `IControlState`.
+
+> On a typed design (either shape), only the names you declare are accessible — reading an undeclared component or control is a compile error.
 
 #### Start options
 

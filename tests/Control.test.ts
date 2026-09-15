@@ -2,7 +2,10 @@ import { Control } from '../src/entities/Control'
 import { WebSocketManager } from '../src/entities/WebSocketManager'
 import { ChangeGroup } from '../src/entities/ChangeGroup'
 import { Component } from '../src/entities/Component'
-import { IControlState } from '../src/index.interface'
+import {
+  IControlState,
+  IQrwcExpandedGenericParameter
+} from '../src/index.interface'
 import { jest } from '@jest/globals'
 
 const emptyLogger = {
@@ -15,9 +18,9 @@ const emptyLogger = {
 
 describe('Control', () => {
   let mockWebSocketManager: WebSocketManager
-  let mockChangeGroup: ChangeGroup
-  let mockComponent: Component
-  let control: Control
+  let mockChangeGroup: ChangeGroup<IQrwcExpandedGenericParameter>
+  let mockComponent: Component<IQrwcExpandedGenericParameter, string>
+  let control: Control<IQrwcExpandedGenericParameter, string, string>
   let initialState: Omit<IControlState, 'Bool'>
 
   beforeEach(async () => {
@@ -34,7 +37,7 @@ describe('Control', () => {
       registerControl: jest.fn(),
       deregisterControl: jest.fn(),
       poll: jest.fn()
-    } as unknown as ChangeGroup
+    } as unknown as ChangeGroup<IQrwcExpandedGenericParameter>
 
     mockComponent = {
       name: 'TestComponent',
@@ -42,7 +45,7 @@ describe('Control', () => {
       on: jest.fn(),
       removeListener: jest.fn(),
       removeAllListeners: jest.fn()
-    } as unknown as Component
+    } as unknown as Component<IQrwcExpandedGenericParameter, string>
 
     initialState = {
       Name: 'testControl',

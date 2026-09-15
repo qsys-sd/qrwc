@@ -6,7 +6,8 @@ import { Control } from '../src/entities/Control'
 import {
   IComponentGetComponentsResult,
   IComponentGetControlsResult,
-  IComponentState
+  IComponentState,
+  IQrwcExpandedGenericParameter
 } from '../src/index.interface'
 import { jest } from '@jest/globals'
 
@@ -20,7 +21,7 @@ const emptyLogger = {
 
 describe('Component', () => {
   let mockWebSocketManager: WebSocketManager
-  let mockChangeGroup: ChangeGroup
+  let mockChangeGroup: ChangeGroup<IQrwcExpandedGenericParameter>
   let mockQrwc: Qrwc
   let mockComponentResponse: IComponentGetComponentsResult
   let mockControlsResponse: IComponentGetControlsResult
@@ -39,7 +40,7 @@ describe('Component', () => {
     mockChangeGroup = {
       registerControl: jest.fn(),
       deregisterControl: jest.fn()
-    } as unknown as ChangeGroup
+    } as unknown as ChangeGroup<IQrwcExpandedGenericParameter>
 
     mockQrwc = {
       emit: jest.fn(),
@@ -147,7 +148,11 @@ describe('Component', () => {
       'TestComponent',
       mockComponentResponse
     )
-    const mockControl = {} as Control
+    const mockControl = {} as Control<
+      IQrwcExpandedGenericParameter,
+      'TestComponent',
+      string
+    >
     const mockState = {
       Name: 'control1',
       Type: 'Text',

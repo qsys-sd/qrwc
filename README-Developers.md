@@ -38,6 +38,7 @@
 - `npm run test`
 - Simple tests with Jest & MockSocket
 - Some tests are separated because they need a FE environment to work correctly.
+- Some tests are compile-time type tests (`tests/GenericParameter.test.ts`), enforced by `npm run test:types` (a `tsc --noEmit` pass) and included in `npm run test`; they fail the build if the public typing regresses.
 - Ensure all tests pass before creating a pull request.
 - Please write tests for new functionality.
 

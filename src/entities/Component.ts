@@ -2,7 +2,9 @@ import type {
   IComponentEvents,
   IComponentGetComponentsResult,
   IComponentState,
-  ILogger
+  ILogger,
+  IQrwcExpandedGenericParameter,
+  ReadOnlyControl
 } from '../index.interface.js'
 import type { ChangeGroup } from './ChangeGroup.js'
 import type { Qrwc } from './Qrwc.js'
@@ -15,10 +17,11 @@ import { EventEmitter } from '../event/EventEmitter.js'
  * @extends EventEmitter<IComponentEvents>
  */
 export class Component<
-  T extends string = string
-> extends EventEmitter<IComponentEvents> {
+  T extends IQrwcExpandedGenericParameter,
+  U extends keyof T['components']
+> extends EventEmitter<IComponentEvents<T, U>> {
   // temporary value--overwritten in createComponent
-  private _controls: Readonly<Record<string, Control>> = {}
+  private _controls: Readonly<Record<string, Control<T, U, string>>> = {}
 
   /**
    * This constructor is private because this object has an asynchronous
@@ -28,8 +31,8 @@ export class Component<
   private constructor(
     private readonly logger: ILogger,
     private readonly _state: Readonly<IComponentGetComponentsResult>,
-    readonly qrwc: Qrwc, // The global Qrwc instance
-    readonly name: string
+    readonly qrwc: Qrwc<T>, // The global Qrwc instance
+    readonly name: U & string
   ) {
     super()
     logger.debug(`Component ${name} created.`)
@@ -39,15 +42,23 @@ export class Component<
    * Asynchronously creates a new Component instance
    * This factory method handles the async initialization process including fetching controls
    */
-  public static async createComponent<T extends string = string>(
+  public static async createComponent<
+    T extends IQrwcExpandedGenericParameter,
+    U extends keyof T['components']
+  >(
     logger: ILogger,
     websocketManager: WebSocketManager, // The global WebSocketManager instance
-    changeGroup: ChangeGroup, // The global ChangeGroup instance
-    qrwc: Qrwc, // The global Qrwc instance
-    name: string,
+    changeGroup: ChangeGroup<T>, // The global ChangeGroup instance
+    qrwc: Qrwc<T>, // The global Qrwc instance
+    name: U & string,
     state: IComponentGetComponentsResult
-  ): Promise<Component<T>> {
-    const component = new Component<T>(logger, Object.freeze(state), qrwc, name)
+  ): Promise<Component<T, U>> {
+    const component = new Component<T, U>(
+      logger,
+      Object.freeze(state),
+      qrwc,
+      name
+    )
     // Propagate events downwards. Control -> Component -> Qrwc
     component.on('update', (control, state) => {
       qrwc.emit('update', component, control, state)
@@ -94,7 +105,7 @@ export class Component<
 
     // Freeze the object so it's readonly in javascript too
     component._controls = Object.freeze(
-      controls.reduce<Record<string, Control>>((acc, current) => {
+      controls.reduce<Record<string, Control<T, U, string>>>((acc, current) => {
         acc[current.name] = current
         return acc
       }, {})
@@ -108,12 +119,18 @@ export class Component<
    * @returns {Readonly<Record<string, Control>>} A read-only record of controls, keyed by control name
    * @public
    */
-  get controls(): Readonly<
-    string extends T
-      ? Record<T, Control | undefined>
-      : Record<T, Control> & Record<string, Control | undefined>
-  > {
-    return this._controls
+  get controls(): Readonly<{
+    [V in keyof T['components'][U]['controls']]: T['components'][U]['controls'][V]['state']['Direction'] extends 'Read Only'
+      ? string extends V
+        ? ReadOnlyControl<T, U, V> | undefined
+        : ReadOnlyControl<T, U, V>
+      : string extends V
+        ? Control<T, U, V> | undefined
+        : Control<T, U, V>
+  }> {
+    return this._controls as Readonly<{
+      [V in keyof T['components'][U]['controls']]: Control<T, U, V>
+    }>
   }
 
   /**
@@ -121,7 +138,7 @@ export class Component<
    *
    * @returns {IComponentState} The frozen (immutable) current state
    */
-  get state(): IComponentState {
+  get state(): IComponentState<T['components'][U]['controls']> {
     return Object.freeze({
       ...this._state,
       Controls: Object.freeze(
@@ -131,7 +148,7 @@ export class Component<
   }
 
   public close() {
-    const controls: Control[] = Object.values(this._controls)
+    const controls: Control<T, U, string>[] = Object.values(this._controls)
     controls.forEach((control) => control.close())
     this.removeAllListeners()
     this.logger.debug(`Component ${this.name} closed.`)
