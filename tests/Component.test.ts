@@ -1,5 +1,5 @@
 import { Component } from '../src/entities/Component'
-import { WebSocketManager } from '../src/entities/WebSocketManager'
+import { QrcClient } from '../src/connection/QrcClient'
 import { ChangeGroup } from '../src/entities/ChangeGroup'
 import { Qrwc } from '../src/entities/Qrwc'
 import { Control } from '../src/entities/Control'
@@ -20,7 +20,7 @@ const emptyLogger = {
 }
 
 describe('Component', () => {
-  let mockWebSocketManager: WebSocketManager
+  let mockQrcClient: QrcClient
   let mockChangeGroup: ChangeGroup<IQrwcExpandedGenericParameter>
   let mockQrwc: Qrwc
   let mockComponentResponse: IComponentGetComponentsResult
@@ -29,13 +29,13 @@ describe('Component', () => {
 
   beforeEach(() => {
     // Mock dependencies
-    mockWebSocketManager = {
+    mockQrcClient = {
       sendRpc: jest.fn(),
       on: jest.fn(),
       emit: jest.fn(),
       removeListener: jest.fn(),
       removeAllListeners: jest.fn()
-    } as unknown as WebSocketManager
+    } as unknown as QrcClient
 
     mockChangeGroup = {
       registerControl: jest.fn(),
@@ -111,16 +111,14 @@ describe('Component', () => {
 
     // Set default mock response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(mockControlsResponse)
   })
 
   it('should create a component instance with correct initial state', async () => {
     const component = await Component.createComponent(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
@@ -142,7 +140,7 @@ describe('Component', () => {
   it('should propagate control update events to the qrwc instance', async () => {
     const component = await Component.createComponent(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
@@ -174,7 +172,7 @@ describe('Component', () => {
   it('should propagate error events to the qrwc instance', async () => {
     const component = await Component.createComponent(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
@@ -188,15 +186,13 @@ describe('Component', () => {
   it('should handle RPC errors when fetching controls', async () => {
     // Mock RPC error
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockRejectedValueOnce('RPC Error')
 
     await expect(
       Component.createComponent(
         emptyLogger,
-        mockWebSocketManager,
+        mockQrcClient,
         mockChangeGroup,
         mockQrwc,
         'TestComponent',
@@ -208,7 +204,7 @@ describe('Component', () => {
   it('should clean up properly when close is called', async () => {
     const component = await Component.createComponent(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockQrwc,
       'TestComponent',
@@ -240,15 +236,13 @@ describe('Component', () => {
 
     // Set mock response to return empty controls
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValueOnce(emptyControlsResponse)
 
     // Create component with empty controls
     const component = await Component.createComponent(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockQrwc,
       'TestComponent',

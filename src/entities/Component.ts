@@ -8,7 +8,7 @@ import type {
 } from '../index.interface.js'
 import type { ChangeGroup } from './ChangeGroup.js'
 import type { Qrwc } from './Qrwc.js'
-import type { WebSocketManager } from './WebSocketManager.js'
+import type { QrcClient } from '../connection/QrcClient.js'
 import { Control } from './Control.js'
 import { EventEmitter } from '../event/EventEmitter.js'
 
@@ -47,7 +47,7 @@ export class Component<
     U extends keyof T['components']
   >(
     logger: ILogger,
-    websocketManager: WebSocketManager, // The global WebSocketManager instance
+    qrcClient: QrcClient, // The global QrcClient instance
     changeGroup: ChangeGroup<T>, // The global ChangeGroup instance
     qrwc: Qrwc<T>, // The global Qrwc instance
     name: U & string,
@@ -70,7 +70,7 @@ export class Component<
     // Populate the controls for the component
     const getResult = await (async () => {
       try {
-        const result = await websocketManager.sendRpc('Component.GetControls', {
+        const result = await qrcClient.sendRpc('Component.GetControls', {
           Name: name
         })
         return result
@@ -94,7 +94,7 @@ export class Component<
       getResult.Controls.map((control) =>
         Control.createControl(
           logger,
-          websocketManager,
+          qrcClient,
           changeGroup,
           component,
           control.Name,
@@ -147,7 +147,7 @@ export class Component<
     })
   }
 
-  public close() {
+  public close = (): void => {
     const controls: Control<T, U, string>[] = Object.values(this._controls)
     controls.forEach((control) => control.close())
     this.removeAllListeners()

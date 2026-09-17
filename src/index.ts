@@ -3,6 +3,7 @@ export type { Control } from './entities/Control.js'
 export type { Component } from './entities/Component.js'
 export type {
   IStartOptions,
+  IReconnectOptions,
   IControlState,
   IQrwcExpandedGenericParameter,
   IQrwcSimpleGenericParameter

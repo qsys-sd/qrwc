@@ -24,7 +24,7 @@ export interface IRpcError extends IRpcMeta {
 }
 
 export interface IRpcRequest extends IRpcMeta {
-  apiKey: string
+  apiKey?: string
   method: string
   params: IRpcRequestParams
 }
@@ -264,12 +264,28 @@ export interface IQrwcEvents<T extends IQrwcExpandedGenericParameter> {
   ) => void
   error: (event: Error) => void
   disconnected: (reason: string) => void
+  reconnected: () => void
 }
 
-export interface IWebSocketManagerEvents {
+export interface IConnectionEvents {
+  message: (raw: string) => void
+  error: (error: Error) => void
+  disconnected: (reason: string) => void
+  reconnected: () => void
+  closed: (reason: string) => void
+}
+
+export interface IQrcClientEvents {
   message: (message: unknown) => void
   error: (error: Error) => void
   disconnected: (reason: string) => void
+  reconnected: () => void
+  closed: (reason: string) => void
+}
+
+export interface IConnection extends IEventEmitter<IConnectionEvents> {
+  send: (data: string) => void
+  close: () => void
 }
 
 /**
@@ -302,15 +318,37 @@ export type IControlState = Readonly<
 // Unifies ws WebSocket type (node) and the browser built-in WebSocket type
 export type IWebSocket = WebSocket | WsWebSocket
 
-// Qrwc start options
-export interface IStartOptions {
-  socket: IWebSocket
-  apiKey: string
+export interface IReconnectOptions {
+  maxAttempts?: number
+  delay?: number
+  maxDelay?: number
+  backoffFactor?: number
+}
+
+interface IStartOptionsBase {
+  // Only required when the core has access control (authentication) enabled.
+  apiKey?: string
   pollingInterval?: number
   componentFilter?: (componentState: IComponentGetComponentsResult) => boolean
   timeout?: number
   logger?: Partial<ILogger>
 }
+
+export interface IUnmanagedStartOptions extends IStartOptionsBase {
+  socket: IWebSocket
+  host?: never
+}
+
+export interface IManagedStartOptions extends IStartOptionsBase {
+  host: string
+  // Typed `unknown` to avoid a runtime undici/ws dependency; forwarded to the
+  // native WebSocket so a self-signed core cert can be trusted (Node only).
+  dispatcher?: unknown
+  reconnect?: IReconnectOptions
+  socket?: never // The `never` pair keeps the two modes mutually exclusive.
+}
+
+export type IStartOptions = IUnmanagedStartOptions | IManagedStartOptions
 
 export type ILogger = Pick<
   typeof console,

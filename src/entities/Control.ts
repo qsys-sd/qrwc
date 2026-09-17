@@ -8,7 +8,7 @@ import type {
 } from '../index.interface.js'
 import type { ChangeGroup } from './ChangeGroup.js'
 import type { Component } from './Component.js'
-import type { WebSocketManager } from './WebSocketManager.js'
+import type { QrcClient } from '../connection/QrcClient.js'
 import { EventEmitter } from '../event/EventEmitter.js'
 
 /**
@@ -27,7 +27,7 @@ export class Control<
    */
   private constructor(
     private readonly logger: ILogger,
-    private readonly websocketManager: WebSocketManager,
+    private readonly qrcClient: QrcClient,
     private readonly changeGroup: ChangeGroup<T>,
     readonly component: Component<T, U>,
     readonly name: V & string,
@@ -53,7 +53,7 @@ export class Control<
     V extends keyof T['components'][U]['controls']
   >(
     logger: ILogger,
-    websocketManager: WebSocketManager,
+    qrcClient: QrcClient,
     changeGroup: ChangeGroup<T>,
     component: Component<T, U>,
     name: V & string,
@@ -61,7 +61,7 @@ export class Control<
   ) {
     const control = new Control<T, U, V>(
       logger,
-      websocketManager,
+      qrcClient,
       changeGroup,
       component,
       name,
@@ -97,7 +97,7 @@ export class Control<
    * @param {string | number | boolean} value - The new value for the control.
    * @returns {Promise<IControlState>} The updated state.
    */
-  public async update(
+  public update = async (
     value:
       | string
       | number
@@ -109,7 +109,7 @@ export class Control<
               keyof T['components'][U]['controls'][V]['state']
           >
         >
-  ): Promise<T['components'][U]['controls'][V]['state']> {
+  ): Promise<T['components'][U]['controls'][V]['state']> => {
     const data: IControlUpdate =
       typeof value === 'string' || typeof value === 'number'
         ? { Value: value }
@@ -123,7 +123,7 @@ export class Control<
     }
 
     try {
-      const [change] = await this.websocketManager.sendRpc('Component.Set', {
+      const [change] = await this.qrcClient.sendRpc('Component.Set', {
         ResponseValues: true,
         Name: this.component.name,
         Controls: [
@@ -152,7 +152,7 @@ export class Control<
     return this.state
   }
 
-  public close() {
+  public close = (): void => {
     this.changeGroup.deregisterControl(this)
     this.removeAllListeners()
     this.logger.debug(

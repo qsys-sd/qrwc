@@ -4,6 +4,7 @@ import {
   IComponentGetComponentsResult,
   IStartOptions
 } from '../src/index.interface'
+import { ConnectionInitializationError } from '../src/connection/WebSocketConnection'
 import { jest } from '@jest/globals'
 
 describe('Qrwc', () => {
@@ -213,8 +214,8 @@ describe('Qrwc', () => {
     const errorListener = jest.fn<(event: Error) => void>()
     qrwc.on('error', errorListener)
 
-    // Simulate an error in the WebSocketManager
-    qrwc['webSocketManager'].emit('error', new Error('Test error'))
+    // Simulate an error surfaced by the QrcClient
+    qrwc['qrcClient'].emit('error', new Error('Test error'))
 
     // Verify the error event was emitted with the correct error
     expect(errorListener).toHaveBeenCalledWith(expect.any(Error))
@@ -236,7 +237,7 @@ describe('Qrwc', () => {
     qrwc.on('disconnected', disconnectedListener)
 
     // Simulate WebSocket close
-    qrwc['webSocketManager'].emit('disconnected', 'Connection closed')
+    qrwc['qrcClient'].emit('disconnected', 'Connection closed')
 
     // Verify the disconnected event was emitted
     expect(disconnectedListener).toHaveBeenCalledWith('Connection closed')
@@ -255,7 +256,7 @@ describe('Qrwc', () => {
     // Set up spies
     jest.spyOn(qrwc['changeGroup'], 'stopPolling')
     jest.spyOn(qrwc['changeGroup'], 'close')
-    jest.spyOn(qrwc['webSocketManager'], 'close')
+    jest.spyOn(qrwc['qrcClient'], 'close')
     jest.spyOn(qrwc, 'removeAllListeners')
 
     // Mock component close methods
@@ -270,7 +271,7 @@ describe('Qrwc', () => {
     // Verify everything was cleaned up
     expect(qrwc['changeGroup'].stopPolling).toHaveBeenCalled()
     expect(qrwc['changeGroup'].close).toHaveBeenCalled()
-    expect(qrwc['webSocketManager'].close).toHaveBeenCalled()
+    expect(qrwc['qrcClient'].close).toHaveBeenCalled()
     expect(qrwc.removeAllListeners).toHaveBeenCalled()
     expect(component1.close).toHaveBeenCalled()
     expect(component2.close).toHaveBeenCalled()
@@ -354,7 +355,7 @@ describe('Qrwc', () => {
     // Create a WebSocket that won't connect
     const failingSocket = new WebSocket('ws://non-existent-server:9999')
 
-    // Expect the QRWC creation to throw with a specific error message
+    // Expect QRWC creation to reject with a connection-initialization error
     await expect(
       Qrwc.createQrwc({
         socket: failingSocket,
@@ -362,9 +363,7 @@ describe('Qrwc', () => {
         pollingInterval: 100,
         timeout: 100
       })
-    ).rejects.toThrow(
-      'WebSocket failed to connect (error). Check Q-SYS core IP address or wait and retry.'
-    )
+    ).rejects.toBeInstanceOf(ConnectionInitializationError)
 
     // Clean up
     failingSocket.close()
@@ -444,5 +443,148 @@ describe('Qrwc', () => {
     expect(qrwc.engineStatus?.IsEmulator).toBe(false)
     expect(qrwc.engineStatus?.Status?.Code).toBe(0)
     expect(qrwc.engineStatus?.Status?.String).toBe('OK')
+  })
+})
+
+// Managed mode connects to wss://<host>/qrc-public-api/v0.
+const MANAGED_HOST = 'localhost'
+const MANAGED_URL = 'wss://localhost/qrc-public-api/v0'
+
+const statusResult = {
+  Platform: 'test core',
+  State: 'Active',
+  DesignName: 'test design',
+  DesignCode: '1',
+  IsRedundant: false,
+  IsEmulator: false,
+  Status: { Code: 0, String: 'OK' }
+}
+
+const managedComponents = [
+  {
+    ID: 'c1',
+    Name: 'Gain1',
+    Type: 'gain',
+    Properties: [],
+    Controls: null,
+    ControlSource: 2
+  }
+]
+
+const controlsByComponent: Record<string, any> = {
+  Gain1: {
+    Name: 'Gain1',
+    Controls: [
+      {
+        Name: 'gain',
+        Type: 'Float',
+        String: '0',
+        Direction: 'Read/Write',
+        Position: 0,
+        Value: 0
+      }
+    ]
+  }
+}
+
+// Wire a mock Q-SYS core onto a server; onAddControl observes re-registration.
+const wireCore = (server: Server, onAddControl?: (params: any) => void) => {
+  server.on('connection', (socket) => {
+    socket.on('message', (raw) => {
+      const request = JSON.parse(raw as string)
+      const reply = (result: unknown) =>
+        socket.send(JSON.stringify({ jsonrpc: '2.0', id: request.id, result }))
+      switch (request.method) {
+        case 'StatusGet':
+          reply(statusResult)
+          break
+        case 'Component.GetComponents':
+          reply(managedComponents)
+          break
+        case 'Component.GetControls':
+          reply(controlsByComponent[request.params.Name])
+          break
+        case 'ChangeGroup.AddComponentControl':
+          onAddControl?.(request.params)
+          reply({
+            Id: request.params.Id,
+            Controls: request.params.Component.Controls.map((c: any) => c.Name)
+          })
+          break
+        case 'ChangeGroup.Poll':
+          reply({ Id: request.params.Id, Changes: [] })
+          break
+      }
+    })
+  })
+}
+
+describe('Qrwc (managed mode)', () => {
+  let servers: Server[]
+
+  beforeEach(() => {
+    servers = []
+    ;(global as any).WebSocket = WebSocket
+  })
+
+  afterEach(() => {
+    servers.forEach((server) => {
+      try {
+        server.stop()
+      } catch {
+        /* already stopped */
+      }
+    })
+  })
+
+  const startServer = (): Server => {
+    const server = new Server(MANAGED_URL)
+    servers.push(server)
+    return server
+  }
+
+  it('connects with { host, apiKey } and loads the design', async () => {
+    wireCore(startServer())
+
+    const qrwc = await Qrwc.createQrwc({
+      host: MANAGED_HOST,
+      apiKey: 'test-api-key',
+      pollingInterval: 100,
+      reconnect: { delay: 20, maxDelay: 20 }
+    })
+
+    expect(qrwc.engineStatus.DesignName).toBe('test design')
+    expect(qrwc.components.Gain1).toBeDefined()
+    expect(qrwc.components.Gain1!.controls.gain).toBeDefined()
+    qrwc.close()
+  })
+
+  it('re-registers controls and emits reconnected after a drop', async () => {
+    const addControlCalls: any[] = []
+    const server = startServer()
+    wireCore(server, (params) => addControlCalls.push(params))
+
+    const qrwc = await Qrwc.createQrwc({
+      host: MANAGED_HOST,
+      apiKey: 'test-api-key',
+      pollingInterval: 100,
+      reconnect: { delay: 20, maxDelay: 20, backoffFactor: 1, maxAttempts: 20 }
+    })
+
+    const registrationsAtStartup = addControlCalls.length
+    expect(registrationsAtStartup).toBeGreaterThanOrEqual(1)
+
+    const reconnected = new Promise<void>((resolve) =>
+      qrwc.on('reconnected', () => resolve())
+    )
+    server.close()
+    const server2 = startServer()
+    wireCore(server2, (params) => addControlCalls.push(params))
+
+    await reconnected
+
+    // the control was re-added to the core's fresh session
+    expect(addControlCalls.length).toBeGreaterThan(registrationsAtStartup)
+    qrwc.close()
   })
 })

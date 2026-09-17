@@ -1,5 +1,5 @@
 import { Control } from '../src/entities/Control'
-import { WebSocketManager } from '../src/entities/WebSocketManager'
+import { QrcClient } from '../src/connection/QrcClient'
 import { ChangeGroup } from '../src/entities/ChangeGroup'
 import { Component } from '../src/entities/Component'
 import {
@@ -17,7 +17,7 @@ const emptyLogger = {
 }
 
 describe('Control', () => {
-  let mockWebSocketManager: WebSocketManager
+  let mockQrcClient: QrcClient
   let mockChangeGroup: ChangeGroup<IQrwcExpandedGenericParameter>
   let mockComponent: Component<IQrwcExpandedGenericParameter, string>
   let control: Control<IQrwcExpandedGenericParameter, string, string>
@@ -25,13 +25,13 @@ describe('Control', () => {
 
   beforeEach(async () => {
     // Mock dependencies
-    mockWebSocketManager = {
+    mockQrcClient = {
       sendRpc: jest.fn(),
       on: jest.fn(),
       emit: jest.fn(),
       removeListener: jest.fn(),
       removeAllListeners: jest.fn()
-    } as unknown as WebSocketManager
+    } as unknown as QrcClient
 
     mockChangeGroup = {
       registerControl: jest.fn(),
@@ -58,7 +58,7 @@ describe('Control', () => {
 
     control = await Control.createControl(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockComponent,
       'testControl',
@@ -71,7 +71,7 @@ describe('Control', () => {
 
     let testControl = await Control.createControl(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockComponent,
       'testControl',
@@ -81,7 +81,7 @@ describe('Control', () => {
 
     testControl = await Control.createControl(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockComponent,
       'testControl',
@@ -92,7 +92,7 @@ describe('Control', () => {
     // Create control with Value >= 0.5
     testControl = await Control.createControl(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockComponent,
       'testControl',
@@ -102,7 +102,7 @@ describe('Control', () => {
 
     testControl = await Control.createControl(
       emptyLogger,
-      mockWebSocketManager,
+      mockQrcClient,
       mockChangeGroup,
       mockComponent,
       'testControl',
@@ -148,15 +148,13 @@ describe('Control', () => {
 
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(responseData)
 
     const result = await control.update(newValue)
 
     // Check RPC was called correctly
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith('Component.Set', {
       ResponseValues: true,
       Name: 'TestComponent',
       Controls: [
@@ -192,15 +190,13 @@ describe('Control', () => {
 
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(responseData)
 
     const result = await control.update({ Value: newValue })
 
     // Check RPC was called correctly
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith('Component.Set', {
       ResponseValues: true,
       Name: 'TestComponent',
       Controls: [
@@ -236,15 +232,13 @@ describe('Control', () => {
 
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(responseData)
 
     const result = await control.update({ String: newValue })
 
     // Check RPC was called correctly
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith('Component.Set', {
       ResponseValues: true,
       Name: 'TestComponent',
       Controls: [
@@ -280,15 +274,13 @@ describe('Control', () => {
 
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(responseData)
 
     const result = await control.update({ Position: newPosition })
 
     // Check RPC was called correctly
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith('Component.Set', {
       ResponseValues: true,
       Name: 'TestComponent',
       Controls: [
@@ -325,15 +317,13 @@ describe('Control', () => {
 
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(responseData)
 
     const result = await control.update({ Values: newValues })
 
     // Check RPC was called correctly
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith('Component.Set', {
       ResponseValues: true,
       Name: 'TestComponent',
       Controls: [
@@ -371,15 +361,13 @@ describe('Control', () => {
 
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(responseData)
 
     const result = await control.update({ Positions: newPositions })
 
     // Check RPC was called correctly
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith('Component.Set', {
       ResponseValues: true,
       Name: 'TestComponent',
       Controls: [
@@ -417,15 +405,13 @@ describe('Control', () => {
 
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue(responseData)
 
     const result = await control.update({ Strings: newStrings })
 
     // Check RPC was called correctly
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith('Component.Set', {
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith('Component.Set', {
       ResponseValues: true,
       Name: 'TestComponent',
       Controls: [
@@ -446,9 +432,7 @@ describe('Control', () => {
   it('should handle updating with boolean values (converting to numbers)', async () => {
     // Mock successful RPC response
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockResolvedValue([
       {
         Component: 'TestComponent',
@@ -462,7 +446,7 @@ describe('Control', () => {
     await control.update(true)
 
     // Check that boolean was converted to number
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith(
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith(
       'Component.Set',
       expect.objectContaining({
         Controls: [
@@ -476,7 +460,7 @@ describe('Control', () => {
     await control.update(false)
 
     // Check that boolean was converted to number
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith(
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith(
       'Component.Set',
       expect.objectContaining({
         Controls: [
@@ -493,9 +477,7 @@ describe('Control', () => {
 
     const error = new Error('RPC Error')
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<
-        typeof mockWebSocketManager.sendRpc
-      >
+      mockQrcClient.sendRpc as jest.Mock<typeof mockQrcClient.sendRpc>
     ).mockRejectedValue(error)
 
     await expect(control.update('New Value')).resolves.not.toThrowError()

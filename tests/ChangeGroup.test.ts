@@ -1,5 +1,5 @@
 import { ChangeGroup } from '../src/entities/ChangeGroup'
-import { WebSocketManager } from '../src/entities/WebSocketManager'
+import { QrcClient } from '../src/connection/QrcClient'
 import { Control } from '../src/entities/Control'
 import { jest } from '@jest/globals'
 import { IQrwcExpandedGenericParameter } from '../src/index.interface'
@@ -13,11 +13,11 @@ const emptyLogger = {
 }
 
 describe('ChangeGroup', () => {
-  let mockWebSocketManager: WebSocketManager
+  let mockQrcClient: QrcClient
   let changeGroup: ChangeGroup<IQrwcExpandedGenericParameter>
 
   beforeEach(() => {
-    mockWebSocketManager = {
+    mockQrcClient = {
       sendRpc: jest
         .fn<(...args: any[]) => any>()
         .mockResolvedValue({ Changes: [] }),
@@ -25,9 +25,9 @@ describe('ChangeGroup', () => {
       emit: jest.fn(),
       removeListener: jest.fn(),
       removeAllListeners: jest.fn()
-    } as unknown as WebSocketManager
+    } as unknown as QrcClient
 
-    changeGroup = new ChangeGroup(emptyLogger, mockWebSocketManager)
+    changeGroup = new ChangeGroup(emptyLogger, mockQrcClient)
   })
 
   afterEach(() => {
@@ -43,7 +43,7 @@ describe('ChangeGroup', () => {
     const callback = jest.fn()
     await changeGroup.registerControl(mockControl, callback)
 
-    expect(mockWebSocketManager.sendRpc).toHaveBeenCalledWith(
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith(
       'ChangeGroup.AddComponentControl',
       expect.objectContaining({
         Component: {
@@ -70,12 +70,40 @@ describe('ChangeGroup', () => {
       String: '1'
     }
     ;(
-      mockWebSocketManager.sendRpc as jest.Mock<(...args: any[]) => any>
+      mockQrcClient.sendRpc as jest.Mock<(...args: any[]) => any>
     ).mockResolvedValueOnce({
       Changes: [change]
     })
 
     await changeGroup.poll()
     expect(callback).toHaveBeenCalledWith(change)
+  })
+
+  it('reregisterAll re-adds every registered control to the core', async () => {
+    const makeControl = (component: string, name: string) =>
+      ({
+        name,
+        component: { name: component }
+      }) as unknown as Control<IQrwcExpandedGenericParameter, string, string>
+
+    await changeGroup.registerControl(makeControl('CompA', 'gain'), jest.fn())
+    await changeGroup.registerControl(makeControl('CompB', 'mute'), jest.fn())
+    ;(mockQrcClient.sendRpc as jest.Mock<(...args: any[]) => any>).mockClear()
+
+    await changeGroup.reregisterAll()
+
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledTimes(2)
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith(
+      'ChangeGroup.AddComponentControl',
+      expect.objectContaining({
+        Component: { Name: 'CompA', Controls: [{ Name: 'gain' }] }
+      })
+    )
+    expect(mockQrcClient.sendRpc).toHaveBeenCalledWith(
+      'ChangeGroup.AddComponentControl',
+      expect.objectContaining({
+        Component: { Name: 'CompB', Controls: [{ Name: 'mute' }] }
+      })
+    )
   })
 })

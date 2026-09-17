@@ -21,14 +21,14 @@ npm install @q-sys/qrwc
 
 import { Qrwc } from '@q-sys/qrwc'
 
-const socket = new WebSocket('ws://{IP}/qrc-public-api/v0')
-
-// Create a new Qrwc instance with the open socket
+// Managed mode: give QRWC the core's address and your access key, and it opens
+// and maintains the connection for you (see "Connecting to a core" below).
 const qrwc = await Qrwc.createQrwc<{
   Gain_0: 'gain' | 'mute' // tell typescript there is a 'Gain_0' component with both 'gain' and 'mute' controls
   Gain_1: 'gain' // ...and a 'Gain_1' component with a 'gain' control
 }>({
-  socket,
+  host: '{core-hostname-or-ip}', // connects to wss://{host}/qrc-public-api/v0
+  apiKey: '{your-qrc-access-key}', // only needed if the core has access control enabled
   pollingInterval: 350 // Optional: polling interval in milliseconds (default: 350)
 })
 
@@ -56,6 +56,64 @@ gain0.on('update', ({ Value, Position, String, Bool }) => {
 qrwc.close()
 ```
 
+#### Connecting to a core
+
+QRWC supports two connection modes: **managed mode**, where you give QRWC the core's address and it opens and maintains the connection, and **unmanaged mode**, where you build and pass your own WebSocket.
+
+##### Managed mode
+
+Pass the core's `host`. QRWC builds the WebSocket, connects, and — if the link drops — automatically reconnects to the core with an exponential backoff upon failure. If the core has access control enabled, also pass your access key as `apiKey`.
+
+```typescript
+const qrwc = await Qrwc.createQrwc({
+  host: '192.168.1.100', // hostname or IP; connects to wss://192.168.1.100/qrc-public-api/v0
+  apiKey: '{your-qrc-access-key}' // only needed if the core has access control enabled
+})
+```
+
+`host` defaults to a secure `wss://` connection. To connect without TLS you can pass an explicit scheme (`host: 'ws://192.168.1.100'`).
+
+**Self-signed certificates.** A Q-SYS core presents a self-signed certificate by default, so a `wss://` connection will fail certificate verification unless you opt in. Pass a `dispatcher` (Node only) — an [undici](https://github.com/nodejs/undici) `Agent` that trusts self-signed certs:
+
+```typescript
+import { Agent } from 'undici'
+
+const qrwc = await Qrwc.createQrwc({
+  host: '192.168.1.100',
+  dispatcher: new Agent({ connect: { rejectUnauthorized: false } })
+})
+```
+
+In the browser, certificate trust is handled by the browser itself, so `dispatcher` is ignored. To use `wss://` in a browser, your core must be using a certificate that has been signed by a certificate authority.
+
+**Reconnection tuning.** Managed mode retries automatically; override any default with `reconnect` (defaults shown):
+
+```typescript
+const qrwc = await Qrwc.createQrwc({
+  host: '192.168.1.100',
+  reconnect: {
+    maxAttempts: 10, // give up (and emit a final `disconnected`) after this many failures
+    delay: 250, // first backoff in ms
+    maxDelay: 10000, // backoff ceiling in ms
+    backoffFactor: 2 // multiplier applied to the delay each attempt
+  }
+})
+```
+
+##### Unmanaged mode
+
+Build the WebSocket yourself and pass it as `socket` when you need custom headers, a proxy/agent, a non-standard URL, or your own reconnect strategy. QRWC uses the socket as-is and does **not** reconnect on its own.
+
+```typescript
+const socket = new WebSocket('wss://192.168.1.100/qrc-public-api/v0')
+
+const qrwc = await Qrwc.createQrwc({
+  socket
+})
+```
+
+`host` and `socket` are mutually exclusive — provide exactly one. `apiKey` is optional in both modes: include it only when the core has access control enabled.
+
 #### Typing your design
 
 The generic type parameter on `createQrwc<T>()` describes your design so components, controls, and control state are type-checked at the call site. It accepts **either** of two shapes, and the right one is detected automatically.
@@ -66,7 +124,7 @@ The generic type parameter on `createQrwc<T>()` describes your design so compone
 const qrwc = await Qrwc.createQrwc<{
   Gain_0: 'gain' | 'mute'
   Gain_1: 'gain'
-}>({ socket })
+}>({ host })
 
 qrwc.components.Gain.controls.mute // Control
 qrwc.components.Gain.controls.gain.state // IControlState
@@ -106,7 +164,7 @@ type MyDesign = {
   }
 }
 
-const qrwc = await Qrwc.createQrwc<MyDesign>({ socket })
+const qrwc = await Qrwc.createQrwc<MyDesign>({ host })
 
 qrwc.components.Gain.controls.gain.state.Value // number (not number | undefined)
 await qrwc.components.Gain.controls.gain.update(0.5) // ok — Read/Write
@@ -121,25 +179,53 @@ With the expanded schema, `state`, `update()`, and `update` event payloads are t
 
 #### Start options
 
-`Qrwc.createQrwc()` accepts an object with options:
+`Qrwc.createQrwc()` accepts an object with options. Exactly one of `host` (managed mode) or `socket` (unmanaged mode) is required.
 
-- `socket`: Required WebSocket instance connected to a Q-SYS Core
+Common to both modes:
+
+- `apiKey`: Optional QRC access key. Required only when the core has access control (authentication) enabled; omit it otherwise.
 - `pollingInterval`: Optional interval in milliseconds for polling control changes (minimum: 34, default: 350)
-- `componentFilter` : Optional filter function callback to allow for connecting to a subset of components in a design
+- `componentFilter`: Optional filter function callback to allow for connecting to a subset of components in a design
 - `timeout`: Optional timeout in milliseconds for websocket messages (default 5000 ms)
 - `logger`: Optional logger object with `error`, `warn`, `info`, `debug`, and `trace` functions. Should work with common loggers such as [`pino`](https://github.com/pinojs/pino) and JavaScript's built-in `console` logger.
 
+Managed mode:
+
+- `host`: Hostname or IP of the core. Connects to `wss://{host}/qrc-public-api/v0` by default; include an explicit `ws://`/`wss://` scheme to override.
+- `dispatcher`: Optional [undici](https://github.com/nodejs/undici) `Agent` (Node only).
+- `reconnect`: Optional reconnection tuning (`maxAttempts`, `delay`, `maxDelay`, `backoffFactor`).
+
+Unmanaged mode:
+
+- `socket`: A WebSocket instance you create and connect to the core yourself.
+
 ```typescript
-interface IStartOptions {
-  socket: IWebSocket
+type IStartOptions = {
+  apiKey?: string // only when the core has access control enabled
   pollingInterval?: number
   componentFilter?: (componentState: IComponentState) => boolean
   timeout?: number
   logger?: Partial<ILogger>
-}
+} & (
+  | {
+      // Managed mode: QRWC opens and maintains the connection
+      host: string
+      dispatcher?: unknown // undici Agent (Node) to trust a self-signed cert
+      reconnect?: {
+        maxAttempts?: number // default 10
+        delay?: number // default 250 (ms)
+        maxDelay?: number // default 10000 (ms)
+        backoffFactor?: number // default 2
+      }
+    }
+  | {
+      // Unmanaged mode: you create and own the socket
+      socket: IWebSocket
+    }
+)
 ```
 
-Note: If no options object is provided or if values are not present in the object, QRWC will perform all actions per default settings.
+Note: aside from the connection target (`host` or `socket`), all values fall back to their defaults when omitted.
 
 #### Default Settings
 
@@ -149,19 +235,28 @@ If no options are provided for specific values:
 - componentFilter - All scriptable components in the design will be fetched from the core
 - timeout - The timeout will be set to 5000ms
 - logger - QRWC will not log anything
+- reconnect (managed mode) - Retries up to 10 times with exponential backoff from 250 ms up to a 10 s ceiling
 
 #### Connection handling
 
-Qrwc provides a `disconnected` event that is triggered when the WebSocket connection is closed.
+**Managed mode** reconnects for you. When the connection drops, QRWC emits `disconnected` and pauses polling; it then retries with backoff and, on success, emits `reconnected` after re-registering your controls and resuming polling. If it exhausts `reconnect.maxAttempts`, it emits a final `disconnected` and closes the instance.
 
-Qrwc automatically cleans up all listeners attached to the instance / intervals / classes when the `disconnected` event fires.
+```typescript
+qrwc.on('disconnected', (reason: string) => {
+  console.log('Connection lost, attempting to recover:', reason)
+})
 
-You should create a new WebSocket & instance of Qrwc to reconnect after disconnection.
+qrwc.on('reconnected', () => {
+  console.log('Reconnected — controls re-registered and polling resumed')
+})
+```
+
+**Unmanaged mode** does not reconnect on its own: `disconnected` is terminal. QRWC cleans up all listeners attached to the instance / intervals / classes when it fires, so create a new WebSocket and `Qrwc` instance to reconnect.
 
 ```typescript
 qrwc.on('disconnected', (reason: string) => {
   console.log('Disconnected:', reason)
-  // implement your reconnect strategy here
+  // build a new socket + Qrwc instance to reconnect
 })
 ```
 
@@ -244,7 +339,7 @@ When QRWC starts up, it requests the engine status from the core, which includes
 
 ```typescript
 const qrwc = await Qrwc.createQrwc({
-  socket
+  host
 })
 
 const status = qrwc.engineStatus
@@ -346,7 +441,7 @@ import { pino } from 'pino'
 import pretty from 'pino-pretty'
 
 const qrwc = await Qrwc.createQrwc({
-  socket,
+  host,
   pollingInterval: 1000,
   logger: pino({ level: 'info' }, pretty({ colorize: true }))
 })
@@ -358,7 +453,7 @@ const qrwc = await Qrwc.createQrwc({
 import { Qrwc } from '@q-sys/qrwc'
 
 const qrwc = await Qrwc.createQrwc({
-  socket,
+  host,
   pollingInterval: 1000,
   logger: console // this logs everything, since console doesn't have a log level threshold
 })
@@ -370,7 +465,7 @@ const qrwc = await Qrwc.createQrwc({
 import { Qrwc } from '@q-sys/qrwc'
 
 const qrwc = await Qrwc.createQrwc({
-  socket,
+  host,
   pollingInterval: 1000,
   logger: {
     error: console.error,

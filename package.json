@@ -30,7 +30,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=16.18.1"
+    "node": ">=22.5.0"
   },
   "scripts": {
     "build": "rm -rf dist/ && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && npm run post-build",

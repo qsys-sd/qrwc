@@ -130,11 +130,27 @@
 ### Some considerations
 
 - This being the main repo, a user will install this differently.
-- Turning off your HTTP server on the core...
+
+Q-SYS cores present a self-signed certificate, so a `wss://` connection has to be told to trust it.
+
+**Managed mode.** Pass an [undici](https://github.com/nodejs/undici) `Agent` as `dispatcher` (Node only):
+
+```typescript
+import { Agent } from 'undici'
+
+const qrwc = await Qrwc.createQrwc({
+  host: '{your.core.ip.address}',
+  dispatcher: new Agent({ connect: { rejectUnauthorized: false } })
+})
+```
+
+**Unmanaged mode.** Build the socket yourself with an agent that trusts the cert:
 
 ```typescript
 const agent = new https.Agent({
   rejectUnauthorized: false
 })
-const socket = new WebSocket('wss://{your.core.ip.address}/qrc', { agent })
+const socket = new WebSocket('wss://{your.core.ip.address}/qrc-public-api/v0', {
+  agent
+})
 ```
