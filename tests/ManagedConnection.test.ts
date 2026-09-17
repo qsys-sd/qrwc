@@ -159,43 +159,6 @@ describe('ManagedConnection', () => {
 
     expect(reconnected).not.toHaveBeenCalled()
   })
-
-  it('fails fast without retrying when the core certificate is untrusted', async () => {
-    let constructed = 0
-    class CertFailingWebSocket {
-      readyState = 0
-      readonly OPEN = 1
-      onopen: (() => void) | null = null
-      onerror: ((event: unknown) => void) | null = null
-      onclose: (() => void) | null = null
-      constructor() {
-        constructed++
-        queueMicrotask(() =>
-          this.onerror?.({
-            error: {
-              code: 'DEPTH_ZERO_SELF_SIGNED_CERT',
-              message: 'self-signed certificate'
-            }
-          })
-        )
-      }
-      close() {}
-      send() {}
-    }
-    ;(global as any).WebSocket = CertFailingWebSocket
-
-    await expect(
-      ManagedConnection.createManagedConnection(
-        emptyLogger,
-        HOST,
-        undefined,
-        1000,
-        { delay: 20, maxAttempts: 5 }
-      )
-    ).rejects.toThrow(/self-signed certificate/i)
-    // A fatal error must short-circuit backoff despite maxAttempts: 5.
-    expect(constructed).toBe(1)
-  })
 })
 
 describe('createCoreSocket', () => {

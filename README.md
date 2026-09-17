@@ -92,10 +92,10 @@ In the browser, certificate trust is handled by the browser itself, so `dispatch
 const qrwc = await Qrwc.createQrwc({
   host: '192.168.1.100',
   reconnect: {
-    maxAttempts: 10, // give up (and emit a final `disconnected`) after this many failures
-    delay: 250, // first backoff in ms
-    maxDelay: 10000, // backoff ceiling in ms
-    backoffFactor: 2 // multiplier applied to the delay each attempt
+    maxAttempts: 5, // give up (and emit a final `disconnected`) after this many failures
+    delay: 5000, // first backoff in ms
+    maxDelay: 5000, // backoff ceiling in ms
+    backoffFactor: 1 // multiplier applied to the delay each attempt
   }
 })
 ```
@@ -212,10 +212,10 @@ type IStartOptions = {
       host: string
       dispatcher?: unknown // undici Agent (Node) to trust a self-signed cert
       reconnect?: {
-        maxAttempts?: number // default 10
-        delay?: number // default 250 (ms)
-        maxDelay?: number // default 10000 (ms)
-        backoffFactor?: number // default 2
+        maxAttempts?: number // default 5
+        delay?: number // default 5000 (ms)
+        maxDelay?: number // default 5000 (ms)
+        backoffFactor?: number // default 1
       }
     }
   | {
@@ -235,7 +235,7 @@ If no options are provided for specific values:
 - componentFilter - All scriptable components in the design will be fetched from the core
 - timeout - The timeout will be set to 5000ms
 - logger - QRWC will not log anything
-- reconnect (managed mode) - Retries up to 10 times with exponential backoff from 250 ms up to a 10 s ceiling
+- reconnect (managed mode) - Retries up to 5 times, waiting 5 s between attempts
 
 #### Connection handling
 

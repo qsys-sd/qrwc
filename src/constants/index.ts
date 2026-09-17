@@ -4,8 +4,8 @@ export const QrwcDefaultPollInterval = 350
 export const QrwcCoreApiPath = '/qrc-public-api/v0'
 
 export const QrwcDefaultReconnect = {
-  maxAttempts: 10,
-  delay: 250,
-  maxDelay: 10000,
-  backoffFactor: 2
+  maxAttempts: 5,
+  delay: 5000,
+  maxDelay: 5000,
+  backoffFactor: 1
 } as const

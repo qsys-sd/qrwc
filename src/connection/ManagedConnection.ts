@@ -7,10 +7,7 @@ import type {
 } from '../index.interface.js'
 import { QrwcCoreApiPath, QrwcDefaultReconnect } from '../constants/index.js'
 import { EventEmitter } from '../event/EventEmitter.js'
-import {
-  FatalConnectionError,
-  WebSocketConnection
-} from './WebSocketConnection.js'
+import { WebSocketConnection } from './WebSocketConnection.js'
 
 // Defaults to wss://, but honors an explicit ws:// for cores that can't terminate TLS.
 export function createCoreSocket(
@@ -115,12 +112,6 @@ export class ManagedConnection
         )
       } catch (error) {
         socket.close()
-        // An untrusted cert (etc.) fails identically every attempt, so give up
-        // now and surface the actionable reason instead of blocking on backoff.
-        if (error instanceof FatalConnectionError) {
-          this.logger.error(error, 'Managed connection failed permanently.')
-          throw error
-        }
         if (this.closed || attempt >= this.reconnectConfig.maxAttempts) {
           throw error
         }

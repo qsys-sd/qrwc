@@ -12,16 +12,6 @@ type IWebSocketConnectionEvents = Pick<
   'message' | 'error' | 'closed'
 >
 
-// OpenSSL/Node TLS codes raised when a core presents an untrusted or self-signed
-// certificate. The browser hides this detail, so the guidance only reaches Node.
-const tlsCertificateErrorCodes = new Set([
-  'DEPTH_ZERO_SELF_SIGNED_CERT',
-  'SELF_SIGNED_CERT_IN_CHAIN',
-  'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
-  'CERT_HAS_EXPIRED',
-  'ERR_TLS_CERT_ALTNAME_INVALID'
-])
-
 /**
  * A failure to bring a socket up (open error, timeout, or an early close).
  */
@@ -32,54 +22,15 @@ export class ConnectionInitializationError extends Error {
   }
 }
 
-/**
- * A ConnectionInitializationError that retrying cannot fix (e.g. an untrusted
- * certificate). ManagedConnection's backoff checks for this and gives up.
- */
-export class FatalConnectionError extends ConnectionInitializationError {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options)
-    this.name = 'FatalConnectionError'
-  }
-}
-
-// Pulls the underlying cause off a WebSocket `error` event without assuming a
+// Pulls a human-readable cause off a WebSocket `error` event without assuming a
 // concrete event shape (DOM Event vs. undici/ws ErrorEvent differ).
-function readErrorDetail(event: unknown): { code?: string; message?: string } {
+function readErrorMessage(event: unknown): string | undefined {
   const source = (event ?? {}) as {
-    code?: unknown
     message?: unknown
-    error?: { code?: unknown; message?: unknown }
+    error?: { message?: unknown }
   }
-  const nested = source.error ?? {}
-  const rawCode = nested.code ?? source.code
-  const rawMessage = nested.message ?? source.message
-  return {
-    code: typeof rawCode === 'string' ? rawCode : undefined,
-    message: typeof rawMessage === 'string' ? rawMessage : undefined
-  }
-}
-
-function toConnectionInitializationError(
-  event: unknown
-): ConnectionInitializationError {
-  const { code, message } = readErrorDetail(event)
-  const isCertificateError =
-    (code !== undefined && tlsCertificateErrorCodes.has(code)) ||
-    /self[- ]?signed|unable to verify|certificate/i.test(message ?? '')
-  if (isCertificateError) {
-    return new FatalConnectionError(
-      `The Q-SYS core's TLS certificate could not be verified${
-        message ? ` (${message})` : ''
-      }. This usually means the core is using a self-signed certificate. In ` +
-        'managed mode, pass a dispatcher option (an undici Agent created with ' +
-        '{ connect: { rejectUnauthorized: false } }) to trust it, or use a ' +
-        'ws:// address.'
-    )
-  }
-  return new ConnectionInitializationError(
-    'WebSocket failed to connect (error). Check Q-SYS core IP address or wait and retry.'
-  )
+  const rawMessage = source.error?.message ?? source.message
+  return typeof rawMessage === 'string' ? rawMessage : undefined
 }
 
 /**
@@ -97,7 +48,7 @@ export class WebSocketConnection extends EventEmitter<IWebSocketConnectionEvents
       this.emit('message', event.data)
     }
     this.socket.onerror = (event: Event) => {
-      const { message } = readErrorDetail(event)
+      const message = readErrorMessage(event)
       const error = new Error(`WebSocket error: ${message ?? 'unknown cause'}`)
       this.logger.error(error, 'WebSocket error.')
       this.emit('error', error)
@@ -132,9 +83,13 @@ export class WebSocketConnection extends EventEmitter<IWebSocketConnectionEvents
         clearTimeout(timeoutRef)
         resolve(new WebSocketConnection(logger, socket))
       }
-      socket.onerror = (event: Event) => {
+      socket.onerror = () => {
         clearTimeout(timeoutRef)
-        reject(toConnectionInitializationError(event))
+        reject(
+          new ConnectionInitializationError(
+            'WebSocket failed to connect (error). Check Q-SYS core IP address or wait and retry.'
+          )
+        )
       }
       socket.onclose = () => {
         clearTimeout(timeoutRef)

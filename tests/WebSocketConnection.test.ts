@@ -1,6 +1,5 @@
 import {
   WebSocketConnection,
-  FatalConnectionError,
   ConnectionInitializationError
 } from '../src/connection/WebSocketConnection'
 import { WebSocket, Server } from 'mock-socket'
@@ -100,33 +99,6 @@ describe('WebSocketConnection', () => {
     ).rejects.toThrow(/timeout/)
   })
 
-  it('rejects with a fatal, actionable error when the core certificate is untrusted', async () => {
-    const socket: any = {
-      readyState: 0,
-      OPEN: 1,
-      onopen: null,
-      onerror: null,
-      onclose: null,
-      close: jest.fn(),
-      send: jest.fn()
-    }
-    const pending = WebSocketConnection.createWebSocketConnection(
-      emptyLogger,
-      socket,
-      1000
-    )
-    socket.onerror({
-      error: {
-        code: 'DEPTH_ZERO_SELF_SIGNED_CERT',
-        message: 'self-signed certificate'
-      }
-    })
-
-    await expect(pending).rejects.toBeInstanceOf(FatalConnectionError)
-    await expect(pending).rejects.toThrow(/self-signed certificate/i)
-    await expect(pending).rejects.toThrow(/dispatcher/i)
-  })
-
   it('rejects with the generic connect error for a non-certificate failure', async () => {
     const socket: any = {
       readyState: 0,
@@ -145,6 +117,5 @@ describe('WebSocketConnection', () => {
     socket.onerror({})
 
     await expect(pending).rejects.toBeInstanceOf(ConnectionInitializationError)
-    await expect(pending).rejects.not.toBeInstanceOf(FatalConnectionError)
   })
 })
