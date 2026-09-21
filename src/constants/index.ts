@@ -1,5 +1,6 @@
 export const QrwcMinPollInterval = 34
 export const QrwcDefaultPollInterval = 350
+export const QrwcDefaultHeartbeatInterval = 5000
 
 export const QrwcCoreApiPath = '/qrc-public-api/v0'
 

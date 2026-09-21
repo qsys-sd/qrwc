@@ -16,6 +16,24 @@ const emptyLogger = {
 const HOST = 'localhost'
 // createCoreSocket builds wss://<host>/qrc-public-api/v0 in managed mode.
 const URL = 'wss://localhost/qrc-public-api/v0'
+
+// Readiness gates on the core's unsolicited EngineStatus push, so mock cores
+// must send one when a client connects.
+const pushEngineStatus = (socket: { send: (data: string) => void }) =>
+  socket.send(
+    JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'EngineStatus',
+      params: {
+        State: 'Active',
+        DesignName: 'test design',
+        DesignCode: '1',
+        IsRedundant: false,
+        IsEmulator: false
+      }
+    })
+  )
+
 const fastReconnect = {
   delay: 20,
   maxDelay: 20,
@@ -69,6 +87,7 @@ describe('ManagedConnection', () => {
     const received: string[] = []
     const server = startServer()
     server.on('connection', (socket) => {
+      pushEngineStatus(socket)
       socket.on('message', (message) => received.push(message as string))
     })
 
@@ -77,6 +96,7 @@ describe('ManagedConnection', () => {
       HOST,
       undefined,
       1000,
+      undefined,
       fastReconnect
     )
     connection.send('hello')
@@ -88,11 +108,13 @@ describe('ManagedConnection', () => {
 
   it('recovers from a drop: disconnected then reconnected, and send works again', async () => {
     const server = startServer()
+    server.on('connection', (socket) => pushEngineStatus(socket))
     const connection = await ManagedConnection.createManagedConnection(
       emptyLogger,
       HOST,
       undefined,
       1000,
+      undefined,
       fastReconnect
     )
 
@@ -105,6 +127,7 @@ describe('ManagedConnection', () => {
     const received: string[] = []
     const server2 = startServer()
     server2.on('connection', (socket) => {
+      pushEngineStatus(socket)
       socket.on('message', (message) => received.push(message as string))
     })
 
@@ -119,11 +142,13 @@ describe('ManagedConnection', () => {
 
   it('emits a terminal closed once reconnection is exhausted', async () => {
     const server = startServer()
+    server.on('connection', (socket) => pushEngineStatus(socket))
     const connection = await ManagedConnection.createManagedConnection(
       emptyLogger,
       HOST,
       undefined,
       100,
+      undefined,
       { delay: 5, maxDelay: 5, backoffFactor: 1, maxAttempts: 2 }
     )
     const closed = nextEvent(connection, 'closed')
@@ -137,11 +162,13 @@ describe('ManagedConnection', () => {
 
   it('close() during a reconnect stops further recovery', async () => {
     const server = startServer()
+    server.on('connection', (socket) => pushEngineStatus(socket))
     const connection = await ManagedConnection.createManagedConnection(
       emptyLogger,
       HOST,
       undefined,
       1000,
+      undefined,
       { delay: 50, maxDelay: 50, backoffFactor: 1, maxAttempts: 20 }
     )
     const reconnected = jest.fn()

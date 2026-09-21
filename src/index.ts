@@ -5,6 +5,7 @@ export type {
   IStartOptions,
   IReconnectOptions,
   IControlState,
+  IEngineStatus,
   IQrwcExpandedGenericParameter,
   IQrwcSimpleGenericParameter
 } from './index.interface.js'

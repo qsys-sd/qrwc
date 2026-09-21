@@ -91,6 +91,20 @@ const mockControls = {
 
 // Set up server to respond to RPC requests
 server.on('connection', (socket) => {
+  // QRC pushes an unsolicited EngineStatus on connect; QRWC gates readiness on it.
+  socket.send(
+    JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'EngineStatus',
+      params: {
+        State: 'Active',
+        DesignName: 'test design',
+        DesignCode: '1234567890',
+        IsRedundant: false,
+        IsEmulator: false
+      }
+    })
+  )
   socket.on('message', (message) => {
     const data = JSON.parse(message.toString())
 

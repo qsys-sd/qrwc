@@ -3,6 +3,7 @@ import type {
   IRpcRequest,
   IJsonRpcMessageTypeMap,
   IConnection,
+  IEngineStatus,
   IQrcClientEvents,
   ILogger,
   IRpcError,
@@ -46,6 +47,7 @@ export class QrcClient extends EventEmitter<IQrcClientEvents> {
     this.connection.on('reconnected', this.handleReconnected)
     this.connection.on('error', this.handleError)
     this.connection.on('closed', this.handleClosed)
+    this.connection.on('engineStatus', this.handleEngineStatus)
   }
 
   // host → managed (QRWC owns the socket + reconnection); socket → unmanaged.
@@ -63,12 +65,14 @@ export class QrcClient extends EventEmitter<IQrcClientEvents> {
             options.host,
             options.dispatcher,
             timeout,
+            options.apiKey,
             options.reconnect
           )
         : await UnmanagedConnection.createUnmanagedConnection(
             logger,
             options.socket,
-            timeout
+            timeout,
+            options.apiKey
           ),
       options.apiKey,
       timeout
@@ -94,15 +98,18 @@ export class QrcClient extends EventEmitter<IQrcClientEvents> {
   // Cancel pending RPCs on a drop so callers reject now instead of waiting out
   // the timeout; they are never replayed after reconnect.
   private handleDisconnected = (reason: string): void => {
+    const wasConnected = this.connected
     this.connected = false
     this.cancelRpcs()
     this.pendingRpcs.clear()
     this.emit('disconnected', reason)
+    if (wasConnected) this.emit('engineStatus', { State: 'Disconnected' })
   }
 
   private handleReconnected = (): void => {
     this.connected = true
     this.emit('reconnected')
+    this.emit('engineStatus', this.connection.engineStatus)
   }
 
   private handleError = (error: Error): void => {
@@ -110,8 +117,19 @@ export class QrcClient extends EventEmitter<IQrcClientEvents> {
   }
 
   private handleClosed = (reason: string): void => {
+    const wasConnected = this.connected
     this.connected = false
     this.emit('closed', reason)
+    if (wasConnected) this.emit('engineStatus', { State: 'Disconnected' })
+  }
+
+  private handleEngineStatus = (status: IEngineStatus): void => {
+    this.emit('engineStatus', status)
+  }
+
+  public get engineStatus(): IEngineStatus {
+    if (!this.connected) return { State: 'Disconnected' }
+    return this.connection.engineStatus
   }
 
   public send = (data: object): void => {

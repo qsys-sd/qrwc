@@ -335,7 +335,7 @@ const text1: Control = qrwc.components.Text_Box.controls['text.1']
 
 ### Reading the engine status
 
-When QRWC starts up, it requests the engine status from the core, which includes the design name, the type of core it is running on, and some other info. You can grab this using the `engineStatus` property on the root object returned by `Qrwc.createQrwc`:
+The core pushes an `EngineStatus` message when QRWC connects, and again whenever the core's status changes. QRWC exposes the latest value on the `engineStatus` property of the object returned by `Qrwc.createQrwc`, and it auto-updates as new pushes arrive. You can also listen for the `engineStatus` event to react to changes:
 
 ```typescript
 const qrwc = await Qrwc.createQrwc({
@@ -352,6 +352,10 @@ const status = qrwc.engineStatus
   IsEmulator: false,
   Status: { Code: 0, String: 'OK' }
 }*/
+
+qrwc.on('engineStatus', (status) => {
+  console.log(`Core is now ${status.State} running ${status.DesignName}`)
+})
 ```
 
 ### Updating the core:

@@ -1,6 +1,7 @@
 import type {
   IConnection,
   IConnectionEvents,
+  IEngineStatus,
   ILogger,
   IWebSocket
 } from '../index.interface.js'
@@ -21,18 +22,25 @@ export class UnmanagedConnection
     socket.on('message', (raw) => this.emit('message', raw))
     socket.on('error', (error) => this.emit('error', error))
     socket.on('closed', (reason) => this.emit('closed', reason))
+    socket.on('engineStatus', (status) => this.emit('engineStatus', status))
+  }
+
+  public get engineStatus(): IEngineStatus {
+    return this.socket.engineStatus
   }
 
   public static createUnmanagedConnection = async (
     logger: ILogger,
     socket: IWebSocket,
-    timeout: number
+    timeout: number,
+    apiKey?: string
   ) => {
     return new UnmanagedConnection(
       await WebSocketConnection.createWebSocketConnection(
         logger,
         socket,
-        timeout
+        timeout,
+        apiKey
       )
     )
   }

@@ -2,7 +2,7 @@ import type {
   IStartOptions,
   IQrwcEvents,
   ILogger,
-  IStatusGetResult,
+  IEngineStatus,
   IQrwcExpandedGenericParameter,
   IQrwcSimpleGenericParameter,
   INormalizedQrwcParameter
@@ -20,21 +20,15 @@ import { QrcClient } from '../connection/QrcClient.js'
 export class Qrwc<
   T extends IQrwcExpandedGenericParameter = IQrwcExpandedGenericParameter
 > extends EventEmitter<IQrwcEvents<T>> {
-  readonly engineStatus: Readonly<IStatusGetResult>
   // temporary value--overwritten in createQrwc
   private _components: Readonly<Record<string, Component<T, string>>> =
     Object.freeze({})
   private constructor(
     private readonly logger: ILogger,
     private readonly qrcClient: QrcClient,
-    private readonly changeGroup: ChangeGroup<T>,
-    status: IStatusGetResult
+    private readonly changeGroup: ChangeGroup<T>
   ) {
     super()
-    this.engineStatus = Object.freeze({
-      ...status,
-      Status: Object.freeze(status.Status)
-    })
     this.on('error', (event) => {
       logger.error(event.message)
     })
@@ -53,6 +47,14 @@ export class Qrwc<
     return this._components as Readonly<{
       [U in keyof T['components']]: Component<T, U>
     }>
+  }
+
+  /**
+   * The core's latest engine status
+   * @public
+   */
+  get engineStatus(): Readonly<IEngineStatus> {
+    return Object.freeze({ ...this.qrcClient.engineStatus })
   }
 
   /**
@@ -107,27 +109,10 @@ export class Qrwc<
 
     const qrcClient = await QrcClient.createQrcClient(logger, options)
 
-    /*
-      When the core is shutting down or booting up, QRC will open and then
-      immediately close the websocket connection, so we also need to verify
-      QRC is ACTUALLY ready and throw an informative error if it is not. We
-      can do this by making a quick one-off RPC call.
-    */
-    let status: IStatusGetResult
-    try {
-      status = await qrcClient.sendRpc('StatusGet', undefined)
-    } catch (_error) {
-      const error = new Error(
-        'QRC initial status check failed. Q-SYS core might be shutting down or booting up. Wait and retry.'
-      )
-      logger.error(error.message)
-      qrcClient.close()
-      throw error
-    }
     logger.debug('QRC is ready.')
 
     logger.info(
-      `QRWC connected to ${status.Platform} running ${status.DesignName}`
+      `QRWC connected to ${qrcClient.engineStatus.Platform} running ${qrcClient.engineStatus?.DesignName}`
     )
 
     const changeGroup = new ChangeGroup<INormalizedQrwcParameter<T>>(
@@ -139,8 +124,7 @@ export class Qrwc<
     const qrwc = new Qrwc<INormalizedQrwcParameter<T>>(
       logger,
       qrcClient,
-      changeGroup,
-      status
+      changeGroup
     )
 
     // Wired after qrwc/changeGroup exist: the handlers close over both, and no
@@ -160,6 +144,9 @@ export class Qrwc<
     qrcClient.on('closed', (reason) => {
       qrwc.emit('disconnected', reason)
       qrwc.close()
+    })
+    qrcClient.on('engineStatus', (status) => {
+      qrwc.emit('engineStatus', status)
     })
 
     logger.debug('Fetching components from QRC...')

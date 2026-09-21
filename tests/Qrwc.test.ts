@@ -7,6 +7,28 @@ import {
 import { ConnectionInitializationError } from '../src/connection/WebSocketConnection'
 import { jest } from '@jest/globals'
 
+// QRC pushes an unsolicited EngineStatus message on connect; readiness now gates
+// on it, so every mock core must send one when a client connects.
+const MOCK_ENGINE_STATUS = {
+  State: 'Active' as const,
+  DesignName: 'test design',
+  DesignCode: '1234567890',
+  IsRedundant: false,
+  IsEmulator: false
+}
+
+const pushEngineStatus = (
+  socket: { send: (data: string) => void },
+  params: object = MOCK_ENGINE_STATUS
+) =>
+  socket.send(
+    JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'EngineStatus',
+      params
+    })
+  )
+
 describe('Qrwc', () => {
   let mockServer: Server
   let mockSocket: WebSocket
@@ -69,6 +91,7 @@ describe('Qrwc', () => {
 
     // Set up server to respond to RPC requests
     mockServer.on('connection', (socket) => {
+      pushEngineStatus(socket)
       socket.on('message', (message) => {
         const data = JSON.parse(message as string)
 
@@ -114,24 +137,6 @@ describe('Qrwc', () => {
               result: {
                 Id: data.params.Id,
                 Changes: []
-              }
-            })
-          )
-        }
-
-        // Handle StatusGet
-        if (data.method === 'StatusGet') {
-          socket.send(
-            JSON.stringify({
-              id: data.id,
-              result: {
-                Platform: 'test core',
-                State: 'Active',
-                DesignName: 'test design',
-                DesignCode: '1234567890',
-                IsRedundant: false,
-                IsEmulator: false,
-                Status: { Code: 0, String: 'OK' }
               }
             })
           )
@@ -283,6 +288,7 @@ describe('Qrwc', () => {
     const emptyComponentsServer = new Server('ws://localhost:8081')
 
     emptyComponentsServer.on('connection', (socket) => {
+      pushEngineStatus(socket)
       socket.on('message', (message) => {
         const data = JSON.parse(message as string)
 
@@ -304,24 +310,6 @@ describe('Qrwc', () => {
               result: {
                 Id: data.params.Id,
                 Changes: []
-              }
-            })
-          )
-        }
-
-        // Handle StatusGet
-        if (data.method === 'StatusGet') {
-          socket.send(
-            JSON.stringify({
-              id: data.id,
-              result: {
-                Platform: 'test core',
-                State: 'Active',
-                DesignName: 'test design',
-                DesignCode: '1234567890',
-                IsRedundant: false,
-                IsEmulator: false,
-                Status: { Code: 0, String: 'OK' }
               }
             })
           )
@@ -435,30 +423,17 @@ describe('Qrwc', () => {
 
     qrwc = await Qrwc.createQrwc(options)
 
-    expect(qrwc.engineStatus?.Platform).toBe('test core')
     expect(qrwc.engineStatus?.State).toBe('Active')
     expect(qrwc.engineStatus?.DesignName).toBe('test design')
     expect(qrwc.engineStatus?.DesignCode).toBe('1234567890')
     expect(qrwc.engineStatus?.IsRedundant).toBe(false)
     expect(qrwc.engineStatus?.IsEmulator).toBe(false)
-    expect(qrwc.engineStatus?.Status?.Code).toBe(0)
-    expect(qrwc.engineStatus?.Status?.String).toBe('OK')
   })
 })
 
 // Managed mode connects to wss://<host>/qrc-public-api/v0.
 const MANAGED_HOST = 'localhost'
 const MANAGED_URL = 'wss://localhost/qrc-public-api/v0'
-
-const statusResult = {
-  Platform: 'test core',
-  State: 'Active',
-  DesignName: 'test design',
-  DesignCode: '1',
-  IsRedundant: false,
-  IsEmulator: false,
-  Status: { Code: 0, String: 'OK' }
-}
 
 const managedComponents = [
   {
@@ -490,14 +465,12 @@ const controlsByComponent: Record<string, any> = {
 // Wire a mock Q-SYS core onto a server; onAddControl observes re-registration.
 const wireCore = (server: Server, onAddControl?: (params: any) => void) => {
   server.on('connection', (socket) => {
+    pushEngineStatus(socket)
     socket.on('message', (raw) => {
       const request = JSON.parse(raw as string)
       const reply = (result: unknown) =>
         socket.send(JSON.stringify({ jsonrpc: '2.0', id: request.id, result }))
       switch (request.method) {
-        case 'StatusGet':
-          reply(statusResult)
-          break
         case 'Component.GetComponents':
           reply(managedComponents)
           break
@@ -559,6 +532,65 @@ describe('Qrwc (managed mode)', () => {
     qrwc.close()
   })
 
+  it('waits for EngineStatus before sending RPCs (QRC readiness quirk)', async () => {
+    // Simulate a quirk with QRC: the Core Manager proxy accepts the socket before the
+    // core can serve requests. A not-ready core just drops the connection.
+    let coreReady = false
+    const earlyRpcs: string[] = []
+    const server = startServer()
+    server.on('connection', (socket) => {
+      socket.on('message', (raw) => {
+        const request = JSON.parse(raw as string)
+        if (!coreReady) {
+          earlyRpcs.push(request.method)
+          socket.close()
+          return
+        }
+        const reply = (result: unknown) =>
+          socket.send(
+            JSON.stringify({ jsonrpc: '2.0', id: request.id, result })
+          )
+        switch (request.method) {
+          case 'Component.GetComponents':
+            reply(managedComponents)
+            break
+          case 'Component.GetControls':
+            reply(controlsByComponent[request.params.Name])
+            break
+          case 'ChangeGroup.AddComponentControl':
+            reply({
+              Id: request.params.Id,
+              Controls: request.params.Component.Controls.map(
+                (c: any) => c.Name
+              )
+            })
+            break
+          case 'ChangeGroup.Poll':
+            reply({ Id: request.params.Id, Changes: [] })
+            break
+        }
+      })
+      // The core becomes ready shortly after the proxy accepts the socket.
+      setTimeout(() => {
+        coreReady = true
+        pushEngineStatus(socket)
+      }, 50)
+    })
+
+    const qrwc = await Qrwc.createQrwc({
+      host: MANAGED_HOST,
+      apiKey: 'test-api-key',
+      pollingInterval: 100,
+      reconnect: { delay: 20, maxDelay: 20 }
+    })
+
+    // Nothing threw, and QRWC sent no RPC until the core was ready.
+    expect(earlyRpcs).toHaveLength(0)
+    expect(qrwc.engineStatus.State).toBe('Active')
+    expect(qrwc.components.Gain1).toBeDefined()
+    qrwc.close()
+  })
+
   it('re-registers controls and emits reconnected after a drop', async () => {
     const addControlCalls: any[] = []
     const server = startServer()
@@ -585,6 +617,57 @@ describe('Qrwc (managed mode)', () => {
 
     // the control was re-added to the core's fresh session
     expect(addControlCalls.length).toBeGreaterThan(registrationsAtStartup)
+    qrwc.close()
+  })
+
+  it('auto-updates engineStatus and emits when the core pushes a change', async () => {
+    let coreSocket: { send: (data: string) => void }
+    const server = startServer()
+    wireCore(server)
+    server.on('connection', (socket) => {
+      coreSocket = socket
+    })
+
+    const qrwc = await Qrwc.createQrwc({
+      host: MANAGED_HOST,
+      apiKey: 'test-api-key',
+      pollingInterval: 100,
+      reconnect: { delay: 20, maxDelay: 20 }
+    })
+    expect(qrwc.engineStatus.State).toBe('Active')
+
+    const changed = new Promise((resolve) => qrwc.on('engineStatus', resolve))
+    pushEngineStatus(coreSocket!, { ...MOCK_ENGINE_STATUS, State: 'Standby' })
+
+    await expect(changed).resolves.toMatchObject({ State: 'Standby' })
+    expect(qrwc.engineStatus.State).toBe('Standby')
+    qrwc.close()
+  })
+
+  it('reports engineStatus Disconnected while the connection is down', async () => {
+    const server = startServer()
+    wireCore(server)
+
+    const qrwc = await Qrwc.createQrwc({
+      host: MANAGED_HOST,
+      apiKey: 'test-api-key',
+      pollingInterval: 100,
+      reconnect: {
+        delay: 500,
+        maxDelay: 500,
+        backoffFactor: 1,
+        maxAttempts: 20
+      }
+    })
+    expect(qrwc.engineStatus.State).toBe('Active')
+
+    const disconnectedStatus = new Promise((resolve) =>
+      qrwc.on('engineStatus', resolve)
+    )
+    server.close()
+
+    await expect(disconnectedStatus).resolves.toEqual({ State: 'Disconnected' })
+    expect(qrwc.engineStatus.State).toBe('Disconnected')
     qrwc.close()
   })
 })

@@ -1,6 +1,7 @@
 import type {
   IConnection,
   IConnectionEvents,
+  IEngineStatus,
   ILogger,
   IReconnectOptions,
   IWebSocket
@@ -43,6 +44,7 @@ export class ManagedConnection
     private readonly host: string,
     private readonly dispatcher: unknown,
     private readonly timeout: number,
+    private readonly apiKey: string | undefined,
     reconnect?: IReconnectOptions
   ) {
     super()
@@ -57,6 +59,7 @@ export class ManagedConnection
     host: string,
     dispatcher: unknown,
     timeout: number,
+    apiKey: string | undefined,
     reconnect?: IReconnectOptions
   ) => {
     const connection = new ManagedConnection(
@@ -64,10 +67,15 @@ export class ManagedConnection
       host,
       dispatcher,
       timeout,
+      apiKey,
       reconnect
     )
     await connection.connect()
     return connection
+  }
+
+  public get engineStatus(): IEngineStatus {
+    return this.transport?.engineStatus ?? { State: 'Disconnected' }
   }
 
   private connect = async (): Promise<void> => {
@@ -93,6 +101,9 @@ export class ManagedConnection
       this.emit('disconnected', reason)
       this.reconnect()
     })
+    transport.on('engineStatus', (status) => {
+      this.emit('engineStatus', status)
+    })
     this.transport = transport
   }
 
@@ -108,7 +119,8 @@ export class ManagedConnection
         return await WebSocketConnection.createWebSocketConnection(
           this.logger,
           socket,
-          this.timeout
+          this.timeout,
+          this.apiKey
         )
       } catch (error) {
         socket.close()

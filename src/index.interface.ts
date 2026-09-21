@@ -66,6 +66,18 @@ export interface IStatusGetResult {
   Status: { Code: number; String: string }
 }
 
+// QRC pushes `EngineStatus` when a client connects and again whenever the core
+// status changes.
+export type IEngineStatus = {
+  State: 'Idle' | 'Active' | 'Standby' | 'Disconnected'
+  DesignName?: string
+  DesignCode?: string
+  IsRedundant?: boolean
+  IsEmulator?: boolean
+  Platform?: string
+  Status?: { Code: number; String: string }
+}
+
 /**
  * Component.GetComponents RPC types
  */
@@ -265,6 +277,7 @@ export interface IQrwcEvents<T extends IQrwcExpandedGenericParameter> {
   error: (event: Error) => void
   disconnected: (reason: string) => void
   reconnected: () => void
+  engineStatus: (status: IEngineStatus) => void
 }
 
 export interface IConnectionEvents {
@@ -273,6 +286,7 @@ export interface IConnectionEvents {
   disconnected: (reason: string) => void
   reconnected: () => void
   closed: (reason: string) => void
+  engineStatus: (status: IEngineStatus) => void
 }
 
 export interface IQrcClientEvents {
@@ -281,11 +295,14 @@ export interface IQrcClientEvents {
   disconnected: (reason: string) => void
   reconnected: () => void
   closed: (reason: string) => void
+  engineStatus: (status: IEngineStatus) => void
 }
 
 export interface IConnection extends IEventEmitter<IConnectionEvents> {
   send: (data: string) => void
   close: () => void
+  // Latest status pushed by the core; defined once the connection is ready.
+  readonly engineStatus: IEngineStatus
 }
 
 /**

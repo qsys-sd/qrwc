@@ -12,6 +12,23 @@ const emptyLogger = {
 
 const URL = 'ws://localhost:9300'
 
+// Readiness gates on the core's unsolicited EngineStatus push, so mock cores
+// must send one when a client connects.
+const pushEngineStatus = (socket: { send: (data: string) => void }) =>
+  socket.send(
+    JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'EngineStatus',
+      params: {
+        State: 'Active',
+        DesignName: 'test design',
+        DesignCode: '1',
+        IsRedundant: false,
+        IsEmulator: false
+      }
+    })
+  )
+
 describe('UnmanagedConnection', () => {
   let servers: Server[]
 
@@ -39,6 +56,7 @@ describe('UnmanagedConnection', () => {
   it('forwards message events from the caller-provided socket', async () => {
     const server = startServer()
     server.on('connection', (socket) => {
+      pushEngineStatus(socket)
       socket.on('message', () => socket.send('pong'))
     })
 
@@ -56,6 +74,7 @@ describe('UnmanagedConnection', () => {
 
   it('emits only a terminal closed (never disconnected/reconnected) when the socket drops', async () => {
     const server = startServer()
+    server.on('connection', (socket) => pushEngineStatus(socket))
     const connection = await UnmanagedConnection.createUnmanagedConnection(
       emptyLogger,
       new WebSocket(URL) as any,
