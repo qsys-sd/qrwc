@@ -20,7 +20,7 @@ import { QrcClient } from '../connection/QrcClient.js'
 export class Qrwc<
   T extends IQrwcExpandedGenericParameter = IQrwcExpandedGenericParameter
 > extends EventEmitter<IQrwcEvents<T>> {
-  // temporary value--overwritten in createQrwc
+  // overwritten in createQrwc; a returned instance always has it populated
   private _components: Readonly<Record<string, Component<T, string>>> =
     Object.freeze({})
   private constructor(
@@ -54,7 +54,11 @@ export class Qrwc<
    * @public
    */
   get engineStatus(): Readonly<IEngineStatus> {
-    return Object.freeze({ ...this.qrcClient.engineStatus })
+    return Object.freeze(
+      this.qrcClient
+        ? { ...this.qrcClient?.engineStatus }
+        : { State: 'Disconnected' }
+    )
   }
 
   /**
@@ -66,7 +70,7 @@ export class Qrwc<
    * @param {number} [options.pollingInterval] - Interval in milliseconds for polling the change group
    * @param {(state: IComponentState) => boolean} [options.componentFilter] - Function to filter components in design
    * @param {number} [options.timeout] - Timeout in milliseconds for websocket messages
-   * @returns {Promise<Qrwc>} A fully initialized Qrwc instance
+   * @returns {Promise<Qrwc | undefined>} A fully initialized Qrwc instance, or `undefined` if the connection or component fetch fails (the error is logged, not thrown)
    * @public
    * @static
    */
@@ -74,7 +78,9 @@ export class Qrwc<
     T extends
       | IQrwcExpandedGenericParameter
       | IQrwcSimpleGenericParameter = IQrwcExpandedGenericParameter
-  >(options: IStartOptions): Promise<Qrwc<INormalizedQrwcParameter<T>>> {
+  >(
+    options: IStartOptions
+  ): Promise<Qrwc<INormalizedQrwcParameter<T>> | undefined> {
     const {
       logger: partialLogger = {},
       pollingInterval,
@@ -107,7 +113,14 @@ export class Qrwc<
     logger.info('Initializing QRWC')
     logger.debug('Connecting to QRC...')
 
-    const qrcClient = await QrcClient.createQrcClient(logger, options)
+    let qrcClient: QrcClient
+
+    try {
+      qrcClient = await QrcClient.createQrcClient(logger, options)
+    } catch (error) {
+      logger.error(error)
+      return
+    }
 
     logger.debug('QRC is ready.')
 
@@ -187,20 +200,16 @@ export class Qrwc<
         logger.info('No components found.')
       }
     } catch (error) {
-      // we should log here instead of emitting b/c this is before the client app
-      // has had a chance to listen to qrwc's error event
       const message = 'Failed to fetch components from Q-SYS core.'
-      // tear down the connection so a managed socket can't keep reconnecting
+      // tear down so a managed socket can't keep reconnecting to a dead instance
       qrwc.close()
       if (error instanceof Error) {
         error.message = `${message}\n${error.message}`
         logger.error(error.message)
-        throw error
       } else {
-        const errorObj = new Error(`${message}\n${error}`)
-        logger.error(errorObj.message)
-        throw errorObj
+        logger.error(`${message}\n${error}`)
       }
+      return
     }
 
     const finishTime = Date.now()

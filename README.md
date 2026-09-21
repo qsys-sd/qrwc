@@ -32,10 +32,15 @@ const qrwc = await Qrwc.createQrwc<{
   pollingInterval: 350 // Optional: polling interval in milliseconds (default: 350)
 })
 
+// createQrwc resolves to undefined if it can't connect or fetch the design
+if (!qrwc) {
+  throw new Error('QRWC failed to connect')
+}
+
 // note that QRWC will only have access to components that have been marked as scriptable
 
 // grab the EventEmitter for the control you care about
-const gain0 = qrwc.components.Gain.controls.gain // Control
+const gain0 = qrwc.components.Gain_0.controls.gain // Control
 const gain1 = qrwc.components.Gain_1.controls.gain // Control
 
 // only names declared in the generic parameter are accessible;
@@ -126,8 +131,10 @@ const qrwc = await Qrwc.createQrwc<{
   Gain_1: 'gain'
 }>({ host })
 
-qrwc.components.Gain.controls.mute // Control
-qrwc.components.Gain.controls.gain.state // IControlState
+if (!qrwc) throw new Error('QRWC failed to connect')
+
+qrwc.components.Gain_0.controls.mute // Control
+qrwc.components.Gain_0.controls.gain.state // IControlState
 ```
 
 Every control's `state` is the generic `IControlState`, and every control is read/write (has `update()`).
@@ -165,6 +172,8 @@ type MyDesign = {
 }
 
 const qrwc = await Qrwc.createQrwc<MyDesign>({ host })
+
+if (!qrwc) throw new Error('QRWC failed to connect')
 
 qrwc.components.Gain.controls.gain.state.Value // number (not number | undefined)
 await qrwc.components.Gain.controls.gain.update(0.5) // ok — Read/Write

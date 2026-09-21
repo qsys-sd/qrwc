@@ -5,8 +5,10 @@ const test = async () => {
   const socket = new WebSocket('ws://localhost:3101')
 
   const qrwc = await Qrwc.createQrwc({ socket, apiKey: 'test' })
-  if (qrwc.components.TestComponent1 && testElement) {
-    testElement.textContent = qrwc.components.TestComponent1.name
+  if (testElement) {
+    // A startup failure (undefined qrwc) sets a non-matching value so the harness fails fast.
+    testElement.textContent =
+      qrwc?.components.TestComponent1?.name ?? 'STARTUP_FAILURE'
     testElement.click()
   }
 }

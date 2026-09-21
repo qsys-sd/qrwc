@@ -28,8 +28,8 @@ async function optionsTypeTest() {
   void Qrwc.createQrwc({ host: '192.168.1.1', socket, apiKey: 'k' })
 
   const qrwc = await Qrwc.createQrwc({ host: '192.168.1.1', apiKey: 'k' })
-  qrwc.on('reconnected', () => undefined)
-  qrwc.on('disconnected', (reason) => expectToBe<string>(reason))
+  qrwc?.on('reconnected', () => undefined)
+  qrwc?.on('disconnected', (reason) => expectToBe<string>(reason))
 }
 
 describe('createQrwc start options', () => {

@@ -26,6 +26,8 @@ const options = {} as IStartOptions
 
 async function expandedFormatTest() {
   const qrwc = await Qrwc.createQrwc<QRWC_Expanded_Type>(options)
+  // createQrwc resolves to void on failure; narrow to the instance for typing
+  if (!qrwc) return
 
   // --- components: keyed by their exact literal names (non-optional) ---
   expectToBe<Component<QRWC_Expanded_Type, 'Gain_0'>>(qrwc.components.Gain_0)
@@ -104,6 +106,7 @@ async function expandedFormatTest() {
 
 async function simpleFormatTest() {
   const qrwc = await Qrwc.createQrwc<QRWC_Simple_Type>(options)
+  if (!qrwc) return
 
   // The simple format is normalized to the expanded shape internally.
   type Normalized = INormalizedQrwcParameter<QRWC_Simple_Type>
@@ -146,6 +149,7 @@ async function simpleFormatTest() {
 async function defaultFormatTest() {
   // No generic parameter: T defaults to IQrwcExpandedGenericParameter.
   const qrwc = await Qrwc.createQrwc(options)
+  if (!qrwc) return
   expectToBe<Qrwc<IQrwcExpandedGenericParameter>>(qrwc)
 
   // --- any component/control name is allowed, but resolves to `| undefined` ---

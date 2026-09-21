@@ -4,7 +4,6 @@ import {
   IComponentGetComponentsResult,
   IStartOptions
 } from '../src/index.interface'
-import { ConnectionInitializationError } from '../src/connection/WebSocketConnection'
 import { jest } from '@jest/globals'
 
 // QRC pushes an unsolicited EngineStatus message on connect; readiness now gates
@@ -32,7 +31,7 @@ const pushEngineStatus = (
 describe('Qrwc', () => {
   let mockServer: Server
   let mockSocket: WebSocket
-  let qrwc: Qrwc
+  let qrwc: Qrwc | undefined
 
   // Mock component data that would be returned from the core
   const mockComponents: IComponentGetComponentsResult[] = [
@@ -167,23 +166,23 @@ describe('Qrwc', () => {
     qrwc = await Qrwc.createQrwc(options)
 
     // Verify components were properly loaded
-    expect(Object.keys(qrwc.components)).toHaveLength(2)
-    expect(qrwc.components.TestComponent1).toBeDefined()
-    expect(qrwc.components.TestComponent2).toBeDefined()
+    expect(Object.keys(qrwc?.components ?? {})).toHaveLength(2)
+    expect(qrwc?.components.TestComponent1).toBeDefined()
+    expect(qrwc?.components.TestComponent2).toBeDefined()
 
     // Verify component properties
-    expect(qrwc.components.TestComponent1?.name).toBe('TestComponent1')
-    expect(qrwc.components.TestComponent2?.name).toBe('TestComponent2')
+    expect(qrwc?.components.TestComponent1?.name).toBe('TestComponent1')
+    expect(qrwc?.components.TestComponent2?.name).toBe('TestComponent2')
 
     // Verify controls were properly loaded
-    expect(qrwc.components.TestComponent1?.controls.control1).toBeDefined()
-    expect(qrwc.components.TestComponent2?.controls.control2).toBeDefined()
+    expect(qrwc?.components.TestComponent1?.controls.control1).toBeDefined()
+    expect(qrwc?.components.TestComponent2?.controls.control2).toBeDefined()
 
     // Verify control properties
-    expect(qrwc.components.TestComponent1?.controls.control1!.name).toBe(
+    expect(qrwc?.components.TestComponent1?.controls.control1!.name).toBe(
       'control1'
     )
-    expect(qrwc.components.TestComponent2?.controls.control2!.name).toBe(
+    expect(qrwc?.components.TestComponent2?.controls.control2!.name).toBe(
       'control2'
     )
   })
@@ -200,9 +199,9 @@ describe('Qrwc', () => {
     qrwc = await Qrwc.createQrwc(options)
 
     // Verify only the filtered component was loaded
-    expect(Object.keys(qrwc.components)).toHaveLength(1)
-    expect(qrwc.components.TestComponent1).toBeDefined()
-    expect(qrwc.components.TestComponent2).toBeUndefined()
+    expect(Object.keys(qrwc?.components ?? {})).toHaveLength(1)
+    expect(qrwc?.components.TestComponent1).toBeDefined()
+    expect(qrwc?.components.TestComponent2).toBeUndefined()
   })
 
   it('should emit error events when errors occur', async () => {
@@ -217,10 +216,10 @@ describe('Qrwc', () => {
 
     // Set up a mock error listener
     const errorListener = jest.fn<(event: Error) => void>()
-    qrwc.on('error', errorListener)
+    qrwc?.on('error', errorListener)
 
     // Simulate an error surfaced by the QrcClient
-    qrwc['qrcClient'].emit('error', new Error('Test error'))
+    qrwc?.['qrcClient'].emit('error', new Error('Test error'))
 
     // Verify the error event was emitted with the correct error
     expect(errorListener).toHaveBeenCalledWith(expect.any(Error))
@@ -239,10 +238,10 @@ describe('Qrwc', () => {
 
     // Set up a mock disconnected listener
     const disconnectedListener = jest.fn()
-    qrwc.on('disconnected', disconnectedListener)
+    qrwc?.on('disconnected', disconnectedListener)
 
     // Simulate WebSocket close
-    qrwc['qrcClient'].emit('disconnected', 'Connection closed')
+    qrwc?.['qrcClient'].emit('disconnected', 'Connection closed')
 
     // Verify the disconnected event was emitted
     expect(disconnectedListener).toHaveBeenCalledWith('Connection closed')
@@ -259,28 +258,28 @@ describe('Qrwc', () => {
     qrwc = await Qrwc.createQrwc(options)
 
     // Set up spies
-    jest.spyOn(qrwc['changeGroup'], 'stopPolling')
-    jest.spyOn(qrwc['changeGroup'], 'close')
-    jest.spyOn(qrwc['qrcClient'], 'close')
-    jest.spyOn(qrwc, 'removeAllListeners')
+    jest.spyOn((qrwc as Qrwc)['changeGroup'], 'stopPolling')
+    jest.spyOn((qrwc as Qrwc)['changeGroup'], 'close')
+    jest.spyOn((qrwc as Qrwc)['qrcClient'], 'close')
+    jest.spyOn(qrwc as Qrwc, 'removeAllListeners')
 
     // Mock component close methods
-    const component1 = qrwc.components.TestComponent1!
-    const component2 = qrwc.components.TestComponent2!
+    const component1 = (qrwc as Qrwc).components.TestComponent1!
+    const component2 = (qrwc as Qrwc).components.TestComponent2!
     jest.spyOn(component1, 'close')
     jest.spyOn(component2, 'close')
 
     // Call close
-    qrwc.close()
+    qrwc?.close()
 
     // Verify everything was cleaned up
-    expect(qrwc['changeGroup'].stopPolling).toHaveBeenCalled()
-    expect(qrwc['changeGroup'].close).toHaveBeenCalled()
-    expect(qrwc['qrcClient'].close).toHaveBeenCalled()
-    expect(qrwc.removeAllListeners).toHaveBeenCalled()
+    expect(qrwc?.['changeGroup'].stopPolling).toHaveBeenCalled()
+    expect(qrwc?.['changeGroup'].close).toHaveBeenCalled()
+    expect(qrwc?.['qrcClient'].close).toHaveBeenCalled()
+    expect(qrwc?.removeAllListeners).toHaveBeenCalled()
     expect(component1.close).toHaveBeenCalled()
     expect(component2.close).toHaveBeenCalled()
-    expect(Object.keys(qrwc['_components'])).toHaveLength(0)
+    expect(Object.keys(qrwc?.['_components'] ?? {})).toHaveLength(0)
   })
 
   it('should gracefully handle connecting to a design with no components', async () => {
@@ -329,29 +328,63 @@ describe('Qrwc', () => {
       })
 
       // Verify components object exists but is empty
-      expect(emptyQrwc.components).toBeDefined()
-      expect(Object.keys(emptyQrwc.components)).toHaveLength(0)
+      expect(emptyQrwc?.components).toBeDefined()
+      expect(Object.keys(emptyQrwc?.components ?? {})).toHaveLength(0)
 
       // Clean up
-      emptyQrwc.close()
+      emptyQrwc?.close()
     } finally {
       emptyComponentsServer.stop()
     }
   })
 
-  it('Websocket connection fail should throw an informative error', async () => {
-    // Create a WebSocket that won't connect
-    const failingSocket = new WebSocket('ws://non-existent-server:9999')
+  it('resolves to void when fetching components fails', async () => {
+    const failingComponentsServer = new Server('ws://localhost:8082')
 
-    // Expect QRWC creation to reject with a connection-initialization error
-    await expect(
-      Qrwc.createQrwc({
+    failingComponentsServer.on('connection', (socket) => {
+      pushEngineStatus(socket)
+      socket.on('message', (message) => {
+        const data = JSON.parse(message as string)
+        if (data.method === 'Component.GetComponents') {
+          socket.send(
+            JSON.stringify({
+              id: data.id,
+              error: { code: -32600, message: 'nope' }
+            })
+          )
+        }
+      })
+    })
+
+    const failingSocket = new WebSocket('ws://localhost:8082')
+
+    try {
+      const failedQrwc = await Qrwc.createQrwc({
         socket: failingSocket,
         apiKey: 'test-api-key',
         pollingInterval: 100,
-        timeout: 100
+        timeout: 200
       })
-    ).rejects.toBeInstanceOf(ConnectionInitializationError)
+
+      expect(failedQrwc).toBeUndefined()
+    } finally {
+      failingComponentsServer.stop()
+    }
+  })
+
+  it('resolves to void when the connection fails', async () => {
+    // Create a WebSocket that won't connect
+    const failingSocket = new WebSocket('ws://non-existent-server:9999')
+
+    // createQrwc resolves to void rather than throwing when it can't connect
+    const failedQrwc = await Qrwc.createQrwc({
+      socket: failingSocket,
+      apiKey: 'test-api-key',
+      pollingInterval: 100,
+      timeout: 100
+    })
+
+    expect(failedQrwc).toBeUndefined()
 
     // Clean up
     failingSocket.close()
@@ -398,7 +431,7 @@ describe('Qrwc', () => {
       expect(mockLogger.trace).toHaveBeenCalled()
 
       // Test that the logger is used during cleanup
-      qrwc.close()
+      qrwc?.close()
 
       // Verify that console.log and console.info were NOT used
       expect(consoleLogSpy).not.toHaveBeenCalled()
@@ -423,11 +456,11 @@ describe('Qrwc', () => {
 
     qrwc = await Qrwc.createQrwc(options)
 
-    expect(qrwc.engineStatus?.State).toBe('Active')
-    expect(qrwc.engineStatus?.DesignName).toBe('test design')
-    expect(qrwc.engineStatus?.DesignCode).toBe('1234567890')
-    expect(qrwc.engineStatus?.IsRedundant).toBe(false)
-    expect(qrwc.engineStatus?.IsEmulator).toBe(false)
+    expect(qrwc?.engineStatus?.State).toBe('Active')
+    expect(qrwc?.engineStatus?.DesignName).toBe('test design')
+    expect(qrwc?.engineStatus?.DesignCode).toBe('1234567890')
+    expect(qrwc?.engineStatus?.IsRedundant).toBe(false)
+    expect(qrwc?.engineStatus?.IsEmulator).toBe(false)
   })
 })
 
@@ -526,10 +559,10 @@ describe('Qrwc (managed mode)', () => {
       reconnect: { delay: 20, maxDelay: 20 }
     })
 
-    expect(qrwc.engineStatus.DesignName).toBe('test design')
-    expect(qrwc.components.Gain1).toBeDefined()
-    expect(qrwc.components.Gain1!.controls.gain).toBeDefined()
-    qrwc.close()
+    expect(qrwc?.engineStatus.DesignName).toBe('test design')
+    expect(qrwc?.components.Gain1).toBeDefined()
+    expect(qrwc?.components.Gain1!.controls.gain).toBeDefined()
+    qrwc?.close()
   })
 
   it('waits for EngineStatus before sending RPCs (QRC readiness quirk)', async () => {
@@ -586,9 +619,9 @@ describe('Qrwc (managed mode)', () => {
 
     // Nothing threw, and QRWC sent no RPC until the core was ready.
     expect(earlyRpcs).toHaveLength(0)
-    expect(qrwc.engineStatus.State).toBe('Active')
-    expect(qrwc.components.Gain1).toBeDefined()
-    qrwc.close()
+    expect(qrwc?.engineStatus.State).toBe('Active')
+    expect(qrwc?.components.Gain1).toBeDefined()
+    qrwc?.close()
   })
 
   it('re-registers controls and emits reconnected after a drop', async () => {
@@ -607,7 +640,7 @@ describe('Qrwc (managed mode)', () => {
     expect(registrationsAtStartup).toBeGreaterThanOrEqual(1)
 
     const reconnected = new Promise<void>((resolve) =>
-      qrwc.on('reconnected', () => resolve())
+      qrwc?.on('reconnected', () => resolve())
     )
     server.close()
     const server2 = startServer()
@@ -617,7 +650,7 @@ describe('Qrwc (managed mode)', () => {
 
     // the control was re-added to the core's fresh session
     expect(addControlCalls.length).toBeGreaterThan(registrationsAtStartup)
-    qrwc.close()
+    qrwc?.close()
   })
 
   it('auto-updates engineStatus and emits when the core pushes a change', async () => {
@@ -634,14 +667,14 @@ describe('Qrwc (managed mode)', () => {
       pollingInterval: 100,
       reconnect: { delay: 20, maxDelay: 20 }
     })
-    expect(qrwc.engineStatus.State).toBe('Active')
+    expect(qrwc?.engineStatus.State).toBe('Active')
 
-    const changed = new Promise((resolve) => qrwc.on('engineStatus', resolve))
+    const changed = new Promise((resolve) => qrwc?.on('engineStatus', resolve))
     pushEngineStatus(coreSocket!, { ...MOCK_ENGINE_STATUS, State: 'Standby' })
 
     await expect(changed).resolves.toMatchObject({ State: 'Standby' })
-    expect(qrwc.engineStatus.State).toBe('Standby')
-    qrwc.close()
+    expect(qrwc?.engineStatus.State).toBe('Standby')
+    qrwc?.close()
   })
 
   it('reports engineStatus Disconnected while the connection is down', async () => {
@@ -659,15 +692,15 @@ describe('Qrwc (managed mode)', () => {
         maxAttempts: 20
       }
     })
-    expect(qrwc.engineStatus.State).toBe('Active')
+    expect(qrwc?.engineStatus.State).toBe('Active')
 
     const disconnectedStatus = new Promise((resolve) =>
-      qrwc.on('engineStatus', resolve)
+      qrwc?.on('engineStatus', resolve)
     )
     server.close()
 
     await expect(disconnectedStatus).resolves.toEqual({ State: 'Disconnected' })
-    expect(qrwc.engineStatus.State).toBe('Disconnected')
-    qrwc.close()
+    expect(qrwc?.engineStatus.State).toBe('Disconnected')
+    qrwc?.close()
   })
 })
